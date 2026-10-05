@@ -1,0 +1,148 @@
+import { useEffect, useState } from 'react'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { Link2, FileUp, ArrowDownUp, UserSearch, Download } from 'lucide-react'
+import type { SortDir } from '@shared/types'
+import { call, ApiError } from '../../lib/api'
+import { useWorkspace } from '../../lib/workspace'
+import { Button, EmptyState, Input, Modal, Pills, useToast, cx } from '../../components/ui'
+import { MediaGrid } from '../../components/MediaGrid'
+import { useGridQuery } from './useGridQuery'
+import { emptySelection, toggleId, selectPage, selectionLabel, type Selection } from '../../lib/selection'
+import type { PageProps } from '../../routes'
+import { CaptionRibbon } from '../compose/CaptionRibbon'
+
+type Sort = 'views' | 'likes' | 'comments' | 'postedAt'
+
+export function ProfilesPage({ navigate }: PageProps) {
+  const { workspace } = useWorkspace()
+  const toast = useToast()
+  const qc = useQueryClient()
+  const profiles = useQuery({ queryKey: ['profiles', workspace.id], queryFn: () => call('profiles.list', { workspaceId: workspace.id }) })
+  const [activeId, setActiveId] = useState<string | null>(null)
+  const active = profiles.data?.find((p) => p.id === activeId) ?? profiles.data?.[0] ?? null
+  const [url, setUrl] = useState('')
+  const [urlError, setUrlError] = useState<string>()
+  const [reelOpen, setReelOpen] = useState(false)
+  const [reelUrl, setReelUrl] = useState('')
+  const [reelError, setReelError] = useState<string>()
+  const [sortBy, setSortBy] = useState<Sort>('views')
+  const [sortDir, setSortDir] = useState<SortDir>('desc')
+  const [text, setText] = useState('')
+  const [hashtag, setHashtag] = useState('')
+  const [minViews, setMinViews] = useState('')
+  const [selection, setSelection] = useState<Selection>(emptySelection())
+  const [downloadOpen, setDownloadOpen] = useState(false)
+  const [downloadLimit, setDownloadLimit] = useState('20')
+  const downloadStatus = useQuery({ queryKey: ['downloadStatus', workspace.id], queryFn: () => call('profiles.downloadStatus', { workspaceId: workspace.id }) })
+  const download = useMutation({
+    mutationFn: () => call('profiles.download', { workspaceId: workspace.id, profileId: active!.id, limit: Number(downloadLimit) }),
+    onSuccess: () => { setDownloadOpen(false); void qc.invalidateQueries(); toast.show({ title: 'Busca adicionada à fila', body: 'Os vídeos disponíveis serão baixados para a Biblioteca. Acompanhe na Fila.' }) },
+    onError: (e) => toast.show({ title: 'Não foi possível iniciar', body: e instanceof ApiError ? e.message : 'Tente novamente.', tone: 'error' })
+  })
+
+  const grid = useGridQuery({
+    workspaceId: workspace.id, source: 'remote', profileId: active?.id, sortBy, sortDir,
+    text: text || undefined, hashtag: hashtag || undefined, minViews: minViews ? Number(minViews) : undefined
+  }, Boolean(active))
+
+  useEffect(() => { setSelection(emptySelection()) }, [active?.id, sortBy, sortDir, text, hashtag, minViews])
+
+  const add = useMutation({
+    mutationFn: () => call('profiles.add', { workspaceId: workspace.id, url: url.trim() }),
+    onSuccess: (p) => { setUrl(''); setUrlError(undefined); setActiveId(p.id); void qc.invalidateQueries({ queryKey: ['profiles'] }) },
+    onError: (e) => setUrlError(e instanceof ApiError ? e.message : 'Não foi possível adicionar.')
+  })
+  const addReel = useMutation({
+    mutationFn: () => call('profiles.addReel', { workspaceId: workspace.id, profileId: active!.id, url: reelUrl }),
+    onSuccess: () => { setReelOpen(false); setReelUrl(''); setReelError(undefined); void qc.invalidateQueries() },
+    onError: (e) => setReelError(e instanceof ApiError ? e.message : 'Não foi possível adicionar.')
+  })
+  const importFile = useMutation({
+    mutationFn: () => call('profiles.importMetricsFile', { workspaceId: workspace.id, profileId: active!.id }),
+    onSuccess: (r) => {
+      if (!r) return
+      void qc.invalidateQueries()
+      const errors = r.rows.filter((x) => x.error)
+      toast.show({ title: `${r.upserted} posts atualizados`, body: errors.length ? `${errors.length} linha(s) ignorada(s): ${errors.slice(0, 3).map((x) => `linha ${x.line} (${x.error})`).join('; ')}` : undefined, tone: errors.length ? 'error' : 'info' })
+    },
+    onError: (e) => toast.show({ title: 'Importação falhou', body: e instanceof ApiError ? e.message : undefined, tone: 'error' })
+  })
+
+  return (
+    <div className="flex h-full">
+      <aside className="flex w-64 shrink-0 flex-col gap-3 border-r border-line p-4">
+        <form data-tour="profile-url" className="flex flex-col gap-2" onSubmit={(e) => { e.preventDefault(); if (url.trim()) add.mutate() }}>
+          <Input label="Link do perfil" placeholder="instagram.com/usuario" value={url} onChange={(e) => setUrl(e.target.value)} error={urlError} />
+          <Button type="submit" variant="primary">Adicionar perfil</Button>
+        </form>
+        <ul className="flex flex-col gap-0.5">
+          {profiles.data?.map((p) => (
+            <li key={p.id}>
+              <button type="button" onClick={() => setActiveId(p.id)} aria-current={active?.id === p.id}
+                className={cx('w-full rounded-ctl px-2.5 py-1.5 text-left text-sm', active?.id === p.id ? 'bg-raised text-fg' : 'text-dim hover:text-fg')}>
+                @{p.username}
+              </button>
+            </li>
+          ))}
+        </ul>
+      </aside>
+      <section data-tour="profiles-content" className="flex min-w-0 flex-1 flex-col gap-4 p-6">
+        {!active ? (
+          <EmptyState icon={<UserSearch size={28} />} title="Acompanhe um perfil" body="Cole o link de um perfil público do Instagram para buscar e baixar reels via Apify, ou importar links e métricas." />
+        ) : (
+          <>
+            <header className="flex flex-wrap items-center gap-3">
+              <div className="w-full">
+                <h1 className="text-lg font-semibold">@{active.username}</h1>
+                <p className="text-xs text-dim">{active.connected ? 'Conta conectada' : 'Perfil de terceiros. Busca e download de reels públicos via Apify.'} {grid.loadedNote}</p>
+                {active.lastSyncedAt && <p className="text-xs text-dim">Última busca: {new Date(active.lastSyncedAt).toLocaleString('pt-BR', { timeZone: workspace.timeZone })}</p>}
+              </div>
+              <Button icon={<Download size={14} />} onClick={() => setDownloadOpen(true)}>Baixar vídeos do perfil</Button>
+              <Button onClick={() => navigate('queue')}>Ver fila</Button>
+              <Button icon={<Link2 size={14} />} onClick={() => setReelOpen(true)}>Adicionar link de reel</Button>
+              <Button icon={<FileUp size={14} />} onClick={() => importFile.mutate()}>Importar métricas (CSV/JSON)</Button>
+            </header>
+            <div className="flex flex-wrap items-end gap-2">
+              <Pills<Sort> label="Ordenar" value={sortBy} onChange={setSortBy} options={[
+                { value: 'views', label: 'Mais vistos' }, { value: 'likes', label: 'Mais curtidos' },
+                { value: 'comments', label: 'Mais comentados' }, { value: 'postedAt', label: 'Mais recentes' }
+              ]} />
+              <Button size="sm" variant="ghost" icon={<ArrowDownUp size={12} />} onClick={() => setSortDir(sortDir === 'desc' ? 'asc' : 'desc')}>{sortDir === 'desc' ? 'Maior primeiro' : 'Menor primeiro'}</Button>
+              <div className="ml-auto flex items-end gap-2">
+                <Input aria-label="Texto na legenda" placeholder="Texto na legenda" value={text} onChange={(e) => setText(e.target.value)} className="w-40" />
+                <Input aria-label="Hashtag" placeholder="#hashtag" value={hashtag} onChange={(e) => setHashtag(e.target.value)} className="w-32" />
+                <Input aria-label="Mínimo de views" placeholder="Mín. views" inputMode="numeric" value={minViews} onChange={(e) => setMinViews(e.target.value.replace(/\D/g, ''))} className="w-28" />
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-dim">
+              <span>{selectionLabel(selection)}</span>
+              <Button size="sm" variant="ghost" onClick={() => setSelection(selectPage(selection, grid.items.map((i) => i.id)))}>Selecionar página</Button>
+            </div>
+            {grid.isError
+              ? <p className="text-sm text-danger-fg">Não foi possível carregar os posts. {grid.error instanceof ApiError ? grid.error.message : ''}</p>
+              : grid.items.length === 0 && !grid.isLoading
+              ? <EmptyState icon={null} title="Nenhum post ainda" body="Adicione links de reels ou importe um CSV com permalink, views, likes e comments." />
+              : <MediaGrid items={grid.items} loading={grid.isLoading} selection={selection}
+                  onToggleSelect={(id) => setSelection(toggleId(selection, id))}
+                  onOpen={(i) => i.permalink && window.open(i.permalink, '_blank')}
+                  onEndReached={grid.hasNextPage ? () => void grid.fetchNextPage() : undefined} />}
+            <CaptionRibbon key={active.id} profileId={active.id} defaultMode="ranked" navigate={navigate} />
+          </>
+        )}
+      </section>
+      <Modal open={downloadOpen} onOpenChange={setDownloadOpen} title="Baixar vídeos do perfil" description={`Buscar reels públicos de @${active?.username ?? ''} e salvar na Biblioteca.`}
+        footer={<><Button onClick={() => setDownloadOpen(false)}>Fechar</Button><Button variant="primary" disabled={!downloadStatus.data?.configured || download.isPending || !Number.isInteger(Number(downloadLimit)) || Number(downloadLimit) < 1 || Number(downloadLimit) > 100} onClick={() => download.mutate()}>{download.isPending ? 'Adicionando…' : 'Buscar e baixar'}</Button></>}>
+        <div className="flex flex-col gap-3">
+          <Input label="Máximo de vídeos" type="number" min={1} max={100} value={downloadLimit} onChange={(e) => setDownloadLimit(e.target.value)} />
+          <p className="text-sm text-dim">De 1 a 100 reels por busca. A Apify cobra conforme seu plano. O limite inclui vídeos já baixados; a busca pode retornar menos resultados. Os filtros e a seleção da grade não se aplicam a esta busca.</p>
+          <p className="text-sm text-dim">Cada download aparece na Fila. Arquivos já importados são reutilizados. Links expirados exigem uma nova busca do perfil.</p>
+          {!downloadStatus.data?.configured && <><p role="status" className="text-sm text-warn">{downloadStatus.isError ? 'Não foi possível verificar a configuração. Reabra esta tela para tentar novamente.' : downloadStatus.isLoading ? 'Verificando configuração…' : 'Cadastre a chave Apify na Visão geral. APIFY_TOKEN no ambiente também é aceito.'}</p><Button onClick={() => { setDownloadOpen(false); navigate('overview') }}>Configurar API na Visão geral</Button></>}
+        </div>
+      </Modal>
+      <Modal open={reelOpen} onOpenChange={(o) => { setReelOpen(o); if (!o) { setReelUrl(''); setReelError(undefined) } }} title="Adicionar link de reel" description="O link fica guardado como referência. O vídeo não é baixado."
+        footer={<><Button onClick={() => { setReelOpen(false); setReelUrl(''); setReelError(undefined) }}>Cancelar</Button><Button variant="primary" onClick={() => addReel.mutate()}>Adicionar</Button></>}>
+        <Input label="Link do reel" placeholder="instagram.com/reel/…" value={reelUrl} onChange={(e) => setReelUrl(e.target.value)} error={reelError} />
+      </Modal>
+    </div>
+  )
+}

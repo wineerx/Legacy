@@ -1,0 +1,10 @@
+node_modules/
+out/
+dist/
+.env
+*.sqlite
+resources/bin/
+test-results/
+playwright-report/
+*.tsbuildinfo
+.superpowers/

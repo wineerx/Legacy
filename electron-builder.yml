@@ -1,0 +1,26 @@
+appId: app.legacy.desktop
+productName: Legacy
+directories:
+  output: dist
+  buildResources: resources
+files:
+  - out/**
+  - package.json
+asarUnpack:
+  - node_modules/better-sqlite3/**
+extraResources:
+  - from: resources/bin/win32-x64
+    to: bin
+  - from: src/main/db/migrations
+    to: migrations
+  - from: resources/tray.png
+    to: tray.png
+win:
+  target: nsis
+  artifactName: Legacy-Setup-${version}.${ext}
+nsis:
+  oneClick: false
+  perMachine: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+publish: null

@@ -1,0 +1,167 @@
+import { test, expect, _electron as electron, type ElectronApplication, type Page } from '@playwright/test'
+import { mkdtempSync, mkdirSync, existsSync } from 'node:fs'
+import { join, resolve } from 'node:path'
+import { tmpdir } from 'node:os'
+import { execFileSync } from 'node:child_process'
+
+let app: ElectronApplication
+let page: Page
+const dataDir = mkdtempSync(join(tmpdir(), 'legacy-e2e-'))
+const video = join(dataDir, 'clip.mp4')
+
+test.beforeAll(async () => {
+  execFileSync(resolve('resources/bin/win32-x64/ffmpeg.exe'), ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=360x640:rate=30:duration=4', '-c:v', 'mpeg4', video])
+  app = await electron.launch({
+    executablePath: resolve('node_modules/electron/dist/electron.exe'),
+    args: [resolve('out/main/index.js')],
+    env: { ...process.env, APIFY_TOKEN: '', LEGACY_DISABLE_DESKTOP_NOTIFICATIONS: '1', LEGACY_DATA_DIR: join(dataDir, 'data') }
+  })
+  page = await app.firstWindow()
+})
+test.afterAll(async () => { await app.close() })
+
+test('abre na visão geral com checklist', async () => {
+  await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible()
+  await expect(page.getByText('Conectar Instagram')).toBeVisible()
+  await expect(page.getByText('Processador ativo')).toBeVisible()
+})
+
+test('importa vídeo e mostra card 9:16 com miniatura', async () => {
+  await page.getByRole('link', { name: 'Biblioteca' }).click()
+  const workspaceId = await page.evaluate(async () => {
+    const r = (await window.legacy.invoke('app.bootstrap', {})) as { data: { workspaces: { id: string }[] } }
+    return r.data.workspaces[0].id
+  })
+  await page.evaluate(async ([ws, p]) => window.legacy.invoke('library.importPaths', { workspaceId: ws, paths: [p] }), [workspaceId, video] as const)
+  const card = page.getByRole('article', { name: 'clip.mp4' })
+  await expect(card).toBeVisible({ timeout: 20_000 })
+  await expect(card.locator('img')).toBeVisible({ timeout: 30_000 })
+  await expect(card.getByLabel('Visualizações: indisponível')).toBeVisible()
+})
+
+test('perfil por link e reel guardado como referência', async () => {
+  await page.getByRole('link', { name: 'Perfis' }).click()
+  await page.getByLabel('Link do perfil').fill('instagram.com/perfil.teste')
+  await page.getByRole('button', { name: 'Adicionar perfil' }).click()
+  await expect(page.getByRole('heading', { name: '@perfil.teste' })).toBeVisible()
+  await expect(page.getByText(/Busca e download de reels públicos via Apify/)).toBeVisible()
+  await page.getByRole('button', { name: 'Adicionar link de reel' }).click()
+  await page.getByLabel('Link do reel').fill('https://www.instagram.com/reel/ABCDE12345/')
+  await page.getByRole('button', { name: 'Adicionar', exact: true }).click()
+  await expect(page.getByLabel('Visualizações: indisponível')).toBeVisible()
+})
+
+test('fila mostra a miniatura concluída', async () => {
+  await page.getByRole('link', { name: 'Fila' }).click()
+  await expect(page.getByText('Concluída').first()).toBeVisible({ timeout: 30_000 })
+})
+
+test('captura screenshots das telas principais', async () => {
+  for (const [nome, rotulo] of [['visao-geral', 'Visão geral'], ['biblioteca', 'Biblioteca'], ['perfis', 'Perfis'], ['fila', 'Fila'], ['configuracoes', 'Configurações']] as const) {
+    await page.getByRole('link', { name: rotulo }).click()
+    await page.waitForTimeout(400)
+    await page.screenshot({ path: `docs/screens/${nome}.png` })
+  }
+})
+
+test('configura pasta externa, importa e preserva miniatura após restaurar padrão', async () => {
+  const folder = join(dataDir, 'armazenamento-alternativo')
+  mkdirSync(folder)
+  // Only the native picker is stubbed; IPC, SQLite, import, worker and protocol are real.
+  await app.evaluate(({ dialog }, selected) => {
+    dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [selected] })
+  }, folder)
+  await page.getByRole('link', { name: 'Configurações' }).click()
+  await page.getByRole('button', { name: 'Alterar pasta dos vídeos' }).click()
+  await expect(page.getByText(/armazenamento-alternativo/).first()).toBeVisible()
+  const secondVideo = join(dataDir, 'outro.mp4')
+  execFileSync(resolve('resources/bin/win32-x64/ffmpeg.exe'), ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=360x640:rate=30:duration=2', '-c:v', 'mpeg4', secondVideo])
+  const result = await page.evaluate(async (source) => {
+    const boot = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }
+    const workspaceId = boot.data.workspaces[0].id
+    const storage = await window.legacy.invoke('storage.get', { workspaceId }) as { data: { path: string } }
+    const imported = await window.legacy.invoke('library.importPaths', { workspaceId, paths: [source] }) as { data: { assetId: string }[] }
+    return { path: storage.data.path, assetId: imported.data[0].assetId }
+  }, secondVideo)
+  expect(existsSync(join(result.path, result.assetId, 'original.mp4'))).toBe(true)
+  await page.getByRole('button', { name: 'Restaurar pasta padrão' }).click()
+  await expect(page.getByRole('button', { name: 'Restaurar pasta padrão' })).toBeDisabled()
+  await page.getByRole('link', { name: 'Biblioteca' }).click()
+  await expect(page.getByRole('article', { name: 'outro.mp4' }).locator('img')).toBeVisible({ timeout: 30000 })
+})
+
+test('download explica token ausente sem executar chamada externa', async () => {
+  await page.getByRole('link', { name: 'Perfis' }).click()
+  await page.getByRole('button', { name: 'Baixar vídeos do perfil' }).click()
+  await expect(page.getByText(/Cadastre a chave Apify/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Buscar e baixar' })).toBeDisabled()
+  await page.screenshot({ path: 'docs/screens/download-perfil.png' })
+  await page.getByRole('button', { name: 'Fechar', exact: true }).first().click()
+})
+
+test('configura chave Apify protegida e mantém webhook desativado', async () => {
+  await page.getByRole('link', { name: 'Visão geral' }).click()
+  await expect(page.getByRole('heading', { name: 'Métricas dos perfis' })).toBeVisible()
+  await page.getByRole('button', { name: 'Configurar Apify' }).click()
+  await page.getByLabel('Chave da API Apify').fill('apify_api_e2e_test')
+  await page.getByRole('button', { name: 'Salvar chave' }).click()
+  await expect(page.getByRole('button', { name: 'Testar chave salva' })).toBeEnabled()
+  await expect(page.getByLabel('Chave da API Apify')).toHaveValue('')
+  await page.getByRole('button', { name: 'Fechar', exact: true }).first().click()
+  const state = await page.evaluate(async () => {
+    const boot = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }
+    return window.legacy.invoke('integrations.get', { workspaceId: boot.data.workspaces[0].id }) as Promise<{ data: { apify: { configured: boolean }; webhook: { enabled: boolean } } }>
+  })
+  expect(state.data.apify.configured).toBe(true)
+  expect(state.data.webhook.enabled).toBe(false)
+  expect(JSON.stringify(state)).not.toContain('apify_api_e2e_test')
+  await page.getByRole('button', { name: 'Configurar webhooks' }).click()
+  await expect(page.getByRole('switch', { name: 'Ativar envios de webhook' })).not.toBeChecked()
+  await expect(page.getByRole('button', { name: 'Enviar evento de teste' })).toBeDisabled()
+  await page.screenshot({ path: 'docs/screens/webhooks.png' })
+  await page.getByRole('button', { name: 'Fechar', exact: true }).first().click()
+})
+
+test('tour navega, mantém foco, pausa com Escape e permite retomar', async () => {
+  await page.getByRole('link', { name: 'Tutoriais' }).click()
+  await page.getByRole('button', { name: 'Iniciar tour do Legacy' }).click()
+  const dialog = page.getByRole('dialog')
+  await expect(dialog.getByRole('heading', { name: 'Seu painel de operação' })).toBeVisible()
+  expect(await page.evaluate(() => Boolean(document.querySelector('[role="dialog"]')?.contains(document.activeElement)))).toBe(true)
+  await page.screenshot({ path: 'docs/screens/tutorial-tour.png' })
+  await dialog.getByRole('button', { name: 'Próximo' }).click()
+  await expect(dialog.getByRole('heading', { name: 'Prepare as APIs' })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Próximo' }).click()
+  await expect(dialog.getByRole('heading', { name: 'Adicione um perfil' })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(dialog).toHaveCount(0)
+  await page.getByRole('link', { name: 'Tutoriais' }).click()
+  await page.getByRole('button', { name: 'Retomar tour do Legacy' }).click()
+  await expect(dialog.getByRole('heading', { name: 'Adicione um perfil' })).toBeVisible()
+  await dialog.getByRole('button', { name: 'Pausar tutorial' }).click()
+})
+
+test('tutorial salva plano e referências e mostra ranking sem resultados fictícios', async () => {
+  await page.getByRole('link', { name: 'Tutoriais' }).click()
+  await page.getByLabel('Tema do perfil').fill('Curiosidades explicadas')
+  await page.getByLabel('Bio planejada').fill('Curiosidades com contexto e fontes')
+  await page.getByRole('button', { name: 'Salvar plano de perfil' }).click()
+  await expect(page.getByText('Plano de perfil salvo')).toBeVisible()
+  await page.getByRole('button', { name: 'Adicionar referência' }).first().click()
+  await expect(page.getByText('Referência adicionada aos Perfis')).toBeVisible()
+  await page.getByRole('button', { name: 'Reels em destaque' }).click()
+  await expect(page.getByText(/Ainda não há legendas com métricas disponíveis/)).toBeVisible()
+  await page.screenshot({ path: 'docs/screens/tutorial-guia.png', fullPage: true })
+  await page.getByRole('link', { name: 'Perfis' }).click()
+  await expect(page.getByRole('button', { name: '@peter.memes7', exact: true })).toBeVisible()
+  await page.getByRole('link', { name: 'Tutoriais' }).click()
+  await expect(page.getByLabel('Tema do perfil')).toHaveValue('Curiosidades explicadas')
+})
+
+test('modelos horizontais preenchem legenda base do editor', async () => {
+  await page.getByRole('link', { name: 'Biblioteca' }).click()
+  await page.getByRole('checkbox', { name: 'Selecionar clip.mp4' }).check()
+  await page.getByRole('button', { name: 'Preparar lote', exact: true }).click()
+  await page.getByRole('button', { name: 'Usar modelo', exact: true }).first().click()
+  await expect(page.getByLabel('Legenda base')).toHaveValue(/Qual parte mais te representa/)
+})

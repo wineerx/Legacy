@@ -1,0 +1,21 @@
+@theme {
+  --color-app: #0b0b0b;
+  --color-panel: #161616;
+  --color-side: #1a1a1a;
+  --color-raised: #262626;
+  --color-line: #3a3a3a;
+  --color-line-strong: #4a4a4a;
+  --color-fg: #ededed;
+  --color-dim: #9a9a9a;
+  --color-mute: #8a8a8a;
+  --color-danger: #a04444;
+  --color-danger-fg: #f2c9c9;
+  --color-ok: #4f9d69;
+  --color-warn: #c9a24a;
+  --radius-ctl: 8px;
+  --radius-card: 12px;
+  --font-sans: "Inter Variable", "Segoe UI", system-ui, sans-serif;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 14px;
+}
