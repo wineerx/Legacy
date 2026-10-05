@@ -18,7 +18,7 @@ export function MediaGrid({ items, loading, selection, onToggleSelect, onOpen, r
   }, [onEndReached, loading, items.length])
   return (
     <div>
-      <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))' }}>
+      <div className="grid min-w-0 gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 180px), 1fr))' }}>
         {items.map((it) => (
           <MediaCard916 key={it.id} item={it} selected={isSelected(selection, it.id)} onToggleSelect={onToggleSelect} onOpen={onOpen} actions={renderActions?.(it)} />
         ))}

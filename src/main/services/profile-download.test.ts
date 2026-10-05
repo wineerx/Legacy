@@ -11,11 +11,11 @@ import { jobs, remotePosts } from '../db/schema'
 import { leaseNext, listJobs } from '../queue/queue'
 import type { Ctx } from '../context'
 import { makeTestVideo } from '../media/test-fixtures'
-import { apifyJson, downloadVideo } from './download-http'
-import { fetchProfile, requestProfileDownload, runReelDownload } from './profile-download'
+import { apifyJson, downloadVideo, downloadPreview } from './download-http'
+import { fetchProfile, requestProfileDownload, runReelDownload, requestSelectedDownloads } from './profile-download'
 import { setVideoStorage } from './storage'
 
-vi.mock('./download-http', async (original) => ({ ...await original<typeof import('./download-http')>(), apifyJson: vi.fn(), downloadVideo: vi.fn() }))
+vi.mock('./download-http', async (original) => ({ ...await original<typeof import('./download-http')>(), apifyJson: vi.fn(), downloadVideo: vi.fn(), downloadPreview: vi.fn() }))
 let ctx: Ctx
 let ws: string
 let profileId: string
@@ -43,6 +43,20 @@ async function discover() {
 }
 
 describe('downloads de perfil', () => {
+  it('descobre fotos e vídeos com prévia sem baixar vídeos até a seleção', async () => {
+    requestProfileDownload(ctx, ws, profileId, 100, true)
+    const job = leaseNext(ctx.db, ctx.clock(), 60000)!
+    vi.mocked(apifyJson).mockResolvedValueOnce({ data: { id: 'run1', status: 'READY' } }).mockResolvedValueOnce({ data: { id: 'run1', status: 'SUCCEEDED', defaultDatasetId: 'ds1' } }).mockResolvedValueOnce([{ ...reel, displayUrl: 'https://scontent.cdninstagram.com/thumb.jpg' }, { url: 'https://www.instagram.com/p/PHOTO/', displayUrl: 'https://scontent.cdninstagram.com/photo.jpg', likesCount: 42 }])
+    await fetchProfile(ctx, job)
+    expect(apifyJson).toHaveBeenCalledWith(expect.stringContaining('instagram-scraper/runs'), 'test-token', expect.objectContaining({ resultsType: 'posts', directUrls: ['https://www.instagram.com/example/'] }))
+    expect(ctx.db.select().from(remotePosts).all()).toHaveLength(2)
+    expect(downloadPreview).toHaveBeenCalledTimes(2)
+    expect(listJobs(ctx.db, ws).filter(j => j.type === 'download_reel')).toHaveLength(0)
+    const video = ctx.db.select().from(remotePosts).all().find(p => p.permalink.includes('/reel/'))!
+    const photo = ctx.db.select().from(remotePosts).all().find(p => p.permalink.includes('/p/'))!
+    expect(() => requestSelectedDownloads(ctx, ws, [video.id, photo.id])).toThrow(/somente vídeos/)
+    expect(requestSelectedDownloads(ctx, ws, [video.id])).toHaveLength(1)
+  })
   it('rejeita falta de credencial, workspace cruzado e busca duplicada', () => {
     vi.stubEnv('APIFY_TOKEN', '')
     expect(() => requestProfileDownload(ctx, ws, profileId, 10)).toThrow(/APIFY_TOKEN/)
@@ -106,7 +120,7 @@ describe('downloads de perfil', () => {
     const job = leaseNext(ctx.db, ctx.clock(), 60_000)!
     responses()
     vi.mocked(apifyJson).mockReset().mockResolvedValueOnce({ data: { id: 'run1', status: 'READY' } }).mockResolvedValueOnce({ data: { id: 'run1', status: 'SUCCEEDED', defaultDatasetId: 'ds1' } }).mockResolvedValueOnce([{ ...reel, videoUrl: 'https://127.0.0.1/secret' }])
-    await expect(fetchProfile(ctx, job)).rejects.toThrow(/Nenhum reel/)
+    await expect(fetchProfile(ctx, job)).rejects.toThrow(/Nenhum post/)
     expect(ctx.db.select().from(jobs).where(eq(jobs.type, 'download_reel')).all()).toHaveLength(0)
   })
 })

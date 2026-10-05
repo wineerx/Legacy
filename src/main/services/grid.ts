@@ -4,6 +4,7 @@ import { AppError } from '@shared/errors'
 import type { Badge, GridItem, GridPage, GridQuery } from '@shared/types'
 import type { Db } from '../db/client'
 import { jobs, mediaAssets, remotePosts } from '../db/schema'
+import { getSetting } from '../repos/settings'
 
 const iso = (v: string) => new Date(v).toISOString()
 const contains = (col: SQLiteColumn, needle: string) => sql`instr(lower(coalesce(${col}, '')), lower(${needle})) > 0`
@@ -32,6 +33,8 @@ function remoteGrid(db: Db, q: GridQuery): GridPage {
   if (q.minLikes !== undefined) where.push(gte(remotePosts.likes, q.minLikes))
   if (q.minComments !== undefined) where.push(gte(remotePosts.comments, q.minComments))
   if (q.favoritesOnly) where.push(eq(remotePosts.favorite, true))
+  if (q.mediaKind === 'videos') where.push(sql`(${remotePosts.mediaProductType} IN ('REELS', 'VIDEO') OR ${remotePosts.assetId} IS NOT NULL)`)
+  if (q.mediaKind === 'images') where.push(sql`${remotePosts.mediaProductType} IN ('IMAGE', 'CAROUSEL')`)
   const cond = and(...where)
   const sortCol: SQLiteColumn = ({ views: remotePosts.views, likes: remotePosts.likes, comments: remotePosts.comments, postedAt: remotePosts.postedAt, durationMs: remotePosts.durationMs, importedAt: remotePosts.postedAt } as const)[q.sortBy]
   const rows = db.select().from(remotePosts).where(cond).orderBy(...orderFor(sortCol, q.sortDir), asc(remotePosts.permalink)).limit(q.limit).offset(q.offset).all()
@@ -43,7 +46,8 @@ function remoteGrid(db: Db, q: GridQuery): GridPage {
     if (r.favorite) badges.push('favorito')
     return {
       id: r.id, kind: 'remote', thumbnailPath: r.thumbnailPath ?? (r.assetId ? db.select({ path: mediaAssets.thumbnailPath }).from(mediaAssets).where(and(eq(mediaAssets.workspaceId, q.workspaceId), eq(mediaAssets.id, r.assetId))).get()?.path ?? null : null), permalink: r.permalink, caption: r.caption,
-      postedAt: r.postedAt, durationMs: r.durationMs, metrics: { views: r.views, likes: r.likes, comments: r.comments }, badges
+      postedAt: r.postedAt, durationMs: r.durationMs, metrics: { views: r.views, likes: r.likes, comments: r.comments }, badges,
+      assetId: r.assetId, ...JSON.parse(getSetting(db, q.workspaceId, `remoteMedia.${r.id}`) ?? '{}')
     }
   })
   return { items, total, loadedNote: `Ranking cobre os ${loaded} posts carregados deste perfil.` }

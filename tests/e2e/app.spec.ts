@@ -165,3 +165,33 @@ test('modelos horizontais preenchem legenda base do editor', async () => {
   await page.getByRole('button', { name: 'Usar modelo', exact: true }).first().click()
   await expect(page.getByLabel('Legenda base')).toHaveValue(/Qual parte mais te representa/)
 })
+
+test('telas cabem em 960 e 1440 pixels sem overflow da janela', async () => {
+  for (const width of [960, 1440]) {
+    await page.setViewportSize({ width, height: 900 })
+    for (const label of ['Perfis', 'Criar postagem', 'Visão geral', 'Fila', 'Configurações', 'Tutoriais', 'Contas']) {
+      await page.getByRole('link', { name: label, exact: true }).click()
+      await page.waitForTimeout(250)
+      const overflow = await page.evaluate(() => {
+        const main = document.querySelector('main')!
+        return { document: document.documentElement.scrollWidth - window.innerWidth, main: main.scrollWidth - main.clientWidth }
+      })
+      expect(overflow, `${label} em ${width}px`).toEqual({ document: 0, main: 0 })
+    }
+  }
+})
+
+test('card tem métricas horizontais e fila permite ver arquivo e origem', async () => {
+  await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
+  await page.evaluate(async (path) => { const boot = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }; await window.legacy.invoke('library.importPaths', { workspaceId: boot.data.workspaces[0].id, paths: [path] }) }, video)
+  const metrics = page.getByTestId('card-metrics').first()
+  await expect(metrics).toBeVisible()
+  const ys = await metrics.locator('[role="img"]').evaluateAll(nodes => nodes.map(n => Math.round(n.getBoundingClientRect().top)))
+  expect(new Set(ys).size).toBe(1)
+  await page.getByRole('link', { name: 'Fila', exact: true }).click()
+  await page.getByRole('button', { name: 'Ver tarefa' }).first().click()
+  await expect(page.getByRole('dialog')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Abrir arquivo', exact: true })).toBeVisible()
+  await page.screenshot({ path: 'docs/screens/tarefa-detalhes.png' })
+  await page.keyboard.press('Escape')
+})

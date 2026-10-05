@@ -3,6 +3,7 @@ import type { AppErrorCode } from './errors'
 import type { GridPage, JobView, DashboardSummary, IntegrationStatus } from './types'
 
 const ws = z.uuid()
+export interface UpdateStatus { state: 'idle' | 'checking' | 'available' | 'current' | 'downloading' | 'downloaded' | 'error' | 'unsupported'; version: string | null; progress: number; message: string }
 const id = z.string().min(1).max(64)
 const png = z.instanceof(Uint8Array).refine((b) => b.byteLength <= 20 * 1024 * 1024, 'Imagem acima de 20 MB.')
 const coverText = z.object({
@@ -40,7 +41,7 @@ export const contract = {
     from: z.iso.datetime().optional(), to: z.iso.datetime().optional(),
     maxDurationMs: z.number().int().positive().optional(), minViews: z.number().int().min(0).optional(),
     minLikes: z.number().int().min(0).optional(), minComments: z.number().int().min(0).optional(),
-    favoritesOnly: z.boolean().optional(), limit: z.number().int().min(1).max(200), offset: z.number().int().min(0)
+    favoritesOnly: z.boolean().optional(), mediaKind: z.enum(['all', 'videos', 'images']).optional(), limit: z.number().int().min(1).max(200), offset: z.number().int().min(0)
   }),
   'profiles.list': z.object({ workspaceId: ws }),
   'storage.get': z.object({ workspaceId: ws }),
@@ -48,6 +49,13 @@ export const contract = {
   'storage.reset': z.object({ workspaceId: ws }),
   'profiles.downloadStatus': z.object({ workspaceId: ws }),
   'profiles.download': z.object({ workspaceId: ws, profileId: id, limit: z.number().int().min(1).max(100) }),
+  'profiles.discover': z.object({ workspaceId: ws, profileId: id, limit: z.number().int().min(1).max(1000) }),
+  'profiles.downloadSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
+  'profiles.prepareSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
+  'accounts.instagram': z.object({ workspaceId: ws }),
+  'accounts.connectInstagram': z.object({ workspaceId: ws, token: z.string().trim().min(20).max(4096).regex(/^[A-Za-z0-9_.-]+$/) }),
+  'accounts.disconnectInstagram': z.object({ workspaceId: ws }),
+  'profiles.scheduleInstagram': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), caption: z.string().max(2200).optional() }),
   'profiles.add': z.object({ workspaceId: ws, url: z.string().min(1).max(300) }),
   'profiles.addReel': z.object({ workspaceId: ws, profileId: id, url: z.string().min(1).max(300) }),
   'profiles.importMetricsFile': z.object({ workspaceId: ws, profileId: id }),
@@ -63,6 +71,12 @@ export const contract = {
   }).refine((v) => v.remindAt.length === v.assetIds.length, { message: 'Lembretes e vídeos não conferem.', path: ['remindAt'] }),
   'export.openFolder': z.object({ workspaceId: ws, path: z.string().min(1) }),
   'jobs.list': z.object({ workspaceId: ws }),
+  'jobs.details': z.object({ workspaceId: ws, id }),
+  'library.openAsset': z.object({ workspaceId: ws, id }),
+  'updates.status': z.object({}),
+  'updates.check': z.object({}),
+  'updates.download': z.object({}),
+  'updates.install': z.object({}),
   'jobs.cancel': z.object({ workspaceId: ws, id }),
   'jobs.retry': z.object({ workspaceId: ws, id }),
   'notifications.list': z.object({ workspaceId: ws }),
@@ -111,6 +125,13 @@ export interface Outputs {
   'storage.reset': { path: string; custom: boolean }
   'profiles.downloadStatus': { configured: boolean }
   'profiles.download': JobView
+  'profiles.discover': JobView
+  'profiles.downloadSelected': JobView[]
+  'profiles.prepareSelected': string[]
+  'accounts.instagram': { id: string; username: string; revision: string; validatedAt: string } | null
+  'accounts.connectInstagram': { id: string; username: string; revision: string; validatedAt: string }
+  'accounts.disconnectInstagram': null
+  'profiles.scheduleInstagram': JobView[]
   'profiles.add': ProfileDto
   'profiles.addReel': { id: string; permalink: string }
   'profiles.importMetricsFile': { upserted: number; rows: { line: number; permalink?: string; error?: string }[] } | null
@@ -123,6 +144,12 @@ export interface Outputs {
   'export.tiktok': JobView
   'export.openFolder': null
   'jobs.list': JobView[]
+  'jobs.details': { label: string; runAt: string; error: string | null; files: { id: string; name: string; filePath: string; thumbnailPath: string | null }[]; originUrl: string | null; folders: string[] }
+  'library.openAsset': null
+  'updates.status': UpdateStatus
+  'updates.check': UpdateStatus
+  'updates.download': UpdateStatus
+  'updates.install': null
   'jobs.cancel': boolean
   'jobs.retry': boolean
   'notifications.list': NotificationDto[]

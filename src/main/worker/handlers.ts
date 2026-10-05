@@ -10,6 +10,7 @@ import { runTiktokExport, type ExportPayload } from '../services/export-tiktok'
 import { fetchProfile, runReelDownload } from '../services/profile-download'
 import { deliverWebhook, recordJobOutcome, WebhookRetryError } from '../services/webhooks'
 import { notificationPreferences } from '../services/integrations'
+import { publishInstagram, InstagramPending } from '../services/instagram-publishing'
 
 export type WorkerEvent = { type: 'job-updated'; workspaceId: string; jobId: string; state: 'running' | 'done' | 'retry' | 'failed' }
 export const PERMANENT_CODES = new Set(['invalid_media', 'not_found', 'invalid_input', 'forbidden'])
@@ -23,6 +24,7 @@ function requireAsset(ctx: Ctx, ws: string, assetId: string) {
 export async function runJob(ctx: Ctx, job: LeasedJob): Promise<unknown> {
   const ws = job.workspaceId
   switch (job.type) {
+    case 'publish_instagram': return publishInstagram(ctx, job)
     case 'webhook_delivery': return deliverWebhook(ctx, job)
     case 'fetch_profile': return fetchProfile(ctx, job)
     case 'download_reel': return runReelDownload(ctx, job)
@@ -92,7 +94,7 @@ export async function processNext(ctx: Ctx, notify: (e: WorkerEvent) => void, le
       const code = failure instanceof AppError ? failure.code : 'internal'
       const message = failure instanceof Error ? failure.message : String(failure)
       const outcome = ctx.db.transaction(() => {
-        const outcome = fail(ctx.db, job, ctx.clock(), { code, message, permanent: PERMANENT_CODES.has(code), retryAfterMs: failure instanceof WebhookRetryError ? failure.retryAfterMs : undefined })
+        const outcome = fail(ctx.db, job, ctx.clock(), { code, message, permanent: PERMANENT_CODES.has(code), retryAfterMs: failure instanceof WebhookRetryError || failure instanceof InstagramPending ? failure.retryAfterMs : undefined })
         if (outcome === 'failed') recordJobOutcome(ctx, job, 'failed')
         return outcome
       })

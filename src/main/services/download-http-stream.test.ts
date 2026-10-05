@@ -6,7 +6,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { resolve4 } from 'node:dns/promises'
 import { request } from 'node:https'
-import { apifyJson, downloadVideo } from './download-http'
+import { apifyJson, downloadVideo, downloadPreview } from './download-http'
 
 vi.mock('node:dns/promises', () => ({ resolve4: vi.fn() }))
 vi.mock('node:https', () => ({ request: vi.fn() }))
@@ -63,4 +63,10 @@ it('recusa redirects da API sem expor o token', async () => {
   respond(302, { location: 'https://scontent.fbcdn.net/secret' }, '')
   await expect(apifyJson('actor-runs/run1', 'secret-token')).rejects.toThrow(/Redirecionamento/)
   expect(request).toHaveBeenCalledTimes(1)
+})
+
+it('prévia recusa HTML e SVG sem guardar arquivo', async () => {
+  respond(200, {}, '<svg onload="alert(1)"></svg>')
+  await expect(downloadPreview('https://scontent.cdninstagram.com/image', target)).rejects.toThrow(/Formato/)
+  await expect(access(target)).rejects.toThrow()
 })

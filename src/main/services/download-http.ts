@@ -91,3 +91,21 @@ export async function downloadVideo(url: string, target: string): Promise<void> 
     throw new AppError('internal', 'Download interrompido. Verifique a conexão e o espaço em disco.')
   }
 }
+
+export async function downloadPreview(url: string, target: string): Promise<void> {
+  try {
+    const res = await response(url, false, AbortSignal.timeout(20_000))
+    const chunks: Buffer[] = []; let size = 0
+    for await (const chunk of res) {
+      size += chunk.length
+      if (size > 4 * 1024 * 1024) { res.destroy(); throw new AppError('invalid_media', 'Prévia acima de 4 MB.') }
+      chunks.push(Buffer.from(chunk))
+    }
+    const data = Buffer.concat(chunks)
+    const jpeg = data[0] === 0xff && data[1] === 0xd8 && data[2] === 0xff
+    const png = data.subarray(0, 8).equals(Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]))
+    const webp = data.toString('ascii', 0, 4) === 'RIFF' && data.toString('ascii', 8, 12) === 'WEBP'
+    if (!jpeg && !png && !webp) throw new AppError('invalid_media', 'Formato de prévia inválido.')
+    const { writeFile } = await import('node:fs/promises'); await writeFile(target, data)
+  } catch (e) { await rm(target, { force: true }); throw e }
+}

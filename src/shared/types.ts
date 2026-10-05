@@ -7,6 +7,9 @@ export type Badge = 'baixado' | 'agendado' | 'publicado' | 'link' | 'favorito' |
 export interface GridItem {
   id: string
   kind: 'asset' | 'remote'
+  videoUrl?: string | null
+  assetId?: string | null
+  mediaType?: string | null
   thumbnailPath: string | null
   permalink: string | null
   caption: string | null
@@ -31,6 +34,7 @@ export interface GridQuery {
   minLikes?: number
   minComments?: number
   favoritesOnly?: boolean
+  mediaKind?: 'all' | 'videos' | 'images'
   limit: number
   offset: number
 }
@@ -38,7 +42,7 @@ export interface GridQuery {
 export interface GridPage { items: GridItem[]; total: number; loadedNote: string }
 
 export type JobState = 'queued' | 'running' | 'done' | 'failed' | 'cancelled'
-export type JobType = 'make_thumbnail' | 'apply_banner' | 'export_tiktok' | 'fetch_profile' | 'download_reel' | 'webhook_delivery'
+export type JobType = 'make_thumbnail' | 'apply_banner' | 'export_tiktok' | 'fetch_profile' | 'download_reel' | 'webhook_delivery' | 'publish_instagram'
 
 export interface DashboardSummary {
   tasks: Record<JobState | 'total', number>

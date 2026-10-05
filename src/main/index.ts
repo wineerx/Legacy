@@ -17,6 +17,8 @@ import { EVENTS } from '@shared/ipc-contract'
 import type { Ctx } from './context'
 import { mediaAssets } from './db/schema'
 import { decryptSecret, secretSnapshot, type SecretVault } from './services/integrations'
+import electronUpdater from 'electron-updater'
+import { setupUpdates } from './services/updates'
 
 protocol.registerSchemesAsPrivileged([{ scheme: 'legacy-media', privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true, corsEnabled: true } }])
 
@@ -89,7 +91,9 @@ if (gotLock) {
 
   const worker = startWorker({ dbPath: join(dataRoot, 'legacy.sqlite'), dataRoot, migrationsDir, ffmpegDir, credentials: () => secretSnapshot(ctx, vault), onEvent: (e) => send(EVENTS.jobsChanged, e) })
 
+  const updates = setupUpdates(electronUpdater.autoUpdater, app.isPackaged, () => listWorkspaces(db).some(w => listJobs(db, w.id, ['running']).length > 0), () => { quitting = true })
   const dispatch = createDispatcher(buildHandlers({
+    updates,
     ctx, vault, onSecretsChanged: () => worker.updateSecrets(), version: app.getVersion(), workerAlive: () => worker.isAlive(),
     onJobsChanged: (workspaceId) => send(EVENTS.jobsChanged, { workspaceId }),
     shell: { openPath: (p) => shell.openPath(p) },
