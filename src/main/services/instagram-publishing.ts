@@ -10,9 +10,15 @@ import { getSetting, setSetting } from '../repos/settings'
 import { getSecret, requireWorkspace, saveSecret, type SecretVault } from './integrations'
 import { allowedUrl } from './download-http'
 import { enqueue, type LeasedJob } from '../queue/queue'
+import { history, recordPublication } from './publication-history'
 
 const numericId = z.string().regex(/^\d+$/)
 const accountSchema = z.object({ id: numericId, username: z.string().min(1), revision: z.string(), validatedAt: z.string() })
+export class InstagramApiError extends AppError {
+  constructor(public status: number, public apiCode: number) {
+    super('invalid_input', apiCode === 190 ? 'Token Instagram inválido ou expirado. Gere um token Instagram User na Meta e reconecte em Contas.' : apiCode === 10 || apiCode === 200 ? 'Permissão recusada. Autorize instagram_business_basic e instagram_business_content_publish; em modo de teste a conta deve aceitar o convite do app.' : apiCode === 100 ? 'Parâmetro recusado. Confira a conta profissional, a URL pública do vídeo e a validade do link; atualize a grade antes de reagendar.' : `Instagram recusou a operação (HTTP ${status}, código ${apiCode || 'indisponível'}). Confira token, permissões e limite de publicação.`)
+  }
+}
 export async function instagramJson(path: string, token: string, body?: Record<string, string>): Promise<unknown> {
   if (!/^(me|\d+)(\/(media|media_publish))?(\?fields=[a-z_,]+)?$/.test(path)) throw new AppError('invalid_input', 'Consulta Instagram inválida.')
   return new Promise((resolve, reject) => {
@@ -24,7 +30,7 @@ export async function instagramJson(path: string, token: string, body?: Record<s
       res.on('end', () => {
         try {
           const parsed = JSON.parse(text)
-          if ((res.statusCode ?? 500) >= 400 || parsed.error) return reject(new AppError('invalid_input', `Instagram recusou a operação (HTTP ${res.statusCode}, código ${Number(parsed.error?.code) || 'indisponível'}). Verifique permissões, validade do token, vídeo e limite de publicação.`))
+          if ((res.statusCode ?? 500) >= 400 || parsed.error) return reject(new InstagramApiError(res.statusCode ?? 500, Number(parsed.error?.code) || 0))
           resolve(parsed)
         } catch { reject(new AppError('internal', 'Resposta Instagram inválida.')) }
       })
@@ -40,16 +46,26 @@ export function instagramAccount(ctx: Ctx, ws: string) {
 }
 export async function connectInstagram(ctx: Ctx, vault: SecretVault, ws: string, token: string, requestApi = instagramJson) {
   requireWorkspace(ctx, ws)
-  const data = z.object({ id: numericId, username: z.string().min(1).max(80) }).parse(await requestApi('me?fields=id,username', token))
+  const raw = await requestApi('me?fields=user_id,username', token) as { data?: unknown[] }
+  const identity = z.object({ user_id: numericId, username: z.string().min(1).max(80) }).safeParse(raw.data?.[0] ?? raw)
+  if (!identity.success) throw new AppError('invalid_input', 'O token não retornou uma conta profissional Instagram. Use Instagram User Access Token com Instagram Login; chave secreta, Client Token e token Facebook não servem para esta conexão.')
+  const data = { id: identity.data.user_id, username: identity.data.username }
   // Querying account identity does not prove publish permission; the API enforces it at execution.
-  const account = { ...data, revision: randomUUID(), validatedAt: ctx.clock().toISOString() }
+  const previous = instagramAccount(ctx, ws)
+  const account = { ...data, revision: previous?.id === data.id ? previous.revision : randomUUID(), validatedAt: ctx.clock().toISOString() }
   ctx.db.transaction(() => { saveSecret(ctx, vault, ws, 'instagramToken', token); setSetting(ctx.db, ws, 'instagramAccount', JSON.stringify(account)) })
   return account
+}
+export async function verifyInstagram(ctx: Ctx, vault: SecretVault, ws: string, requestApi = instagramJson) {
+  requireWorkspace(ctx, ws)
+  const token = getSecret(ctx, ws, 'instagramToken')
+  if (!token) throw new AppError('invalid_input', 'Conecte uma conta primeiro.')
+  return connectInstagram(ctx, vault, ws, token, requestApi)
 }
 export function disconnectInstagram(ctx: Ctx, vault: SecretVault, ws: string) {
   ctx.db.transaction(() => { saveSecret(ctx, vault, ws, 'instagramToken', ''); setSetting(ctx.db, ws, 'instagramAccount', '') })
 }
-export function scheduleInstagram(ctx: Ctx, ws: string, input: { postIds: string[]; firstAt: string; intervalMin: number; caption?: string }) {
+export function scheduleInstagram(ctx: Ctx, ws: string, input: { postIds: string[]; firstAt: string; intervalMin: number; caption?: string; cleanupAfterPublish?: boolean }) {
   const account = instagramAccount(ctx, ws)
   if (!account) throw new AppError('invalid_input', 'Conecte uma conta profissional Instagram em Contas antes de programar.')
   const first = new Date(input.firstAt)
@@ -62,16 +78,19 @@ export function scheduleInstagram(ctx: Ctx, ws: string, input: { postIds: string
     allowedUrl(url)
     const caption = input.caption ?? post.caption ?? ''
     if (caption.length > 2200) throw new AppError('invalid_input', 'Edite a legenda: o limite é de 2200 caracteres.')
-    return { postId: id, videoUrl: url, caption }
+    return { postId: id, videoUrl: url, caption, localAssetId: post.assetId }
   })
+  const batchId = randomUUID()
   return ctx.db.transaction(() => posts.map((post, i) => {
     const runAt = new Date(first.getTime() + i * input.intervalMin * 60_000)
-    return enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', label: `Publicar reel em @${account.username}`, payload: { ...post, accountId: account.id, accountRevision: account.revision }, runAt, maxAttempts: 6, idempotencyKey: `publish:${ws}:${account.id}:${post.postId}:${runAt.toISOString()}` }, ctx.clock())
+    return enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', label: `Publicar reel em @${account.username}`, payload: { ...post, accountId: account.id, accountRevision: account.revision, cleanupAfterPublish: input.cleanupAfterPublish ?? false, batchId }, runAt, maxAttempts: 24, idempotencyKey: `publish:${ws}:${account.id}:${post.postId}:${runAt.toISOString()}` }, ctx.clock())
   }))
 }
 export class InstagramPending extends AppError { retryAfterMs = 60_000; constructor() { super('internal', 'O Instagram ainda está preparando o vídeo. Nova consulta em um minuto.') } }
 export async function publishInstagram(ctx: Ctx, job: LeasedJob, requestApi = instagramJson) {
-  const payload = z.object({ postId: z.string(), videoUrl: z.string(), caption: z.string().max(2200), accountId: numericId, accountRevision: z.string() }).parse(job.payload)
+  const payload = z.object({ postId: z.string(), videoUrl: z.string(), caption: z.string().max(2200), accountId: numericId, accountRevision: z.string(), cleanupAfterPublish: z.boolean().default(false), localAssetId: z.string().nullable().optional() }).parse(job.payload)
+  const recorded = history(ctx, job.workspaceId).find(r => r.jobId === job.id)
+  if (recorded) return { mediaId: recorded.mediaId, confirmedPublished: true, cleanupState: recorded.cleanupState }
   const account = instagramAccount(ctx, job.workspaceId)
   if (!account || account.id !== payload.accountId || account.revision !== payload.accountRevision) throw new AppError('invalid_input', 'A conta conectada mudou. Recrie o agendamento após revisar o destino.')
   if (!getRemotePost(ctx.db, job.workspaceId, payload.postId)) throw new AppError('not_found', 'Post de origem removido.')
@@ -80,19 +99,29 @@ export async function publishInstagram(ctx: Ctx, job: LeasedJob, requestApi = in
   const where = and(eq(jobs.workspaceId, job.workspaceId), eq(jobs.id, job.id))
   const checkpoint = JSON.parse(ctx.db.select().from(jobs).where(where).get()?.resultJson ?? '{}') as { creating?: boolean; containerId?: string; publishing?: boolean; mediaId?: string }
   const save = () => ctx.db.update(jobs).set({ resultJson: JSON.stringify(checkpoint) }).where(where).run()
-  if (checkpoint.mediaId) return checkpoint
+  const confirmed = async () => {
+    const recorded = await recordPublication(ctx, { workspaceId: job.workspaceId, jobId: job.id, accountId: account.id, username: account.username, postId: payload.postId, mediaId: checkpoint.mediaId, cleanup: payload.cleanupAfterPublish, cleanupAssetId: payload.localAssetId ?? null })
+    return { ...checkpoint, confirmedPublished: true, cleanupState: recorded.cleanupState }
+  }
+  if (checkpoint.mediaId) return confirmed()
   if (!checkpoint.containerId) {
     if (checkpoint.creating) throw new AppError('invalid_input', 'Criação do vídeo sem confirmação. Confira o Instagram antes de recriar a tarefa.')
     checkpoint.creating = true; save()
-    const container = z.object({ id: numericId }).parse(await requestApi(`${account.id}/media`, token, { media_type: 'REELS', video_url: payload.videoUrl, caption: payload.caption, share_to_feed: 'true' }))
+    let response: unknown
+    try { response = await requestApi(`${account.id}/media`, token, { media_type: 'REELS', video_url: payload.videoUrl, caption: payload.caption, share_to_feed: 'true' }) }
+    catch (e) { if (e instanceof InstagramApiError && e.status < 500) { checkpoint.creating = false; save() } throw e }
+    const container = z.object({ id: numericId }).parse(response)
     checkpoint.containerId = container.id; save()
   }
   const status = z.object({ status_code: z.string() }).parse(await requestApi(`${numericId.parse(checkpoint.containerId)}?fields=status_code`, token))
-  if (status.status_code === 'PUBLISHED') return { ...checkpoint, confirmedPublished: true }
+  if (status.status_code === 'PUBLISHED') return confirmed()
   if (checkpoint.publishing) throw new AppError('invalid_input', 'Publicação sem confirmação. Confira a conta; esta tarefa não enviará o vídeo novamente.')
   if (status.status_code === 'IN_PROGRESS') throw new InstagramPending()
   if (status.status_code !== 'FINISHED') throw new AppError('invalid_input', `O Instagram encerrou a preparação em ${status.status_code}. O link pode ter expirado ou o vídeo ser incompatível.`)
   checkpoint.publishing = true; save()
-  const published = z.object({ id: numericId }).parse(await requestApi(`${account.id}/media_publish`, token, { creation_id: checkpoint.containerId }))
-  checkpoint.mediaId = published.id; save(); return checkpoint
+  let response: unknown
+  try { response = await requestApi(`${account.id}/media_publish`, token, { creation_id: checkpoint.containerId }) }
+  catch (e) { if (e instanceof InstagramApiError && e.status < 500) { checkpoint.publishing = false; save() } throw e }
+  const published = z.object({ id: numericId }).parse(response)
+  checkpoint.mediaId = published.id; save(); return confirmed()
 }

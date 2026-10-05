@@ -8,6 +8,7 @@ import { StatusBar } from './components/StatusBar'
 import { ToastProvider } from './components/ui'
 import { PAGES, type PageKey } from './routes'
 import { TutorialProvider } from './features/tutorial/TutorialProvider'
+import { Celebration } from './features/achievements/Celebration'
 
 function Shell() {
   useJobsChangedInvalidation()
@@ -29,6 +30,7 @@ function Shell() {
         <main tabIndex={-1} className="min-w-0 flex-1 overflow-auto bg-app"><div key={`${workspace.id}:${page}`} className="page-enter"><Page navigate={setPage} /></div></main>
       </div>
       <StatusBar />
+      <Celebration />
     </div></TutorialProvider>
   )
 }

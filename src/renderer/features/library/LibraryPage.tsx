@@ -13,7 +13,7 @@ import { emptySelection, toggleId, selectPage, selectAllFiltered, selectionLabel
 import type { PageProps } from '../../routes'
 import { ImportResultsModal } from './ImportResultsModal'
 
-type Sort = 'importedAt' | 'durationMs'
+type Sort = 'importedAt' | 'durationMs' | 'views' | 'likes' | 'comments'
 
 export function LibraryPage({ navigate }: PageProps) {
   const { workspace } = useWorkspace()
@@ -61,17 +61,17 @@ export function LibraryPage({ navigate }: PageProps) {
   const importButton = <Button data-tour="library-import" variant="primary" icon={<Upload size={14} />} onClick={() => pick.mutate()}>Importar vídeos</Button>
 
   return (
-    <div data-testid="drop-zone" className={cx('flex min-h-full flex-col gap-4 p-6', dragging && 'outline-2 outline-dashed outline-dim -outline-offset-8')}
+    <div data-testid="drop-zone" className={cx('flex min-h-full w-full min-w-0 flex-col gap-4 p-6', dragging && 'outline-2 outline-dashed outline-dim -outline-offset-8')}
       onDragOver={(e) => { e.preventDefault(); setDragging(true) }} onDragLeave={() => setDragging(false)} onDrop={onDrop}>
-      <header className="flex items-center gap-3">
-        <div className="flex-1">
+      <header className="flex flex-wrap items-center gap-3">
+        <div className="min-w-0 flex-1">
           <h1 className="text-lg font-semibold">Biblioteca</h1>
           <p className="text-xs text-dim">{grid.loadedNote || 'Seus vídeos ficam guardados neste computador.'} Arraste arquivos para cá ou use o botão.</p>
         </div>
         {importButton}
       </header>
       <div data-tour="library-selection" className="flex flex-wrap items-center gap-2">
-        <Pills<Sort> label="Ordenar" value={sortBy} onChange={setSortBy} options={[{ value: 'importedAt', label: 'Mais recentes' }, { value: 'durationMs', label: 'Mais longos' }]} />
+        <Pills<Sort> label="Ordenar" value={sortBy} onChange={setSortBy} options={[{ value: 'importedAt', label: 'Mais recentes' }, { value: 'durationMs', label: 'Mais longos' }, { value: 'views', label: 'Views' }, { value: 'likes', label: 'Curtidas' }, { value: 'comments', label: 'Comentários' }]} />
         <Pills label="Filtro" value={favoritesOnly ? 'fav' : 'all'} onChange={(v) => setFavoritesOnly(v === 'fav')} options={[{ value: 'all', label: 'Todos' }, { value: 'fav', label: 'Favoritos' }]} />
         <span className="ml-auto text-xs text-dim">{selectionLabel(selection)}</span>
         <Button size="sm" variant="ghost" onClick={() => setSelection(selectPage(selection, grid.items.map((i) => i.id)))}>Selecionar página</Button>

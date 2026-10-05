@@ -101,6 +101,14 @@ describe('queryGrid remote', () => {
 })
 
 describe('queryGrid library', () => {
+  it('preserva origem/métricas do download e ordena/filtra por métrica', () => {
+    insertAsset(ctx.db, { id: 'downloaded', workspaceId: ws, origin: 'ig_third_party', sourceName: 'reel', filePath: 'C:/x/reel.mp4', sha256: 'metric-hash', sizeBytes: 1, durationMs: 1000, width: 1080, height: 1920, videoCodec: 'h264', validationJson: '{}', importedAt: '2026-10-01T00:00:00Z' })
+    const post = queryGrid(ctx.db, base()).items.find(i => i.metrics.views === 5000)!
+    ctx.db.update(remotePosts).set({ assetId: 'downloaded' }).where(eq(remotePosts.id, post.id)).run()
+    const page = queryGrid(ctx.db, base({ source: 'library', profileId: undefined, minLikes: 5, sortBy: 'comments' }))
+    expect(page.items[0]).toMatchObject({ sourceProfile: 'perfil', permalink: post.permalink, metrics: { views: 5000, likes: 10, comments: 1 } })
+    expect(queryGrid(ctx.db, base({ source: 'library', minLikes: 11 })).total).toBe(0)
+  })
   it('lista assets com selo exportado', () => {
     const row = {
       workspaceId: ws, origin: 'pc' as const, sourceName: 'a.mp4', filePath: 'C:\\x\\a.mp4', sha256: 's1', sizeBytes: 1,

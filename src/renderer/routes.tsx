@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { LayoutGrid, UserSearch, Library, PenSquare, Megaphone, CalendarDays, ListOrdered, Link2, Bell, Settings, BookOpen } from 'lucide-react'
+import { LayoutGrid, UserSearch, Library, PenSquare, Megaphone, CalendarDays, ListOrdered, Link2, Bell, Settings, BookOpen, Trophy } from 'lucide-react'
+import { AchievementsPage } from './features/achievements/AchievementsPage'
 import { ComingSoon } from './components/ComingSoon'
 import { LibraryPage } from './features/library/LibraryPage'
 import { ComposePage } from './features/compose/ComposePage'
@@ -12,7 +13,7 @@ import { SettingsPage } from './features/settings/SettingsPage'
 import { TutorialPage } from './features/tutorial/TutorialPage'
 import { AccountsPage } from './features/settings/AccountsPage'
 
-export type PageKey = 'overview' | 'profiles' | 'library' | 'compose' | 'campaigns' | 'calendar' | 'queue' | 'accounts' | 'notifications' | 'settings' | 'tutorial'
+export type PageKey = 'overview' | 'profiles' | 'library' | 'compose' | 'campaigns' | 'calendar' | 'queue' | 'accounts' | 'notifications' | 'settings' | 'tutorial' | 'achievements'
 export type PageProps = { navigate(p: PageKey): void }
 
 export const NAV: { key: PageKey; label: string; icon: LucideIcon }[] = [
@@ -25,6 +26,7 @@ export const NAV: { key: PageKey; label: string; icon: LucideIcon }[] = [
   { key: 'queue', label: 'Fila', icon: ListOrdered },
   { key: 'accounts', label: 'Contas', icon: Link2 },
   { key: 'notifications', label: 'Notificações', icon: Bell },
+  { key: 'achievements', label: 'Desafios e conquistas', icon: Trophy },
   { key: 'tutorial', label: 'Tutoriais', icon: BookOpen }
 ]
 export const SETTINGS_NAV = { key: 'settings' as const, label: 'Configurações', icon: Settings }
@@ -32,6 +34,7 @@ export const SETTINGS_NAV = { key: 'settings' as const, label: 'Configurações'
 const PHASE_D = 'Campanhas e calendário chegam junto com a publicação agendada por API.'
 
 export const PAGES: Record<PageKey, (p: PageProps) => ReactElement> = {
+  achievements: AchievementsPage,
   overview: OverviewPage,
   profiles: ProfilesPage,
   library: LibraryPage,

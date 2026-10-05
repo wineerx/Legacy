@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link2, FileUp, ArrowDownUp, UserSearch, Download } from 'lucide-react'
+import { Link2, FileUp, ArrowDownUp, UserSearch, Download, ListOrdered, Grid2X2 } from 'lucide-react'
 import type { SortDir, GridItem } from '@shared/types'
 import { call, ApiError } from '../../lib/api'
 import { useWorkspace } from '../../lib/workspace'
 import { Button, EmptyState, Input, Modal, Pills, useToast, cx } from '../../components/ui'
+import { ActionIcon } from '../../components/ActionIcon'
 import { MediaPreview } from '../../components/MediaPreview'
 import { MediaGrid } from '../../components/MediaGrid'
 import { useGridQuery } from './useGridQuery'
@@ -39,6 +40,7 @@ export function ProfilesPage({ navigate }: PageProps) {
   const [topCount, setTopCount] = useState('5')
   const [discoveryLimit, setDiscoveryLimit] = useState('100')
   const [scheduleOpen, setScheduleOpen] = useState(false)
+  const [cleanupAfterPublish, setCleanupAfterPublish] = useState(false)
   const [scheduleAt, setScheduleAt] = useState('')
   const [intervalMin, setIntervalMin] = useState('60')
   const [scheduleCaption, setScheduleCaption] = useState('')
@@ -47,7 +49,7 @@ export function ProfilesPage({ navigate }: PageProps) {
   const [mediaKind, setMediaKind] = useState<'all' | 'videos' | 'images'>('all')
   const ids = selection.mode === 'ids' ? [...selection.ids] : []
   const account = useQuery({ queryKey: ['instagram-account', workspace.id], queryFn: () => call('accounts.instagram', { workspaceId: workspace.id }) })
-  const schedule = useMutation({ mutationFn: () => { const [date, time] = scheduleAt.split('T'); return call('profiles.scheduleInstagram', { workspaceId: workspace.id, postIds: ids, firstAt: zonedToUtc(date, time, workspace.timeZone).toISOString(), intervalMin: Number(intervalMin), caption: scheduleCaption || undefined }) }, onSuccess: () => { setScheduleOpen(false); void qc.invalidateQueries(); navigate('queue') }, onError: (e) => toast.show({ title: 'Não foi possível programar', body: e instanceof Error ? e.message : undefined, tone: 'error' }) })
+  const schedule = useMutation({ mutationFn: () => { const [date, time] = scheduleAt.split('T'); return call('profiles.scheduleInstagram', { workspaceId: workspace.id, postIds: ids, firstAt: zonedToUtc(date, time, workspace.timeZone).toISOString(), intervalMin: Number(intervalMin), caption: scheduleCaption || undefined, cleanupAfterPublish }) }, onSuccess: () => { setScheduleOpen(false); void qc.invalidateQueries(); navigate('queue') }, onError: (e) => toast.show({ title: 'Não foi possível programar', body: e instanceof Error ? e.message : undefined, tone: 'error' }) })
   const discover = useMutation({ mutationFn: ({ profileId, limit }: { profileId: string; limit: number }) => call('profiles.discover', { workspaceId: workspace.id, profileId, limit }), onSuccess: () => { void qc.invalidateQueries(); toast.show({ title: 'Carregando posts e reels', body: 'A grade atualizará durante a busca. A grade cobre os itens retornados conforme o limite configurado; o provedor pode retornar menos.' }) }, onError: (e) => toast.show({ title: 'Perfil cadastrado; a busca não iniciou', body: e instanceof Error ? e.message : 'Verifique a API.', tone: 'error' }) })
   const selectedDownload = useMutation({ mutationFn: () => call('profiles.downloadSelected', { workspaceId: workspace.id, postIds: ids }), onSuccess: () => { void qc.invalidateQueries(); navigate('queue') }, onError: (e) => toast.show({ title: 'Não foi possível baixar', body: e instanceof Error ? e.message : undefined, tone: 'error' }) })
   const prepare = useMutation({ mutationFn: () => call('profiles.prepareSelected', { workspaceId: workspace.id, postIds: ids }), onSuccess: (assetIds) => { setComposeSelection(assetIds); navigate('compose') }, onError: (e) => toast.show({ title: 'Lote não disponível', body: e instanceof Error ? e.message : undefined, tone: 'error' }) })
@@ -119,11 +121,11 @@ export function ProfilesPage({ navigate }: PageProps) {
                 <p className="text-xs text-dim">{active.connected ? 'Conta conectada' : 'Perfil de terceiros. Busca e download de reels públicos via Apify.'} {grid.loadedNote}</p>
                 {active.lastSyncedAt && <p className="text-xs text-dim">Última busca: {new Date(active.lastSyncedAt).toLocaleString('pt-BR', { timeZone: workspace.timeZone })}</p>}
               </div>
-              <Button icon={<Download size={14} />} onClick={() => setDownloadOpen(true)}>Baixar vídeos do perfil</Button>
-              <Button disabled={!downloadStatus.data?.configured || discover.isPending || !Number.isInteger(Number(discoveryLimit)) || Number(discoveryLimit) < 1 || Number(discoveryLimit) > 1000} onClick={() => discover.mutate({ profileId: active.id, limit: Number(discoveryLimit) })}>Carregar grade de posts/reels</Button>
-              <Button onClick={() => navigate('queue')}>Ver fila</Button>
-              <Button icon={<Link2 size={14} />} onClick={() => setReelOpen(true)}>Adicionar link de reel</Button>
-              <Button icon={<FileUp size={14} />} onClick={() => importFile.mutate()}>Importar métricas (CSV/JSON)</Button>
+              <Button aria-label="Baixar vídeos do perfil" icon={<Download size={14} />} onClick={() => setDownloadOpen(true)}>Baixar vídeos</Button>
+              <Button disabled={!downloadStatus.data?.configured || discover.isPending || !Number.isInteger(Number(discoveryLimit)) || Number(discoveryLimit) < 1 || Number(discoveryLimit) > 1000} onClick={() => discover.mutate({ profileId: active.id, limit: Number(discoveryLimit) })}>Atualizar grade</Button>
+              <ActionIcon label="Ver fila" onClick={() => navigate('queue')}><ListOrdered size={16} /></ActionIcon>
+              <ActionIcon label="Adicionar link de reel" onClick={() => setReelOpen(true)}><Link2 size={16} /></ActionIcon>
+              <ActionIcon label="Importar métricas (CSV/JSON)" onClick={() => importFile.mutate()}><FileUp size={16} /></ActionIcon>
             </header>
             <div className="flex flex-wrap items-end gap-2">
               <Pills<Sort> label="Ordenar" value={sortBy} onChange={setSortBy} options={[
@@ -131,16 +133,16 @@ export function ProfilesPage({ navigate }: PageProps) {
                 { value: 'comments', label: 'Mais comentados' }, { value: 'postedAt', label: 'Mais recentes' }
               ]} />
               <Button size="sm" variant="ghost" icon={<ArrowDownUp size={12} />} onClick={() => setSortDir(sortDir === 'desc' ? 'asc' : 'desc')}>{sortDir === 'desc' ? 'Maior primeiro' : 'Menor primeiro'}</Button>
-              <div className="flex w-full flex-wrap items-end gap-2">
+              <details className="w-full rounded-card border border-line bg-panel p-3"><summary className="cursor-pointer text-sm font-medium">Filtros avançados</summary><div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 <Input aria-label="Texto na legenda" placeholder="Texto na legenda" value={text} onChange={(e) => setText(e.target.value)} className="w-40" />
                 <Input aria-label="Hashtag" placeholder="#hashtag" value={hashtag} onChange={(e) => setHashtag(e.target.value)} className="w-32" />
                 <Input aria-label="Mínimo de views" placeholder="Mín. views" inputMode="numeric" value={minViews} onChange={(e) => setMinViews(e.target.value.replace(/\D/g, ''))} className="w-28" />
                 <Input aria-label="Mínimo de curtidas" placeholder="Mín. curtidas" inputMode="numeric" value={minLikes} onChange={(e) => setMinLikes(e.target.value.replace(/\D/g, ''))} className="w-28" />
                 <Input aria-label="Mínimo de comentários" placeholder="Mín. comentários" inputMode="numeric" value={minComments} onChange={(e) => setMinComments(e.target.value.replace(/\D/g, ''))} className="w-32" />
                 <Pills<'all' | 'videos' | 'images'> label="Tipo de mídia" value={mediaKind} onChange={setMediaKind} options={[{ value: 'all', label: 'Todos' }, { value: 'videos', label: 'Vídeos/reels' }, { value: 'images', label: 'Fotos/carrosséis' }]} />
-              </div>
+              </div></details>
             </div>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-dim">
+            <div className="flex flex-wrap items-center gap-2 rounded-card border border-line bg-panel p-3 text-xs text-dim">
               <span>{selectionLabel(selection)}</span>
               <Button size="sm" variant="ghost" onClick={() => setSelection(selectPage(selection, grid.items.map((i) => i.id)))}>Selecionar página</Button>
               <Input aria-label="Quantidade de virais" type="number" min={1} max={100} value={topCount} onChange={(e) => setTopCount(e.target.value)} className="w-20" />
@@ -163,7 +165,7 @@ export function ProfilesPage({ navigate }: PageProps) {
       </section>
       {preview && <MediaPreview key={preview.id} item={preview} onClose={() => setPreview(null)} />}
       <Modal open={scheduleOpen} onOpenChange={setScheduleOpen} title="Programar reels selecionados" description={`${ids.length} vídeo(s) para publicação no Instagram.`} footer={<><Button onClick={() => setScheduleOpen(false)}>Cancelar</Button><Button variant="primary" disabled={!account.data || !scheduleAt || schedule.isPending || Number(intervalMin) < 15 || Number(intervalMin) > 10080 || !Number.isInteger(Number(intervalMin))} onClick={() => schedule.mutate()}>Confirmar agendamento</Button></>}>
-        <div className="flex flex-col gap-3"><p className="text-sm">{account.data ? `Destino: @${account.data.username}` : 'Conecte uma conta profissional em Contas.'}</p>{!account.data && <Button onClick={() => { setScheduleOpen(false); navigate('accounts') }}>Conectar conta</Button>}<Input label={`Primeira publicação (${workspace.timeZone})`} type="datetime-local" value={scheduleAt} onChange={e => setScheduleAt(e.target.value)} /><Input label="Intervalo entre posts (minutos)" type="number" min={15} max={10080} value={intervalMin} onChange={e => setIntervalMin(e.target.value)} /><Input label="Legenda do lote (opcional)" maxLength={2200} value={scheduleCaption} onChange={e => setScheduleCaption(e.target.value)} /><p className="text-xs text-dim">Ao confirmar, serão criadas tarefas de publicação real, com os vídeos de origem e esta legenda (ou a original se o campo estiver vazio). O PC precisa estar ligado e o Legacy aberto. Links podem expirar; erros e retentativas ficam na Fila. Cancelar é possível enquanto a tarefa não começou.</p></div>
+        <div className="flex flex-col gap-3"><p className="text-sm">{account.data ? `Destino: @${account.data.username}` : 'Conecte uma conta profissional em Contas.'}</p>{!account.data && <Button onClick={() => { setScheduleOpen(false); navigate('accounts') }}>Conectar conta</Button>}<Input label={`Primeira publicação (${workspace.timeZone})`} type="datetime-local" value={scheduleAt} onChange={e => setScheduleAt(e.target.value)} /><Input label="Intervalo entre posts (minutos)" type="number" min={15} max={10080} value={intervalMin} onChange={e => setIntervalMin(e.target.value)} /><Input label="Legenda do lote (opcional)" maxLength={2200} value={scheduleCaption} onChange={e => setScheduleCaption(e.target.value)} /><label className="flex items-start gap-2 text-sm"><input type="checkbox" checked={cleanupAfterPublish} onChange={e => setCleanupAfterPublish(e.target.checked)} />Apagar a cópia do Legacy após publicação confirmada</label><p className="text-xs text-dim">O histórico por conta permanece. Vídeos em uso por outras tarefas serão mantidos; o original importado não é apagado.</p>{grid.items.some(i => ids.includes(i.id) && i.publishedAccounts?.includes(account.data?.username ?? '')) && <p role="status" className="text-xs text-warn">Esta conta já publicou um ou mais vídeos selecionados. Revise a seleção antes de confirmar.</p>}<p className="text-xs text-dim">Ao confirmar, serão criadas tarefas de publicação real, com os vídeos de origem e esta legenda (ou a original se o campo estiver vazio). O PC precisa estar ligado e o Legacy aberto. Links podem expirar; erros e retentativas ficam na Fila. Cancelar é possível enquanto a tarefa não começou.</p></div>
       </Modal>
       <Modal open={downloadOpen} onOpenChange={setDownloadOpen} title="Baixar vídeos do perfil" description={`Buscar reels públicos de @${active?.username ?? ''} e salvar na Biblioteca.`}
         footer={<><Button onClick={() => setDownloadOpen(false)}>Fechar</Button><Button variant="primary" disabled={!downloadStatus.data?.configured || download.isPending || !Number.isInteger(Number(downloadLimit)) || Number(downloadLimit) < 1 || Number(downloadLimit) > 100} onClick={() => download.mutate()}>{download.isPending ? 'Adicionando…' : 'Buscar e baixar'}</Button></>}>

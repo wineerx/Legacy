@@ -31,7 +31,7 @@ export function QueuePage(_: PageProps) {
       {jobs.data && jobs.data.length === 0 ? (
         <EmptyState icon={<ListOrdered size={28} />} title="Nada na fila" body="Miniaturas, banners e exportações aparecem aqui enquanto são processados." />
       ) : (
-        <div className="max-w-full overflow-x-auto rounded-card border border-line">
+        <div className="relative max-w-full overflow-x-auto rounded-card border border-line">
           <table className="w-full min-w-[760px] text-sm">
             <thead className="bg-panel text-left text-xs uppercase tracking-wide text-dim">
               <tr><th className="px-3 py-2">Tarefa</th><th className="px-3 py-2">Estado</th><th className="px-3 py-2">Tentativas</th><th className="px-3 py-2">Atualizada</th><th className="px-3 py-2">Detalhe</th><th className="px-3 py-2"><span className="sr-only">Ações</span></th></tr>

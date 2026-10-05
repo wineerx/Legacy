@@ -28,8 +28,10 @@ import { enqueueWebhook } from '../services/webhooks'
 import { jobs } from '../db/schema'
 import { topCaptions } from '../services/captions'
 import { jobDetails } from '../services/job-details'
-import { instagramAccount, connectInstagram, disconnectInstagram, scheduleInstagram } from '../services/instagram-publishing'
+import { instagramAccount, connectInstagram, disconnectInstagram, scheduleInstagram, verifyInstagram } from '../services/instagram-publishing'
 import type { UpdateStatus } from '@shared/ipc-contract'
+import { achievements } from '../services/achievements'
+import { history } from '../services/publication-history'
 
 export interface Dialogs { pickVideos(): Promise<string[]>; pickImage(): Promise<string | null>; pickMetricsFile(): Promise<string | null>; pickStorageFolder?(): Promise<string | null> }
 export interface HandlerDeps { ctx: Ctx; dialogs: Dialogs; shell: { openPath(p: string): Promise<string> }; workerAlive(): boolean; version: string; onJobsChanged(workspaceId: string): void; vault?: SecretVault; onSecretsChanged?(): void; updates?: { status(): UpdateStatus; check(): Promise<UpdateStatus>; download(): Promise<UpdateStatus>; install(): void } }
@@ -45,6 +47,9 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
   return {
     'app.bootstrap': () => ({ workspaces: listWorkspaces(ctx.db).map(({ id, name, timeZone }) => ({ id, name, timeZone })), version: deps.version, workerAlive: deps.workerAlive(), dataDir: ctx.dataRoot }),
     'dashboard.get': (i) => dashboard(ctx, i.workspaceId),
+    'achievements.get': (i) => ({ ...achievements(ctx, i.workspaceId), acknowledged: JSON.parse(getSetting(ctx.db, i.workspaceId, 'acknowledgedAchievements') ?? '[]') }),
+    'achievements.acknowledge': (i) => { const unlocked = achievements(ctx, i.workspaceId).challenges.filter(c => c.unlocked).map(c => c.id); const old = JSON.parse(getSetting(ctx.db, i.workspaceId, 'acknowledgedAchievements') ?? '[]') as string[]; setSetting(ctx.db, i.workspaceId, 'acknowledgedAchievements', JSON.stringify([...new Set([...old, ...i.ids.filter(id => unlocked.includes(id))])])); return null },
+    'publications.history': (i) => { requireWorkspace(ctx, i.workspaceId); return history(ctx, i.workspaceId) },
     'captions.top': (i) => topCaptions(ctx, i.workspaceId, i.sortBy, i.profileId),
     'tutorial.planGet': (i) => { requireWorkspace(ctx, i.workspaceId); const plan = getSetting(ctx.db, i.workspaceId, 'profilePlan'); return plan ? JSON.parse(plan) : null },
     'tutorial.planSave': ({ workspaceId, ...plan }) => { requireWorkspace(ctx, workspaceId); setSetting(ctx.db, workspaceId, 'profilePlan', JSON.stringify(plan)); return null },
@@ -88,6 +93,7 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
     'profiles.downloadSelected': (i) => changed(i.workspaceId, requestSelectedDownloads(ctx, i.workspaceId, i.postIds)),
     'profiles.prepareSelected': (i) => selectedAssets(ctx, i.workspaceId, i.postIds),
     'accounts.instagram': (i) => instagramAccount(ctx, i.workspaceId),
+    'accounts.verifyInstagram': async (i) => { const account = await verifyInstagram(ctx, vault, i.workspaceId); deps.onSecretsChanged?.(); return account },
     'accounts.connectInstagram': async (i) => { const account = await connectInstagram(ctx, vault, i.workspaceId, i.token); deps.onSecretsChanged?.(); return account },
     'accounts.disconnectInstagram': (i) => { disconnectInstagram(ctx, vault, i.workspaceId); deps.onSecretsChanged?.(); return null },
     'profiles.scheduleInstagram': (i) => changed(i.workspaceId, scheduleInstagram(ctx, i.workspaceId, i)),

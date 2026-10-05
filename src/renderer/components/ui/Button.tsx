@@ -30,7 +30,7 @@ export function Button({ variant = 'secondary', size = 'md', icon, disabledReaso
         {icon}
         {children}
       </button>
-      {blocked && <span id={reasonId} role="tooltip" className="pointer-events-none absolute left-1/2 top-full z-50 mt-1 -translate-x-1/2 whitespace-nowrap rounded-ctl border border-line bg-raised px-2 py-1 text-xs text-fg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">{disabledReason}</span>}
+      {blocked && <span id={reasonId} role="tooltip" className="pointer-events-none absolute right-0 top-full z-50 mt-1 w-max max-w-64 whitespace-normal rounded-ctl border border-line bg-raised px-2 py-1 text-xs text-fg opacity-0 group-hover:opacity-100 group-focus-within:opacity-100">{disabledReason}</span>}
     </span>
   )
 }

@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import type { AchievementSummary } from './achievements'
 import type { AppErrorCode } from './errors'
 import type { GridPage, JobView, DashboardSummary, IntegrationStatus } from './types'
 
@@ -15,6 +16,9 @@ const coverText = z.object({
 export const contract = {
   'app.bootstrap': z.object({}),
   'dashboard.get': z.object({ workspaceId: ws }),
+  'achievements.get': z.object({ workspaceId: ws }),
+  'achievements.acknowledge': z.object({ workspaceId: ws, ids: z.array(z.string().max(40)).max(30) }),
+  'publications.history': z.object({ workspaceId: ws }),
   'captions.top': z.object({ workspaceId: ws, sortBy: z.enum(['views', 'likes', 'comments']), profileId: id.optional() }),
   'tutorial.planGet': z.object({ workspaceId: ws }),
   'tutorial.planSave': z.object({ workspaceId: ws, username: z.string().max(30), niche: z.string().max(160), audience: z.string().max(160), bio: z.string().max(150), cadence: z.string().max(80) }),
@@ -53,9 +57,10 @@ export const contract = {
   'profiles.downloadSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
   'profiles.prepareSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
   'accounts.instagram': z.object({ workspaceId: ws }),
+  'accounts.verifyInstagram': z.object({ workspaceId: ws }),
   'accounts.connectInstagram': z.object({ workspaceId: ws, token: z.string().trim().min(20).max(4096).regex(/^[A-Za-z0-9_.-]+$/) }),
   'accounts.disconnectInstagram': z.object({ workspaceId: ws }),
-  'profiles.scheduleInstagram': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), caption: z.string().max(2200).optional() }),
+  'profiles.scheduleInstagram': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), caption: z.string().max(2200).optional(), cleanupAfterPublish: z.boolean().default(false) }),
   'profiles.add': z.object({ workspaceId: ws, url: z.string().min(1).max(300) }),
   'profiles.addReel': z.object({ workspaceId: ws, profileId: id, url: z.string().min(1).max(300) }),
   'profiles.importMetricsFile': z.object({ workspaceId: ws, profileId: id }),
@@ -99,6 +104,9 @@ export interface OnboardingStepDto { key: string; label: string; done: boolean; 
 export interface Outputs {
   'app.bootstrap': { workspaces: WorkspaceDto[]; version: string; workerAlive: boolean; dataDir: string }
   'dashboard.get': DashboardSummary
+  'achievements.get': AchievementSummary & { acknowledged: string[] }
+  'achievements.acknowledge': null
+  'publications.history': { jobId: string; accountId: string; username: string; postId: string; assetSha: string | null; mediaId: string | null; provenanceJson: string; publishedAt: string; cleanupState: string }[]
   'captions.top': { items: { id: string; username: string; text: string | null; permalink: string; value: number | null; updatedAt: string | null; source: 'api' | 'csv' | null }[]; total: number; sortBy: 'views' | 'likes' | 'comments'; note: string }
   'tutorial.planGet': { username: string; niche: string; audience: string; bio: string; cadence: string } | null
   'tutorial.planSave': null
@@ -129,6 +137,7 @@ export interface Outputs {
   'profiles.downloadSelected': JobView[]
   'profiles.prepareSelected': string[]
   'accounts.instagram': { id: string; username: string; revision: string; validatedAt: string } | null
+  'accounts.verifyInstagram': { id: string; username: string; revision: string; validatedAt: string }
   'accounts.connectInstagram': { id: string; username: string; revision: string; validatedAt: string }
   'accounts.disconnectInstagram': null
   'profiles.scheduleInstagram': JobView[]

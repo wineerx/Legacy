@@ -10,7 +10,7 @@ const dataDir = mkdtempSync(join(tmpdir(), 'legacy-e2e-'))
 const video = join(dataDir, 'clip.mp4')
 
 test.beforeAll(async () => {
-  execFileSync(resolve('resources/bin/win32-x64/ffmpeg.exe'), ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=360x640:rate=30:duration=4', '-c:v', 'mpeg4', video])
+  execFileSync(resolve('resources/bin/win32-x64/ffmpeg.exe'), ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=360x640:rate=30:duration=4', '-c:v', 'libopenh264', video])
   app = await electron.launch({
     executablePath: resolve('node_modules/electron/dist/electron.exe'),
     args: [resolve('out/main/index.js')],
@@ -74,7 +74,7 @@ test('captura screenshots das telas principais', async () => {
   for (const [nome, rotulo] of [['visao-geral', 'Visão geral'], ['biblioteca', 'Biblioteca'], ['perfis', 'Perfis'], ['fila', 'Fila'], ['configuracoes', 'Configurações']] as const) {
     await page.getByRole('link', { name: rotulo }).click()
     await page.waitForTimeout(400)
-    await page.screenshot({ path: `docs/screens/${nome}.png` })
+    await page.screenshot({ path: `docs/screens/qa-0.4/${nome}.png` })
   }
 })
 
@@ -89,7 +89,7 @@ test('configura pasta externa, importa e preserva miniatura após restaurar padr
   await page.getByRole('button', { name: 'Alterar pasta dos vídeos' }).click()
   await expect(page.getByText(/armazenamento-alternativo/).first()).toBeVisible()
   const secondVideo = join(dataDir, 'outro.mp4')
-  execFileSync(resolve('resources/bin/win32-x64/ffmpeg.exe'), ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=360x640:rate=30:duration=2', '-c:v', 'mpeg4', secondVideo])
+  execFileSync(resolve('resources/bin/win32-x64/ffmpeg.exe'), ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=360x640:rate=30:duration=2', '-c:v', 'libopenh264', secondVideo])
   const result = await page.evaluate(async (source) => {
     const boot = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }
     const workspaceId = boot.data.workspaces[0].id
@@ -109,7 +109,7 @@ test('download explica token ausente sem executar chamada externa', async () => 
   await page.getByRole('button', { name: 'Baixar vídeos do perfil' }).click()
   await expect(page.getByText(/Cadastre a chave Apify/)).toBeVisible()
   await expect(page.getByRole('button', { name: 'Buscar e baixar' })).toBeDisabled()
-  await page.screenshot({ path: 'docs/screens/download-perfil.png' })
+  await page.screenshot({ path: 'docs/screens/qa-0.4/download-perfil.png' })
   await page.getByRole('button', { name: 'Fechar', exact: true }).first().click()
 })
 
@@ -132,7 +132,7 @@ test('configura chave Apify protegida e mantém webhook desativado', async () =>
   await page.getByRole('button', { name: 'Configurar webhooks' }).click()
   await expect(page.getByRole('switch', { name: 'Ativar envios de webhook' })).not.toBeChecked()
   await expect(page.getByRole('button', { name: 'Enviar evento de teste' })).toBeDisabled()
-  await page.screenshot({ path: 'docs/screens/webhooks.png' })
+  await page.screenshot({ path: 'docs/screens/qa-0.4/webhooks.png' })
   await page.getByRole('button', { name: 'Fechar', exact: true }).first().click()
 })
 
@@ -142,7 +142,7 @@ test('tour navega, mantém foco, pausa com Escape e permite retomar', async () =
   const dialog = page.getByRole('dialog')
   await expect(dialog.getByRole('heading', { name: 'Seu painel de operação' })).toBeVisible()
   expect(await page.evaluate(() => Boolean(document.querySelector('[role="dialog"]')?.contains(document.activeElement)))).toBe(true)
-  await page.screenshot({ path: 'docs/screens/tutorial-tour.png' })
+  await page.screenshot({ path: 'docs/screens/qa-0.4/tutorial-tour.png' })
   await dialog.getByRole('button', { name: 'Próximo' }).click()
   await expect(dialog.getByRole('heading', { name: 'Prepare as APIs' })).toBeVisible()
   await dialog.getByRole('button', { name: 'Próximo' }).click()
@@ -165,7 +165,7 @@ test('tutorial salva plano e referências e mostra ranking sem resultados fictí
   await expect(page.getByText('Referência adicionada aos Perfis')).toBeVisible()
   await page.getByRole('button', { name: 'Reels em destaque' }).click()
   await expect(page.getByText(/Ainda não há legendas com métricas disponíveis/)).toBeVisible()
-  await page.screenshot({ path: 'docs/screens/tutorial-guia.png', fullPage: true })
+  await page.screenshot({ path: 'docs/screens/qa-0.4/tutorial-guia.png', fullPage: true })
   await page.getByRole('link', { name: 'Perfis' }).click()
   await expect(page.getByRole('button', { name: '@peter.memes7', exact: true })).toBeVisible()
   await page.getByRole('link', { name: 'Tutoriais' }).click()
@@ -180,19 +180,34 @@ test('modelos horizontais preenchem legenda base do editor', async () => {
   await expect(page.getByLabel('Legenda base')).toHaveValue(/Qual parte mais te representa/)
 })
 
-test('telas cabem em 960 e 1440 pixels sem overflow da janela', async () => {
-  for (const width of [960, 1440]) {
+test('telas cabem em 800, 1024 e 1440 pixels sem overflow da janela', async () => {
+  for (const width of [800, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 })
-    for (const label of ['Perfis', 'Criar postagem', 'Visão geral', 'Fila', 'Configurações', 'Tutoriais', 'Contas']) {
+    for (const label of ['Perfis', 'Biblioteca', 'Criar postagem', 'Visão geral', 'Fila', 'Configurações', 'Tutoriais', 'Contas', 'Notificações', 'Desafios e conquistas']) {
       await page.getByRole('link', { name: label, exact: true }).click()
       await page.waitForTimeout(250)
       const overflow = await page.evaluate(() => {
         const main = document.querySelector('main')!
         return { document: document.documentElement.scrollWidth - window.innerWidth, main: main.scrollWidth - main.clientWidth }
       })
+      if (overflow.document || overflow.main) console.log(await page.evaluate(() => [...document.querySelectorAll('*')].filter(el => el.getBoundingClientRect().right > window.innerWidth).map(el => ({tag:el.tagName,cls:el.className,right:el.getBoundingClientRect().right,text:el.textContent?.slice(0,90),position:getComputedStyle(el).position,overflow:getComputedStyle(el).overflow,transform:getComputedStyle(el).transform})).slice(-12)))
       expect(overflow, `${label} em ${width}px`).toEqual({ document: 0, main: 0 })
     }
   }
+})
+
+test('desafios têm progresso real e filtros avançados recolhem', async () => {
+  await page.getByRole('link', { name: 'Desafios e conquistas', exact: true }).click()
+  await expect(page.getByRole('heading', { name: 'Ofensiva diária' })).toBeVisible()
+  await expect(page.getByText('Sua primeira publicação confirmada inicia a ofensiva.')).toBeVisible()
+  await expect(page.getByRole('progressbar')).toHaveCount(8)
+  await page.screenshot({ path: 'docs/screens/qa-0.4/desafios-0.4.png' })
+  await page.evaluate(async () => { const boot = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }; await window.legacy.invoke('profiles.add', { workspaceId: boot.data.workspaces[0].id, url: 'instagram.com/qa.filters' }) })
+  await page.getByRole('link', { name: 'Perfis', exact: true }).click()
+  await expect(page.getByLabel('Mínimo de views')).toBeHidden()
+  await page.getByText('Filtros avançados', { exact: true }).click()
+  await expect(page.getByLabel('Mínimo de views')).toBeVisible()
+  await page.getByText('Filtros avançados', { exact: true }).click()
 })
 
 test('card tem métricas horizontais e fila permite ver arquivo e origem', async () => {
@@ -206,6 +221,6 @@ test('card tem métricas horizontais e fila permite ver arquivo e origem', async
   await page.getByRole('button', { name: 'Ver tarefa' }).first().click()
   await expect(page.getByRole('dialog')).toBeVisible()
   await expect(page.getByRole('button', { name: 'Abrir arquivo', exact: true })).toBeVisible()
-  await page.screenshot({ path: 'docs/screens/tarefa-detalhes.png' })
+  await page.screenshot({ path: 'docs/screens/qa-0.4/tarefa-detalhes.png' })
   await page.keyboard.press('Escape')
 })

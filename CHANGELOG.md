@@ -1,3 +1,12 @@
+# 0.4.0
+
+- Design System documentado; filtros avançados recolhíveis, ações com ícones e foco acessível.
+- Desafios, conquistas e ofensiva por conta em dias do workspace, com celebração persistida.
+- Histórico permanente de publicações e limpeza opcional após confirmação; proteção de mídia em uso.
+- Biblioteca preserva métricas/origem dos downloads e player interno.
+- Notificações agrupadas por lote, filtros por categoria, não lidas e falhas.
+- Corrigido identificador Instagram: user_id profissional em vez de id no escopo do app; verificação da conexão e retentativas após rejeição HTTP definitiva.
+
 # Histórico de versões
 
 ## 0.3.1

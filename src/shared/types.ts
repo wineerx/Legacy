@@ -18,6 +18,8 @@ export interface GridItem {
   durationMs: number | null
   metrics: Record<GridMetric, number | null>
   badges: Badge[]
+  publishedAccounts?: string[]
+  sourceProfile?: string | null
 }
 
 export interface GridQuery {

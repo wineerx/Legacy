@@ -97,6 +97,6 @@ export async function importFiles(ctx: Ctx, workspaceId: string, paths: string[]
 export async function deleteAsset(ctx: Ctx, workspaceId: string, id: string): Promise<void> {
   if (!getAsset(ctx.db, workspaceId, id)) throw new AppError('not_found', 'Vídeo não encontrado.')
   const dir = storedAssetDir(ctx, workspaceId, id)
-  deleteAssetRow(ctx.db, workspaceId, id)
   await rm(dir, { recursive: true, force: true })
+  deleteAssetRow(ctx.db, workspaceId, id)
 }

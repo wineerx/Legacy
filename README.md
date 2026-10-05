@@ -2,7 +2,7 @@
 
 **Seu estúdio de conteúdo, direto no desktop.**
 
-![Versão 0.3.1](https://img.shields.io/badge/vers%C3%A3o-0.3.1-6366f1)
+![Versão 0.4.0](https://img.shields.io/badge/vers%C3%A3o-0.4.0-6366f1)
 ![Windows x64](https://img.shields.io/badge/plataforma-Windows%2010%2F11-0078d4)
 ![Electron e React](https://img.shields.io/badge/Electron%20%2B%20React-desktop-22c55e)
 
@@ -10,16 +10,18 @@ O Legacy reúne pesquisa de perfis, downloads de reels públicos via Apify, bibl
 
 **Idealização, direção do produto e autoria: [Eduardo Ximenes — @wineerx](https://github.com/wineerx).** Implementação realizada com assistência do Codex.
 
-![Painel do Legacy: tarefas, perfis, métricas e integrações em uma interface escura](docs/screens/visao-geral.png)
+![Painel do Legacy: tarefas, perfis, métricas e integrações em uma interface escura](docs/screens/qa-0.4/visao-geral.png)
 
-*Captura real do Legacy 0.3.1 com dados de teste. Valores indisponíveis permanecem como “—”.*
+*Captura real do Legacy 0.4.0 com dados de teste. Valores indisponíveis permanecem como “—”.*
 
 ## O que você pode fazer
 
 | Recurso | Uso |
 | --- | --- |
 | Perfis e downloads | Cole uma URL Instagram, defina um limite e acompanhe os downloads via Apify. |
-| Biblioteca | Importe vídeos, evite duplicados e navegue em uma grade 9:16. |
+| Biblioteca | Importe vídeos, preserve métricas dos downloads e assista no player interno. |
+| Desafios e ofensiva | 8 desafios, celebrações e dias consecutivos por conta, baseados em publicações confirmadas. |
+| Histórico e limpeza | Veja contas que já publicaram cada vídeo; limpeza da cópia local é opcional após confirmação. |
 | Preparação de lotes | Ajuste legendas, capas e banners antes de exportar. |
 | Painel e métricas | Acompanhe tarefas, perfis e métricas conhecidas, com indicação da cobertura. |
 | Legendas | Use modelos editáveis ou compare legendas de reels carregados por métricas disponíveis. |
@@ -110,7 +112,7 @@ Não foi possível ler os perfis de referência diretamente pelo Instagram duran
 
 ## Instalação e atualizações
 
-Versão: **0.3.1**. O instalador NSIS é gerado por `npm run dist`. Em **Visão geral** ou **Configurações → Atualizações**, use **Verificar atualizações**, **Baixar atualização** e **Instalar e reiniciar**. A instalação espera não haver tarefas em execução. Nenhum download ou reinício acontece sem clicar nos botões.
+Versão: **0.4.0**. O instalador NSIS é gerado por `npm run dist`. Em **Visão geral** ou **Configurações → Atualizações**, use **Verificar atualizações**, **Baixar atualização** e **Instalar e reiniciar**. A instalação espera não haver tarefas em execução. Nenhum download ou reinício acontece sem clicar nos botões.
 
 A versão 0.2 precisa ser atualizada uma vez pelo instalador para receber esses controles. Depois disso, o atualizador consulta Releases públicas de `wineerx/Legacy`, que precisam conter o instalador, `.blockmap` e `latest.yml`. Sem uma Release válida, a interface informa a falha; não afirma que está atualizada. Em desenvolvimento, o atualizador fica indisponível. Dados permanecem fora da pasta do aplicativo; credenciais criptografadas podem exigir novo cadastro ao trocar usuário ou computador Windows.
 
@@ -144,7 +146,7 @@ O fluxo foi implementado para a [API Apify](https://docs.apify.com/api/v2) e o [
 
 Stack: Electron 42.11.10, Node.js 24, React 19, TypeScript, SQLite/Drizzle, TanStack Query e FFmpeg LGPL. Renderer isolado e sem acesso direto ao Node; operações passam por contratos IPC validados, processo principal e worker.
 
-Verificação da versão 0.3.1: **286 testes unitários e de integração**, **14 testes E2E no Electron** e typecheck concluídos. Testes de Apify, Instagram, atualizações e webhook usam respostas simuladas; integração externa com credencial real permanece pendente.
+Verificação da versão 0.4.0: **286 testes unitários e de integração**, **14 testes E2E no Electron** e typecheck concluídos. Testes de Apify, Instagram, atualizações e webhook usam respostas simuladas; integração externa com credencial real permanece pendente.
 
 Para contribuir, descreva o problema, mantenha o isolamento por workspace e execute `npm run typecheck`, `npm test -- --maxWorkers=2` e os E2E pertinentes. Não inclua tokens, bancos locais, vídeos pessoais ou pastas de dados no Git.
 
@@ -157,3 +159,15 @@ As referências Instagram no guia foram indicadas para estudo. Elas não represe
 ## Versionamento no GitHub
 
 Trabalhe em branches `codex/…` e abra PRs para `main`. Cada commit recebe uma execução de CI e um instalador identificado pelo SHA. Atualize a versão do pacote, lockfile, preload e CHANGELOG quando preparar uma versão. A workflow de release publica pelo GitHub ao receber uma tag `vX.Y.Z` igual à versão do pacote. Execute a release somente após revisar o PR e validar o CI; não inclua dados locais ou segredos.
+
+## Design, conquistas e histórico (0.4)
+
+![Desafios e conquistas do Legacy](docs/screens/qa-0.4/desafios-0.4.png)
+
+Veja o [plano de Design System](docs/design-system-0.4.md). Perfis separa filtros avançados e ações da seleção; ícones têm nomes acessíveis e ajuda contextual. Notificações recolhem eventos do mesmo lote, com filtros de categoria, não lidas e falhas. Animações respeitam movimento reduzido.
+
+Em **Desafios e conquistas**, a ofensiva conta dias locais com publicação confirmada na mesma conta; agendamentos, exportações e downloads não contam como publicação. O histórico conserva conta, hash disponível, perfil de origem, legenda e métricas capturadas.
+
+Em **Programar selecionados**, marque **Apagar a cópia do Legacy após publicação confirmada** somente se quiser liberar espaço. Desligado por padrão. A cópia é mantida se outra tarefa ainda a usa; falhas de limpeza não reenviam a postagem. Arquivos originais importados são preservados.
+
+A conexão Instagram utiliza **user_id**, o identificador profissional documentado pela Meta, e permite **Verificar conexão** sem reexpor o token. Reconectar a mesma conta preserva os agendamentos; trocar o destino invalida os anteriores. Não existe OAuth embutido nesta versão: gere o token Instagram User no painel Meta, aceite o convite de testador quando necessário e conecte em Contas. A identidade validada não garante permissão de publicação.

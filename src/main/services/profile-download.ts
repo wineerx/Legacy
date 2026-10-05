@@ -1,4 +1,5 @@
 import { mkdir, rm } from 'node:fs/promises'
+import { randomUUID } from 'node:crypto'
 import { and, eq, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 import { AppError } from '@shared/errors'
@@ -103,14 +104,14 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
     }
     if (discovery || (post.assetId && getAsset(ctx.db, job.workspaceId, post.assetId))) continue
     enqueue(ctx.db, {
-      workspaceId: job.workspaceId, type: 'download_reel', payload: { postId: post.id, videoUrl: reel.videoUrl },
+      workspaceId: job.workspaceId, type: 'download_reel', payload: { postId: post.id, videoUrl: reel.videoUrl, batchId: job.id },
       label: `Baixar reel ${ref.code} de @${profile.username}`, idempotencyKey: `download:${job.workspaceId}:${job.id}:${post.id}`, maxAttempts: 3
     }, ctx.clock())
     queued++
   }
   if (!items.length || skipped === items.length) throw new AppError('invalid_input', 'Nenhum post disponível. O perfil pode estar privado, vazio ou bloqueado pelo provedor.')
   ctx.db.update(trackedProfiles).set({ lastSyncedAt: ctx.clock().toISOString() }).where(and(eq(trackedProfiles.workspaceId, job.workspaceId), eq(trackedProfiles.id, profileId))).run()
-  if (notificationPreferences(ctx, job.workspaceId).completed) addNotification(ctx.db, { workspaceId: job.workspaceId, kind: 'info', title: `Busca de @${profile.username} concluída`, body: `${queued} downloads na fila; ${skipped} resultados indisponíveis. Acompanhe cada arquivo na Fila.` }, ctx.clock())
+  if (notificationPreferences(ctx, job.workspaceId).completed) addNotification(ctx.db, { workspaceId: job.workspaceId, kind: 'info', title: `Busca de @${profile.username} concluída`, body: `${queued} downloads na fila; ${skipped} resultados indisponíveis. Acompanhe cada arquivo na Fila.`, actionJson: JSON.stringify({ type: 'open_queue', jobId: job.id, groupId: job.id, category: 'download' }) }, ctx.clock())
   return { ...checkpoint, queued, skipped }
 }
 
@@ -119,7 +120,8 @@ export function requestSelectedDownloads(ctx: Ctx, ws: string, postIds: string[]
   if (posts.some(p => !p)) throw new AppError('not_found', 'Post não encontrado neste workspace.')
   const media = posts.map(p => ({ post: p!, url: JSON.parse(getSetting(ctx.db, ws, `remoteMedia.${p!.id}`) ?? '{}').videoUrl as string | undefined }))
   for (const p of media) if (!p.post.assetId) { if (!p.url) throw new AppError('invalid_input', 'Selecione somente vídeos com URL disponível.'); allowedUrl(p.url) }
-  return ctx.db.transaction(() => media.filter(p => !p.post.assetId).map(p => enqueue(ctx.db, { workspaceId: ws, type: 'download_reel', payload: { postId: p.post.id, videoUrl: p.url }, label: `Baixar vídeo selecionado ${p.post.id.slice(0, 8)}`, idempotencyKey: `selected:${ws}:${p.post.id}:${ctx.clock().getTime()}`, maxAttempts: 3 }, ctx.clock())))
+  const batchId = randomUUID()
+  return ctx.db.transaction(() => media.filter(p => !p.post.assetId).map(p => enqueue(ctx.db, { workspaceId: ws, type: 'download_reel', payload: { postId: p.post.id, videoUrl: p.url, batchId }, label: `Baixar vídeo selecionado ${p.post.id.slice(0, 8)}`, idempotencyKey: `selected:${ws}:${p.post.id}:${ctx.clock().getTime()}`, maxAttempts: 3 }, ctx.clock())))
 }
 
 export function selectedAssets(ctx: Ctx, ws: string, postIds: string[]): string[] {

@@ -24,6 +24,8 @@ parent?.on('message', (e) => {
   if (data?.type === 'stop') { stopping = true; credentialsReady() }
   if (data?.type === 'credentials') { secrets = data.secrets ?? {}; credentialsReady() }
 })
+// Announce readiness only after the message listener and database are initialized.
+if (process.env.LEGACY_MANAGED_SECRETS === '1') parent?.postMessage({ type: 'credentials-ready' })
 
 recoverExpired(db, new Date())
 let lastRecover = Date.now()
