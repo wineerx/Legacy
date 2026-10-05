@@ -6,7 +6,10 @@ import { addProfileFromUrl } from '../repos/profiles'
 import { addReelLink } from '../repos/remote-posts'
 import { setSetting } from '../repos/settings'
 import { decryptSecret } from './integrations'
-import { connectInstagram, disconnectInstagram, scheduleInstagram, publishInstagram, InstagramPending, InstagramApiError, verifyInstagram } from './instagram-publishing'
+import { connectInstagram, disconnectInstagram, scheduleInstagram, scheduleComposition, instagramAccount, publishInstagram, InstagramPending, InstagramApiError, verifyInstagram } from './instagram-publishing'
+import {insertAsset} from '../repos/assets'
+import {remotePosts,jobs} from '../db/schema'
+import {eq} from 'drizzle-orm'
 import { history } from './publication-history'
 import { leaseNext } from '../queue/queue'
 
@@ -82,4 +85,17 @@ describe('publicação agendada Instagram', () => {
     const other = createWorkspace(ctx.db, { name: 'B', timeZone: 'UTC' }).id
     expect(() => scheduleInstagram(ctx, other, { postIds: [postId], firstAt: '2026-10-05T12:02:00Z', intervalMin: 60 })).toThrow(/Conecte/)
   })
+})
+
+it('compõe publicação com destino fixo e legenda por vídeo, rejeitando locais sem URL',()=>{
+ const asset=insertAsset(ctx.db,{id:'asset-compose',workspaceId:ws,origin:'ig_third_party',sourceName:'reel.mp4',filePath:'C:/test/reel.mp4',sha256:'compose-sha',sizeBytes:1,durationMs:2000,width:720,height:1280,videoCodec:'h264',validationJson:'{}',importedAt:ctx.clock().toISOString()})
+ const account=instagramAccount(ctx,ws)!
+ const input={assetIds:[asset.id],accountId:account.id,accountRevision:account.revision,firstAt:'2026-10-05T12:02:00Z',intervalMin:60,captions:{[asset.id]:'Legenda própria'},cleanupAfterPublish:false}
+ expect(()=>scheduleComposition(ctx,ws,input)).toThrow(/URL pública/)
+ ctx.db.update(remotePosts).set({assetId:asset.id}).where(eq(remotePosts.id,postId)).run()
+ expect(()=>scheduleComposition(ctx,ws,{...input,accountId:'000'})).toThrow(/destino mudou/)
+ const result=scheduleComposition(ctx,ws,input)
+ expect(result).toHaveLength(1)
+ expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id,result[0].id)).get()!.payloadJson)).toMatchObject({caption:'Legenda própria',accountId:account.id,postId})
+ expect(()=>scheduleComposition(ctx,ws,{...input,captions:{[asset.id]:'x'.repeat(2201)}})).toThrow(/2200/)
 })

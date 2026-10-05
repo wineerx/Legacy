@@ -29,7 +29,7 @@ import { enqueueWebhook } from '../services/webhooks'
 import { jobs } from '../db/schema'
 import { topCaptions } from '../services/captions'
 import { jobDetails } from '../services/job-details'
-import { instagramAccount, connectInstagram, disconnectInstagram, scheduleInstagram, verifyInstagram } from '../services/instagram-publishing'
+import { instagramAccount, connectInstagram, disconnectInstagram, scheduleInstagram, scheduleComposition, verifyInstagram } from '../services/instagram-publishing'
 import type { UpdateStatus } from '@shared/ipc-contract'
 import { achievements } from '../services/achievements'
 import { history } from '../services/publication-history'
@@ -99,6 +99,7 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
     'accounts.instagram': (i) => instagramAccount(ctx, i.workspaceId),
     'accounts.verifyInstagram': async (i) => { const account = await verifyInstagram(ctx, vault, i.workspaceId); deps.onSecretsChanged?.(); return account },
     'accounts.connectInstagram': async (i) => { const account = await connectInstagram(ctx, vault, i.workspaceId, i.token); deps.onSecretsChanged?.(); return account },
+    'compose.scheduleInstagram': (i) => changed(i.workspaceId,scheduleComposition(ctx,i.workspaceId,i)),
     'accounts.disconnectInstagram': (i) => { disconnectInstagram(ctx, vault, i.workspaceId); deps.onSecretsChanged?.(); return null },
     'profiles.scheduleInstagram': (i) => changed(i.workspaceId, scheduleInstagram(ctx, i.workspaceId, i)),
     'profiles.add': (i) => changed(i.workspaceId, profileDto(addProfileFromUrl(ctx, i.workspaceId, i.url))),

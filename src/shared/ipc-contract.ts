@@ -60,6 +60,7 @@ export const contract = {
   'profiles.downloadSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
   'profiles.prepareSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
   'accounts.instagram': z.object({ workspaceId: ws }),
+  'compose.scheduleInstagram': z.object({ workspaceId: ws, assetIds: z.array(id).min(1).max(100), accountId: z.string().regex(/^\d+$/), accountRevision: z.string().min(1), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), captions: z.record(z.string(),z.string().max(2200)), cleanupAfterPublish: z.boolean().default(false) }),
   'accounts.verifyInstagram': z.object({ workspaceId: ws }),
   'accounts.connectInstagram': z.object({ workspaceId: ws, token: z.string().trim().min(20).max(4096).regex(/^[A-Za-z0-9_.-]+$/) }),
   'accounts.disconnectInstagram': z.object({ workspaceId: ws }),
@@ -144,6 +145,7 @@ export interface Outputs {
   'profiles.downloadSelected': JobView[]
   'profiles.prepareSelected': string[]
   'accounts.instagram': { id: string; username: string; revision: string; validatedAt: string } | null
+  'compose.scheduleInstagram': JobView[]
   'accounts.verifyInstagram': { id: string; username: string; revision: string; validatedAt: string }
   'accounts.connectInstagram': { id: string; username: string; revision: string; validatedAt: string }
   'accounts.disconnectInstagram': null

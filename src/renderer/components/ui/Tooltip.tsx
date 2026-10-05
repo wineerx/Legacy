@@ -7,7 +7,7 @@ export function Tooltip({ content, children }: { content: string; children: Reac
       <T.Root>
         <T.Trigger asChild>{children}</T.Trigger>
         <T.Portal>
-          <T.Content sideOffset={6} className="rounded-ctl border border-line bg-raised px-2 py-1 text-xs text-fg shadow-lg">{content}</T.Content>
+          <T.Content side="right" sideOffset={6} className="pointer-events-none z-[80] rounded-ctl border border-line bg-raised px-2 py-1 text-xs text-fg shadow-lg">{content}</T.Content>
         </T.Portal>
       </T.Root>
     </T.Provider>

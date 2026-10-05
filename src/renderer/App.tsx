@@ -15,7 +15,7 @@ function Shell() {
   useJobsChangedInvalidation()
   const { workspace, workspaces, setWorkspaceId } = useWorkspace()
   const [page, setPage] = useState<PageKey>('overview')
-  const [collapsed, setCollapsed] = useState(false)
+  const [collapsed, setCollapsed] = useState(()=>{try{return localStorage.getItem('legacy.sidebarCollapsed')==='true'}catch{return false}})
   const { unread } = useMascot()
   useEffect(() => onEvent('app.navigate', (p) => {
     const { page: next, workspaceId } = (p ?? {}) as { page?: string; workspaceId?: string }
@@ -26,7 +26,7 @@ function Shell() {
   return (
     <TutorialProvider page={page} navigate={setPage}><div className="grid h-full min-w-0 grid-cols-[minmax(0,1fr)] grid-rows-[1fr_auto]">
       <div className="flex min-h-0 min-w-0">
-        <Sidebar current={page} onNavigate={setPage} unread={unread} collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
+        <Sidebar current={page} onNavigate={setPage} unread={unread} collapsed={collapsed} onToggle={() => setCollapsed((c) => {try{localStorage.setItem('legacy.sidebarCollapsed',String(!c))}catch{/* unavailable */}return !c})} />
         <main tabIndex={-1} className="min-w-0 flex-1 overflow-auto bg-app"><div key={`${workspace.id}:${page}`} className={page === 'profiles' ? 'page-enter h-full' : 'page-enter'}><Page navigate={setPage} /></div></main>
       </div>
       <StatusBar />

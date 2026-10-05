@@ -30,6 +30,7 @@ const res = (...p: string[]) => (app.isPackaged ? join(process.resourcesPath, ..
 const migrationsDir = app.isPackaged ? res('migrations') : resolve('src/main/db/migrations')
 const ffmpegDir = app.isPackaged ? res('bin') : resolve('resources/bin/win32-x64')
 const iconPath = res(app.isPackaged ? 'tray.png' : 'resources/tray.png')
+const appIconPath = res(app.isPackaged ? 'icon.ico' : 'resources/icon.ico')
 
 let win: BrowserWindow | null = null
 let tray: Tray | null = null
@@ -45,15 +46,18 @@ function showWindow(): void {
 
 function createWindow(): BrowserWindow {
   const w = new BrowserWindow({
-    icon: res(app.isPackaged ? 'icon.ico' : 'resources/icon.ico'),
+    icon: appIconPath,
     width: 1440, height: 900, minWidth: 960, minHeight: 600, backgroundColor: '#0B0B0B', show: false, autoHideMenuBar: true,
     webPreferences: { preload: join(import.meta.dirname, '../preload/index.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false }
   })
+  if (process.platform === 'win32') {
+    w.setAppDetails({ appId: 'app.legacy.desktop', appIconPath, appIconIndex: 0 })
+  }
   w.once('ready-to-show', () => w.show())
   w.on('session-end', () => { quitting = true })
   w.on('closed', () => { if (win === w) win = null })
   w.webContents.setWindowOpenHandler(({ url }) => {
-    if (url.startsWith('https://www.instagram.com/')) void shell.openExternal(url)
+    try { if (['www.instagram.com','developers.facebook.com'].includes(new URL(url).hostname) && new URL(url).protocol==='https:') void shell.openExternal(url) } catch { /* malformed external URL */ }
     return { action: 'deny' }
   })
   w.webContents.on('will-navigate', (e) => e.preventDefault())
