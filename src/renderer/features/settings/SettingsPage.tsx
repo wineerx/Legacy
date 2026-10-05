@@ -4,6 +4,7 @@ import { useWorkspace } from '../../lib/workspace'
 import { Button, SettingRow, Toggle, useToast } from '../../components/ui'
 import type { PageProps } from '../../routes'
 import { IntegrationPanel } from './IntegrationPanel'
+import { UpdatePanel } from './UpdatePanel'
 
 type Key = 'minimizeToTray' | 'stripMetadataDefault'
 
@@ -47,15 +48,16 @@ export function SettingsPage(_: PageProps) {
         <h2 className="font-semibold">Sobre esta versão</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-dim">
           <li>Versão: {window.legacy.version}.</li>
-          <li>Atualização manual por instalador. Atualização automática ainda não configurada.</li>
+          <li>Atualizações pelas releases oficiais no GitHub.</li>
           <li>Pasta de dados: {dataDir}</li>
           <li>Fuso do workspace: {workspace.timeZone}.</li>
           <li>Vídeos, capas e exportações ficam só neste computador.</li>
           <li>Tarefas e lembretes rodam com o PC ligado e o Legacy aberto. Desligado ou em suspensão, nada é processado.</li>
-          <li>Publicação automática no Instagram chega com a conexão oficial. No TikTok, a postagem é manual a partir da pasta exportada.</li>
+          <li>Instagram: agendamento por token de conta profissional em Contas. TikTok: postagem manual a partir da pasta exportada.</li>
         </ul>
       </section>
       <IntegrationPanel />
+      <UpdatePanel />
     </div>
   )
 }

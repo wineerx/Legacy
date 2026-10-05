@@ -6,7 +6,7 @@ import { getSetting, setSetting } from '../repos/settings'
 import { listWorkspaces } from '../repos/workspaces'
 import { apifyJson } from './download-http'
 
-export type SecretKey = 'apifyToken' | 'webhookSecret'
+export type SecretKey = 'apifyToken' | 'webhookSecret' | 'instagramToken'
 export type SecretMap = Record<string, Partial<Record<SecretKey, string>>>
 export interface SecretVault { available(): boolean; encrypt(value: string): string; decrypt(value: string): string }
 export type WebhookEvent = 'job.done' | 'job.failed'
@@ -31,7 +31,8 @@ export function decryptSecret(ctx: Ctx, vault: SecretVault, ws: string, key: Sec
 export function secretSnapshot(ctx: Ctx, vault: SecretVault): SecretMap {
   return Object.fromEntries(listWorkspaces(ctx.db).map((w) => [w.id, {
     apifyToken: decryptSecret(ctx, vault, w.id, 'apifyToken') ?? undefined,
-    webhookSecret: decryptSecret(ctx, vault, w.id, 'webhookSecret') ?? undefined
+    webhookSecret: decryptSecret(ctx, vault, w.id, 'webhookSecret') ?? undefined,
+    instagramToken: decryptSecret(ctx, vault, w.id, 'instagramToken') ?? undefined
   }]))
 }
 export function saveSecret(ctx: Ctx, vault: SecretVault, ws: string, key: SecretKey, value: string): void {

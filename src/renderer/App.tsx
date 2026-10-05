@@ -23,8 +23,8 @@ function Shell() {
   }), [workspaces])
   const Page = PAGES[page]
   return (
-    <TutorialProvider page={page} navigate={setPage}><div className="grid h-full grid-rows-[1fr_auto]">
-      <div className="flex min-h-0">
+    <TutorialProvider page={page} navigate={setPage}><div className="grid h-full min-w-0 grid-cols-[minmax(0,1fr)] grid-rows-[1fr_auto]">
+      <div className="flex min-h-0 min-w-0">
         <Sidebar current={page} onNavigate={setPage} unread={unread} collapsed={collapsed} onToggle={() => setCollapsed((c) => !c)} />
         <main tabIndex={-1} className="min-w-0 flex-1 overflow-auto bg-app"><div key={`${workspace.id}:${page}`} className="page-enter"><Page navigate={setPage} /></div></main>
       </div>

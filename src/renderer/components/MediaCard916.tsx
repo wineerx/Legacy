@@ -40,7 +40,7 @@ export function MediaCard916({ item, selected, onToggleSelect, onOpen, actions }
       <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col">
         {actions && <div className="hidden gap-1 px-2 pb-1 group-hover:flex group-focus-within:flex">{actions}</div>}
         {item.durationMs !== null && <span className="mb-1 mr-2 self-end rounded bg-black/70 px-1 text-[11px] tabular-nums">{formatDuration(item.durationMs)}</span>}
-        <div className="flex flex-col gap-0.5 bg-black/75 px-2 py-1.5 text-xs text-fg">
+        <div data-testid="card-metrics" className="flex flex-nowrap items-center justify-between gap-1 bg-black/75 px-1.5 py-1.5 text-[10px] text-fg">
           <Metric k="views" value={item.metrics.views} />
           <Metric k="likes" value={item.metrics.likes} />
           <Metric k="comments" value={item.metrics.comments} />

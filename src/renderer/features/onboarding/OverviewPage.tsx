@@ -7,6 +7,7 @@ import type { PageProps } from '../../routes'
 import { IntegrationPanel } from '../settings/IntegrationPanel'
 import { DashboardWidgets } from './DashboardWidgets'
 import { useTutorial } from '../tutorial/TutorialProvider'
+import { UpdatePanel } from '../settings/UpdatePanel'
 
 export function OverviewPage({ navigate }: PageProps) {
   const { workspace } = useWorkspace()
@@ -34,7 +35,7 @@ export function OverviewPage({ navigate }: PageProps) {
         <Button variant="primary" onClick={() => navigate('library')}>Abrir biblioteca</Button>
         <Button onClick={() => navigate('profiles')}>Acompanhar um perfil</Button>
       </div>
-      <section className="rounded-card border border-line p-4 text-xs text-dim"><h2 className="mb-1 text-sm font-semibold text-fg">Instalação e atualizações</h2>Esta versão usa instalador Windows. A atualização é manual; atualização automática depende de um servidor de releases e ainda não está configurada.</section>
+      <UpdatePanel />
     </div>
   )
 }

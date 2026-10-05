@@ -11,6 +11,6 @@ describe('onboardingStatus', () => {
     expect(steps.map((s) => [s.key, s.done])).toEqual([
       ['workspace', true], ['connect_instagram', false], ['import_videos', false], ['cover', false], ['first_batch', false]
     ])
-    expect(steps[1].disabledReason).toBe('Disponível na próxima versão (conexão oficial com o Instagram).')
+    expect(steps[1].disabledReason).toBe('Configure a conta profissional por token em Contas.')
   })
 })

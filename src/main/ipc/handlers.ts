@@ -20,16 +20,19 @@ import { workspaceDir, resolveInside } from '../paths'
 import { listJobs, cancel, retryNow } from '../queue/queue'
 import { listNotifications, markRead, markAllRead, addNotification } from '../repos/notifications'
 import { onboardingStatus } from '../services/onboarding'
-import { downloadConfigured, requestProfileDownload } from '../services/profile-download'
+import { downloadConfigured, requestProfileDownload, requestSelectedDownloads, selectedAssets } from '../services/profile-download'
 import { videoStorage, setVideoStorage } from '../services/storage'
 import { dashboard } from '../services/dashboard'
 import { integrationStatus, requireWorkspace, saveSecret, saveWebhook, validateApify, type SecretVault } from '../services/integrations'
 import { enqueueWebhook } from '../services/webhooks'
 import { jobs } from '../db/schema'
 import { topCaptions } from '../services/captions'
+import { jobDetails } from '../services/job-details'
+import { instagramAccount, connectInstagram, disconnectInstagram, scheduleInstagram } from '../services/instagram-publishing'
+import type { UpdateStatus } from '@shared/ipc-contract'
 
 export interface Dialogs { pickVideos(): Promise<string[]>; pickImage(): Promise<string | null>; pickMetricsFile(): Promise<string | null>; pickStorageFolder?(): Promise<string | null> }
-export interface HandlerDeps { ctx: Ctx; dialogs: Dialogs; shell: { openPath(p: string): Promise<string> }; workerAlive(): boolean; version: string; onJobsChanged(workspaceId: string): void; vault?: SecretVault; onSecretsChanged?(): void }
+export interface HandlerDeps { ctx: Ctx; dialogs: Dialogs; shell: { openPath(p: string): Promise<string> }; workerAlive(): boolean; version: string; onJobsChanged(workspaceId: string): void; vault?: SecretVault; onSecretsChanged?(): void; updates?: { status(): UpdateStatus; check(): Promise<UpdateStatus>; download(): Promise<UpdateStatus>; install(): void } }
 
 const profileDto = (p: Profile) => ({ id: p.id, username: p.username, url: p.url, connected: p.connectedAccountId !== null, lastSyncedAt: p.lastSyncedAt })
 const coverDto = (c: CoverTemplate) => ({ id: c.id, name: c.name, kind: c.kind, imagePath: c.imagePath, frameMs: c.frameMs, textJson: c.textJson })
@@ -81,6 +84,13 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
     'profiles.list': (i) => listProfiles(ctx.db, i.workspaceId).map(profileDto),
     'profiles.downloadStatus': (i) => ({ configured: downloadConfigured(ctx, i.workspaceId) }),
     'profiles.download': (i) => changed(i.workspaceId, requestProfileDownload(ctx, i.workspaceId, i.profileId, i.limit)),
+    'profiles.discover': (i) => changed(i.workspaceId, requestProfileDownload(ctx, i.workspaceId, i.profileId, i.limit, true)),
+    'profiles.downloadSelected': (i) => changed(i.workspaceId, requestSelectedDownloads(ctx, i.workspaceId, i.postIds)),
+    'profiles.prepareSelected': (i) => selectedAssets(ctx, i.workspaceId, i.postIds),
+    'accounts.instagram': (i) => instagramAccount(ctx, i.workspaceId),
+    'accounts.connectInstagram': async (i) => { const account = await connectInstagram(ctx, vault, i.workspaceId, i.token); deps.onSecretsChanged?.(); return account },
+    'accounts.disconnectInstagram': (i) => { disconnectInstagram(ctx, vault, i.workspaceId); deps.onSecretsChanged?.(); return null },
+    'profiles.scheduleInstagram': (i) => changed(i.workspaceId, scheduleInstagram(ctx, i.workspaceId, i)),
     'profiles.add': (i) => profileDto(addProfileFromUrl(ctx, i.workspaceId, i.url)),
     'profiles.addReel': (i) => { const r = addReelLink(ctx, i.workspaceId, i.profileId, i.url); return { id: r.id, permalink: r.permalink } },
     'profiles.importMetricsFile': async (i) => {
@@ -108,6 +118,12 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
       return null
     },
     'jobs.list': (i) => listJobs(ctx.db, i.workspaceId),
+    'jobs.details': (i) => jobDetails(ctx, i.workspaceId, i.id),
+    'library.openAsset': async (i) => { const a = getAsset(ctx.db, i.workspaceId, i.id); if (!a) throw new AppError('not_found', 'Vídeo não encontrado.'); const error = await deps.shell.openPath(a.filePath); if (error) throw new AppError('internal', 'Não foi possível abrir o arquivo.'); return null },
+    'updates.status': () => deps.updates?.status() ?? { state: 'unsupported', version: null, progress: 0, message: 'Atualizador indisponível.' },
+    'updates.check': () => { if (!deps.updates) throw new AppError('invalid_input', 'Atualizador indisponível.'); return deps.updates.check() },
+    'updates.download': () => { if (!deps.updates) throw new AppError('invalid_input', 'Atualizador indisponível.'); return deps.updates.download() },
+    'updates.install': () => { if (!deps.updates) throw new AppError('invalid_input', 'Atualizador indisponível.'); deps.updates.install(); return null },
     'jobs.cancel': (i) => changed(i.workspaceId, cancel(ctx.db, i.workspaceId, i.id, now())),
     'jobs.retry': (i) => changed(i.workspaceId, retryNow(ctx.db, i.workspaceId, i.id, now())),
     'notifications.list': (i) => listNotifications(ctx.db, i.workspaceId, ctx.clock()),

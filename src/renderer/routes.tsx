@@ -10,6 +10,7 @@ import { QueuePage } from './features/queue/QueuePage'
 import { NotificationsPage } from './features/notifications/NotificationsPage'
 import { SettingsPage } from './features/settings/SettingsPage'
 import { TutorialPage } from './features/tutorial/TutorialPage'
+import { AccountsPage } from './features/settings/AccountsPage'
 
 export type PageKey = 'overview' | 'profiles' | 'library' | 'compose' | 'campaigns' | 'calendar' | 'queue' | 'accounts' | 'notifications' | 'settings' | 'tutorial'
 export type PageProps = { navigate(p: PageKey): void }
@@ -29,7 +30,6 @@ export const NAV: { key: PageKey; label: string; icon: LucideIcon }[] = [
 export const SETTINGS_NAV = { key: 'settings' as const, label: 'Configurações', icon: Settings }
 
 const PHASE_D = 'Campanhas e calendário chegam junto com a publicação agendada por API.'
-const PHASE_B = 'A conexão oficial com o Instagram chega na próxima versão. Enquanto isso, importe vídeos do PC e métricas por CSV.'
 
 export const PAGES: Record<PageKey, (p: PageProps) => ReactElement> = {
   overview: OverviewPage,
@@ -39,7 +39,7 @@ export const PAGES: Record<PageKey, (p: PageProps) => ReactElement> = {
   campaigns: () => <ComingSoon title="Campanhas" reason={PHASE_D} />,
   calendar: () => <ComingSoon title="Calendário" reason={PHASE_D} />,
   queue: QueuePage,
-  accounts: () => <ComingSoon title="Contas" reason={PHASE_B} />,
+  accounts: AccountsPage,
   notifications: NotificationsPage,
   settings: SettingsPage,
   tutorial: TutorialPage

@@ -9,10 +9,10 @@ export function StatusBar() {
   const running = jobs.data?.filter((j) => j.state === 'running').length ?? 0
   const queued = jobs.data?.filter((j) => j.state === 'queued').length ?? 0
   return (
-    <footer className="flex h-7 items-center gap-4 border-t border-line bg-side px-3 text-xs text-dim">
+    <footer className="flex min-w-0 items-center gap-3 border-t border-line bg-side px-3 py-1 text-[11px] text-dim">
       <span className="flex items-center gap-1.5"><span className={cx('h-2 w-2 rounded-full', workerAlive ? 'bg-ok' : 'bg-danger')} />{workerAlive ? 'Processador ativo' : 'Processador reiniciando'}</span>
       <span>{running} em execução · {queued} na fila</span>
-      <span className="ml-auto">Tarefas rodam enquanto o PC estiver ligado e o Legacy aberto na bandeja.</span>
+      <span className="ml-auto hidden truncate xl:block">Tarefas rodam enquanto o PC estiver ligado e o Legacy aberto na bandeja.</span>
     </footer>
   )
 }

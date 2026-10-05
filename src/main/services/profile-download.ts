@@ -12,14 +12,15 @@ import { getAsset } from '../repos/assets'
 import { addNotification } from '../repos/notifications'
 import { resolveInside, workspaceDir } from '../paths'
 import { importFiles } from './library'
-import { allowedUrl, apifyJson, downloadVideo } from './download-http'
+import { allowedUrl, apifyJson, downloadVideo, downloadPreview } from './download-http'
+import { getSetting, setSetting } from '../repos/settings'
 import { getSecret, notificationPreferences } from './integrations'
 
 const remoteId = z.string().regex(/^[a-zA-Z0-9]+$/)
 const runSchema = z.object({ data: z.object({ id: remoteId, status: z.string(), defaultDatasetId: remoteId.optional() }) })
 const count = (n: unknown) => typeof n === 'number' && Number.isSafeInteger(n) && n >= 0 ? n : null
 export const reelSchema = z.object({
-  url: z.string(), videoUrl: z.string(), id: z.string().optional(), caption: z.string().max(10000).optional(),
+  url: z.string(), videoUrl: z.string().optional(), displayUrl: z.string().optional(), type: z.string().optional(), videoDuration: z.number().optional(), id: z.string().optional(), caption: z.string().max(10000).optional(),
   timestamp: z.string().optional(), videoViewCount: z.unknown().optional(), likesCount: z.unknown().optional(), commentsCount: z.unknown().optional()
 })
 
@@ -30,19 +31,20 @@ function token(ctx: Ctx, ws: string): string {
   return value
 }
 
-export function requestProfileDownload(ctx: Ctx, workspaceId: string, profileId: string, limit: number) {
+export function requestProfileDownload(ctx: Ctx, workspaceId: string, profileId: string, limit: number, discovery = false) {
   const profile = getProfile(ctx.db, workspaceId, profileId)
   if (!profile) throw new AppError('not_found', 'Perfil não encontrado.')
   token(ctx, workspaceId)
-  if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new AppError('invalid_input', 'Escolha de 1 a 100 vídeos.')
+  if (!Number.isInteger(limit) || limit < 1 || limit > (discovery ? 1000 : 100)) throw new AppError('invalid_input', discovery ? 'Escolha de 1 a 1000 posts.' : 'Escolha de 1 a 100 vídeos.')
   const pending = ctx.db.select().from(jobs).where(and(eq(jobs.workspaceId, workspaceId), eq(jobs.type, 'fetch_profile'), inArray(jobs.state, ['queued', 'running']))).all()
   const existing = pending.find((j) => JSON.parse(j.payloadJson).profileId === profileId)
   if (existing) throw new AppError('duplicate', 'Já existe uma busca deste perfil na fila.')
-  return enqueue(ctx.db, { workspaceId, type: 'fetch_profile', payload: { profileId, limit }, label: `Buscar até ${limit} reels de @${profile.username}`, maxAttempts: 3 }, ctx.clock())
+  return enqueue(ctx.db, { workspaceId, type: 'fetch_profile', payload: { profileId, limit, discovery }, label: `Carregar até ${limit} ${discovery ? 'posts/reels' : 'reels'} de @${profile.username}`, maxAttempts: 3 }, ctx.clock())
 }
 
 export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
-  const { profileId, limit } = z.object({ profileId: z.string(), limit: z.number().int().min(1).max(100) }).parse(job.payload)
+  const { profileId, limit, discovery } = z.object({ profileId: z.string(), limit: z.number().int().min(1).max(1000), discovery: z.boolean().default(false) }).parse(job.payload)
+  if (!discovery && limit > 100) throw new AppError('invalid_input', 'O download está limitado a 100 vídeos por busca.')
   const profile = getProfile(ctx.db, job.workspaceId, profileId)
   if (!profile) throw new AppError('not_found', 'Perfil não encontrado.')
   const key = token(ctx, job.workspaceId)
@@ -52,9 +54,9 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
   if (!checkpoint.runId) {
     if (checkpoint.starting) throw new AppError('invalid_input', 'A criação da execução Apify ficou sem confirmação. Confira o console Apify antes de iniciar uma nova busca; esta tarefa não será reenviada automaticamente.')
     ctx.db.update(jobs).set({ resultJson: JSON.stringify({ starting: true }) }).where(condition).run()
-    const run = runSchema.parse(await apifyJson('actors/apify~instagram-reel-scraper/runs?timeout=600', key, {
-      username: [profile.url], resultsLimit: limit, includeDownloadedVideo: false
-    })).data
+    const run = runSchema.parse(await apifyJson(`actors/apify~instagram-${discovery ? 'scraper' : 'reel-scraper'}/runs?timeout=600`, key, discovery ? {
+      directUrls: [profile.url], resultsType: 'posts', resultsLimit: limit
+    } : { username: [profile.url], resultsLimit: limit, includeDownloadedVideo: false })).data
     checkpoint = { runId: run.id }
     ctx.db.update(jobs).set({ resultJson: JSON.stringify(checkpoint) }).where(condition).run()
   }
@@ -65,7 +67,13 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
     if (!['READY', 'RUNNING'].includes(run.status)) throw new AppError('invalid_input', `A busca Apify terminou em ${run.status}. Consulte o provedor e inicie uma nova busca.`)
   }
   if (!dataset) throw new AppError('internal', 'A busca ainda não terminou. A próxima tentativa consultará a mesma execução.')
-  const items = z.array(z.unknown()).max(100).parse(await apifyJson(`datasets/${dataset}/items?clean=true&limit=${limit}`, key))
+  const items: unknown[] = []
+  for (let offset = 0; offset < limit; offset += 100) {
+    const pageSize = Math.min(100, limit - offset)
+    const page = z.array(z.unknown()).max(pageSize).parse(await apifyJson(`datasets/${dataset}/items?clean=true&limit=${pageSize}&offset=${offset}`, key))
+    items.push(...page)
+    if (page.length < pageSize) break
+  }
   let queued = 0
   let skipped = 0
   for (const item of items) {
@@ -73,27 +81,49 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
     if (!parsed.success) { skipped++; continue }
     const reel = parsed.data
     let ref: ReturnType<typeof normalizeInstagramUrl>
-    try { allowedUrl(reel.videoUrl); ref = normalizeInstagramUrl(reel.url) } catch { skipped++; continue }
+    try { if (reel.videoUrl) allowedUrl(reel.videoUrl); else if (!discovery) throw new Error('No video'); ref = normalizeInstagramUrl(reel.url) } catch { skipped++; continue }
     if (ref.kind === 'profile') { skipped++; continue }
     const post = addReelLink(ctx, job.workspaceId, profileId, ref.url)
     if (post.profileId !== profileId) { skipped++; continue }
     const timestamp = reel.timestamp && Number.isFinite(Date.parse(reel.timestamp)) ? new Date(reel.timestamp).toISOString() : null
     ctx.db.update(remotePosts).set({
-      remoteId: reel.id ?? null, caption: reel.caption ?? null, postedAt: timestamp,
+      remoteId: reel.id ?? null, caption: reel.caption ?? null, postedAt: timestamp, mediaProductType: reel.videoUrl ? 'VIDEO' : reel.type === 'Sidecar' ? 'CAROUSEL' : 'IMAGE',
       views: count(reel.videoViewCount), likes: count(reel.likesCount), comments: count(reel.commentsCount),
       metricsSource: 'api', metricsUpdatedAt: ctx.clock().toISOString()
     }).where(and(eq(remotePosts.workspaceId, job.workspaceId), eq(remotePosts.id, post.id))).run()
-    if (post.assetId && getAsset(ctx.db, job.workspaceId, post.assetId)) continue
+    setSetting(ctx.db, job.workspaceId, `remoteMedia.${post.id}`, JSON.stringify({ videoUrl: reel.videoUrl ?? null, type: reel.type ?? (reel.videoUrl ? 'Video' : 'Image') }))
+    if (reel.displayUrl) {
+      const previewDir = resolveInside(workspaceDir(ctx.dataRoot, job.workspaceId), 'previews')
+      await mkdir(previewDir, { recursive: true })
+      const preview = resolveInside(previewDir, `${post.id}.jpg`)
+      try {
+        await downloadPreview(reel.displayUrl, preview)
+        ctx.db.update(remotePosts).set({ thumbnailPath: preview, durationMs: reel.videoDuration ? Math.round(reel.videoDuration * 1000) : post.durationMs }).where(and(eq(remotePosts.workspaceId, job.workspaceId), eq(remotePosts.id, post.id))).run()
+      } catch { /* Keep metadata when preview is unavailable. */ }
+    }
+    if (discovery || (post.assetId && getAsset(ctx.db, job.workspaceId, post.assetId))) continue
     enqueue(ctx.db, {
       workspaceId: job.workspaceId, type: 'download_reel', payload: { postId: post.id, videoUrl: reel.videoUrl },
       label: `Baixar reel ${ref.code} de @${profile.username}`, idempotencyKey: `download:${job.workspaceId}:${job.id}:${post.id}`, maxAttempts: 3
     }, ctx.clock())
     queued++
   }
-  if (!items.length || skipped === items.length) throw new AppError('invalid_input', 'Nenhum reel com vídeo disponível. O perfil pode estar privado, vazio ou bloqueado pelo provedor.')
+  if (!items.length || skipped === items.length) throw new AppError('invalid_input', 'Nenhum post disponível. O perfil pode estar privado, vazio ou bloqueado pelo provedor.')
   ctx.db.update(trackedProfiles).set({ lastSyncedAt: ctx.clock().toISOString() }).where(and(eq(trackedProfiles.workspaceId, job.workspaceId), eq(trackedProfiles.id, profileId))).run()
   if (notificationPreferences(ctx, job.workspaceId).completed) addNotification(ctx.db, { workspaceId: job.workspaceId, kind: 'info', title: `Busca de @${profile.username} concluída`, body: `${queued} downloads na fila; ${skipped} resultados indisponíveis. Acompanhe cada arquivo na Fila.` }, ctx.clock())
   return { ...checkpoint, queued, skipped }
+}
+
+export function requestSelectedDownloads(ctx: Ctx, ws: string, postIds: string[]) {
+  const posts = postIds.map(id => getRemotePost(ctx.db, ws, id))
+  if (posts.some(p => !p)) throw new AppError('not_found', 'Post não encontrado neste workspace.')
+  const media = posts.map(p => ({ post: p!, url: JSON.parse(getSetting(ctx.db, ws, `remoteMedia.${p!.id}`) ?? '{}').videoUrl as string | undefined }))
+  for (const p of media) if (!p.post.assetId) { if (!p.url) throw new AppError('invalid_input', 'Selecione somente vídeos com URL disponível.'); allowedUrl(p.url) }
+  return ctx.db.transaction(() => media.filter(p => !p.post.assetId).map(p => enqueue(ctx.db, { workspaceId: ws, type: 'download_reel', payload: { postId: p.post.id, videoUrl: p.url }, label: `Baixar vídeo selecionado ${p.post.id.slice(0, 8)}`, idempotencyKey: `selected:${ws}:${p.post.id}:${ctx.clock().getTime()}`, maxAttempts: 3 }, ctx.clock())))
+}
+
+export function selectedAssets(ctx: Ctx, ws: string, postIds: string[]): string[] {
+  return postIds.map(id => { const post = getRemotePost(ctx.db, ws, id); if (!post?.assetId || !getAsset(ctx.db, ws, post.assetId)) throw new AppError('invalid_input', 'Baixe os vídeos selecionados antes de editar o lote.'); return post.assetId })
 }
 
 export async function runReelDownload(ctx: Ctx, job: LeasedJob): Promise<unknown> {

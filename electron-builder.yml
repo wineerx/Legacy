@@ -23,4 +23,8 @@ nsis:
   perMachine: false
   allowToChangeInstallationDirectory: true
   createDesktopShortcut: true
-publish: null
+publish:
+  provider: github
+  owner: wineerx
+  repo: Legacy
+  releaseType: release

@@ -103,7 +103,7 @@ export function ComposePage({ navigate }: PageProps) {
 
   return (
     <div data-tour="compose" className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_300px]">
-      <div className="flex flex-col gap-4">
+      <div className="flex min-w-0 flex-col gap-4">
         <h1 className="text-lg font-semibold">Criar postagem · {items.length} vídeo(s)</h1>
         <Input label="Legenda base" value={base} onChange={(e) => setBase(e.target.value)} placeholder="Legenda aplicada a todos os vídeos" />
         <CaptionRibbon onUse={setBase} navigate={navigate} />
@@ -111,7 +111,7 @@ export function ComposePage({ navigate }: PageProps) {
           {items.map((it) => (
             <li key={it.id} className="flex items-start gap-3 rounded-ctl border border-line bg-panel p-2.5">
               <div className="w-12 shrink-0 overflow-hidden rounded bg-raised" style={{ aspectRatio: '9 / 16' }}>{it.thumbnailPath && <img src={mediaUrl(it.thumbnailPath)} alt="" className="h-full w-full object-cover" />}</div>
-              <div className="flex-1">
+              <div className="min-w-0 flex-1 break-words">
                 <p className="text-sm">{it.caption}</p>
                 <Input aria-label={`Legenda própria de ${it.caption}`} placeholder="Usar legenda base" value={overrides[it.id] ?? ''} onChange={(e) => setOverrides(withOverride(overrides, it.id, e.target.value))} />
               </div>
@@ -125,7 +125,7 @@ export function ComposePage({ navigate }: PageProps) {
           <p className="text-xs text-dim">Remove localização, dispositivo e título embutidos. Mantém o que é necessário para tocar o vídeo com qualidade.</p>
           <div className="flex items-center justify-between"><h2 className="text-sm font-semibold">Lembretes para postar</h2><Toggle label="Lembretes para postar" checked={remind.enabled} onChange={(enabled) => setRemind({ ...remind, enabled })} /></div>
           {remind.enabled && (
-            <div className="flex gap-2">
+            <div className="flex flex-wrap gap-2">
               <Input label="Começar em" type="date" value={remind.startDate} onChange={(e) => setRemind({ ...remind, startDate: e.target.value })} />
               <Input label="Hora" type="time" value={remind.startTime} onChange={(e) => setRemind({ ...remind, startTime: e.target.value })} />
               <Input label="Intervalo (min)" type="number" min={15} step={15} value={remind.intervalMin} onChange={(e) => setRemind({ ...remind, intervalMin: Math.max(15, Number(e.target.value)) })} />

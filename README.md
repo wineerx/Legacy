@@ -2,7 +2,7 @@
 
 **Seu estúdio de conteúdo, direto no desktop.**
 
-![Versão 0.2.0](https://img.shields.io/badge/vers%C3%A3o-0.2.0-6366f1)
+![Versão 0.3.0](https://img.shields.io/badge/vers%C3%A3o-0.3.0-6366f1)
 ![Windows x64](https://img.shields.io/badge/plataforma-Windows%2010%2F11-0078d4)
 ![Electron e React](https://img.shields.io/badge/Electron%20%2B%20React-desktop-22c55e)
 
@@ -12,7 +12,7 @@ O Legacy reúne pesquisa de perfis, downloads de reels públicos via Apify, bibl
 
 ![Painel do Legacy: tarefas, perfis, métricas e integrações em uma interface escura](docs/screens/visao-geral.png)
 
-*Captura real do Legacy 0.2.0 com dados de teste. Valores indisponíveis permanecem como “—”.*
+*Captura real do Legacy 0.3.0 com dados de teste. Valores indisponíveis permanecem como “—”.*
 
 ## O que você pode fazer
 
@@ -27,7 +27,7 @@ O Legacy reúne pesquisa de perfis, downloads de reels públicos via Apify, bibl
 | Avisos e webhooks | Receba notificações locais e configure entregas HTTPS assinadas, inicialmente desativadas. |
 | Tutoriais | Siga tours com foco, destaque, navegação suave e retomada do progresso. |
 
-A publicação oficial no Instagram, OAuth, licença e TikTok por API ainda estão no [roadmap](docs/roadmap.md). A exportação atual é assistida, com publicação manual.
+O Instagram profissional pode ser conectado por token em **Contas** para agendar reels. OAuth pelo navegador, licença e TikTok por API continuam pendentes. A exportação para publicação manual permanece disponível.
 
 ## Comece por aqui
 
@@ -70,16 +70,17 @@ npm run dist          # instalador NSIS em dist/ (sem assinatura se CSC_LINK nã
 
 1. Na **Visão geral → Configurar Apify**, cadastre sua chave e clique em **Testar chave salva**. O teste consulta a conta sem iniciar um Actor pago. A chave é protegida pelo Windows e aplicada ao worker sem reiniciar. Alternativa: variável de ambiente `APIFY_TOKEN`; `.env.example` é referência e não é carregado automaticamente. Nunca use `VITE_APIFY_TOKEN`.
 2. Abra **Perfis**, cole `https://www.instagram.com/usuario/` e clique em **Adicionar perfil**.
-3. Clique em **Baixar vídeos do perfil**, escolha de 1 a 100 reels e **Buscar e baixar**. A operação usa o serviço pago Apify conforme o saldo/plano da sua conta.
+3. Com Apify configurada, adicionar o perfil inicia a descoberta da grade. Defina de 1 a 1.000 posts; o limite não garante todo o histórico. Filtre vídeos/imagens, curtidas e comentários, ordene pela métrica desejada e selecione os melhores X.
+4. Use **Baixar selecionados** para guardar os arquivos, **Preparar lote** para editar vídeos já baixados ou **Programar selecionados** para escolher uma conta conectada, horário e intervalo. O app leva você à Fila. A operação de descoberta usa o serviço pago Apify conforme o saldo/plano da sua conta.
 4. Acompanhe a busca e cada download na **Fila**. Os arquivos validados aparecem na **Biblioteca**; os posts preservam legenda, link original e métricas disponíveis.
 
-Implementação: Node.js no worker do Electron, API REST do Actor `apify/instagram-reel-scraper`. Chaves cadastradas são criptografadas com safeStorage/DPAPI no banco; a interface recebe somente estado e data de validação, sem ler a chave de volta. O worker recebe as credenciais em memória pelo processo principal. Não exige senha do Instagram. A busca de reels públicos depende da disponibilidade do provedor; não cobre TikTok, perfis privados nem garante todos os vídeos de um perfil. Filtros/seleção da grade não afetam a busca. Métricas ausentes ficam indisponíveis; `videoViewCount` não é substituído por reproduções.
+Implementação: Node.js no worker do Electron, API REST dos Actors `apify/instagram-scraper` (grade) e `apify/instagram-reel-scraper` (download direto). Chaves cadastradas são criptografadas com safeStorage/DPAPI no banco; a interface recebe somente estado e data de validação, sem ler a chave de volta. O worker recebe as credenciais em memória pelo processo principal. Não exige senha do Instagram. A busca de reels públicos depende da disponibilidade do provedor; não cobre TikTok, perfis privados nem garante todos os vídeos de um perfil. Filtros e seleção trabalham sobre os posts já carregados. Métricas ausentes ficam indisponíveis; `videoViewCount` não é substituído por reproduções.
 
 ## Visão geral e integrações
 
 A Visão geral reúne indicadores clicáveis de tarefas, fila, falhas, perfis, vídeos guardados e notificações, atualizados a cada cinco segundos. A tabela de perfis mostra somas das métricas conhecidas e a cobertura (quantos posts têm o valor disponível). Um conjunto sem dados exibe `—`, preservando zeros reais. Os números são dos posts carregados no workspace, não o total do perfil na rede social.
 
-**APIs, notificações e webhooks** também está em Configurações. Apify tem cadastro, remoção e teste da chave. Instagram oficial e TikTok por API mostram as dependências ainda não implementadas; guardar uma chave Apify não conecta essas plataformas para publicação.
+**APIs, notificações e webhooks** também está em Configurações. Apify tem cadastro, remoção e teste da chave. Instagram pode ser conectado em Contas; TikTok por API mostra as dependências pendentes. Guardar uma chave Apify não conecta uma conta para publicação.
 
 ## Notificações e webhooks
 
@@ -107,9 +108,15 @@ Não foi possível ler os perfis de referência diretamente pelo Instagram duran
 
 ## Instalação e atualizações
 
-Versão local: **0.2.0**. Há instalador NSIS para Windows, gerado por `npm run dist`. A atualização é manual: feche o Legacy, execute o instalador da nova versão e reabra. Os dados ficam fora da pasta do aplicativo. Faça backup antes de trocar instalação ou computador.
+Versão: **0.3.0**. O instalador NSIS é gerado por `npm run dist`. Em **Visão geral** ou **Configurações → Atualizações**, use **Verificar atualizações**, **Baixar atualização** e **Instalar e reiniciar**. A instalação espera não haver tarefas em execução. Nenhum download ou reinício acontece sem clicar nos botões.
 
-Ainda não há auto-update: `publish: null` e nenhum servidor de releases está configurado. Para distribuir atualizações automáticas futuramente, será necessário definir o canal/servidor de releases, mecanismo de update compatível com NSIS e assinatura do instalador. Credenciais criptografadas podem exigir novo cadastro após migrar para outro usuário ou computador Windows.
+A versão 0.2 precisa ser atualizada uma vez pelo instalador para receber esses controles. Depois disso, o atualizador consulta Releases públicas de `wineerx/Legacy`, que precisam conter o instalador, `.blockmap` e `latest.yml`. Sem uma Release válida, a interface informa a falha; não afirma que está atualizada. Em desenvolvimento, o atualizador fica indisponível. Dados permanecem fora da pasta do aplicativo; credenciais criptografadas podem exigir novo cadastro ao trocar usuário ou computador Windows.
+
+### Conectar e programar Instagram
+
+Em **Contas**, informe um token de uma conta profissional obtido no seu app Meta com permissões de identificação e publicação de conteúdo. O Legacy valida a identidade e protege o token com DPAPI. Esta versão conecta uma conta por workspace; não realiza OAuth pelo navegador nem renova o token automaticamente. A validação de identidade não confirma a permissão de publicar.
+
+Em **Perfis**, selecione vídeos com URL disponível e clique em **Programar selecionados**. Escolha data e intervalo; o horário segue o fuso do workspace. Na Fila, **Ver tarefa** mostra a origem, horário, erros e o arquivo/preview quando já existir. URLs do Instagram podem expirar antes do agendamento; faça nova descoberta se necessário. Trocar ou desconectar a conta invalida agendamentos antigos. O worker salva checkpoints para evitar repetir uma publicação cujo resultado ficou incerto.
 
 A fila persiste após reinício, salva o ID da execução remota e deduplica arquivos por SHA-256 no workspace. Cada arquivo tem até três tentativas, limite de 1 GiB e timeout de cinco minutos. Links expirados exigem nova busca. Tarefas ainda na fila podem ser canceladas; uma execução já iniciada termina ou expira. Se a resposta de criação da execução Apify se perder, confira o console Apify antes de iniciar outra busca: o app não repete uma cobrança potencialmente aceita.
 
@@ -119,7 +126,7 @@ O fluxo foi implementado para a [API Apify](https://docs.apify.com/api/v2) e o [
 
 - O agendamento e os lembretes só rodam com o PC ligado e o app aberto (ele continua na bandeja ao fechar a janela).
 - TikTok é manual: o app prepara a pasta (vídeo, capa, legenda) e cria um lembrete.
-- Conexão e publicação oficiais do Instagram continuam previstas para a fase B. Downloads de reels públicos via Apify são uma integração separada; links adicionados manualmente continuam referências.
+- Instagram exige uma conta profissional e token com permissões corretas. A integração real de publicação ainda precisa ser validada com suas credenciais; os testes usam respostas simuladas.
 - O instalador sai sem assinatura de código; o SmartScreen avisa na instalação.
 
 ## Documentação
@@ -130,13 +137,12 @@ O fluxo foi implementado para a [API Apify](https://docs.apify.com/api/v2) e o [
 - [Capacidades e limitações das plataformas](docs/platform-capabilities.md)
 - [Decisões técnicas](docs/decisions/)
 - [Roadmap](docs/roadmap.md)
-- [Progresso e verificações](docs/progress.md)
 
 ## Qualidade e desenvolvimento
 
 Stack: Electron 42.11.10, Node.js 24, React 19, TypeScript, SQLite/Drizzle, TanStack Query e FFmpeg LGPL. Renderer isolado e sem acesso direto ao Node; operações passam por contratos IPC validados, processo principal e worker.
 
-Verificação da versão 0.2.0: **273 testes unitários e de integração**, **11 testes E2E no Electron** e typecheck concluídos. Testes de Apify e webhook usam rede simulada; integração externa com credencial real permanece pendente.
+Verificação da versão 0.3.0: **283 testes unitários e de integração**, **13 testes E2E no Electron** e typecheck concluídos. Testes de Apify, Instagram, atualizações e webhook usam respostas simuladas; integração externa com credencial real permanece pendente.
 
 Para contribuir, descreva o problema, mantenha o isolamento por workspace e execute `npm run typecheck`, `npm test -- --maxWorkers=2` e os E2E pertinentes. Não inclua tokens, bancos locais, vídeos pessoais ou pastas de dados no Git.
 
@@ -145,3 +151,7 @@ Para contribuir, descreva o problema, mantenha o isolamento por workspace e exec
 **Eduardo Ximenes (@wineerx)** é o idealizador e autor do projeto Legacy, responsável pela visão do produto, requisitos e direção das funcionalidades. Desenvolvimento com assistência do Codex. As bibliotecas e ferramentas utilizadas mantêm suas próprias autorias e licenças; consulte suas distribuições para os termos correspondentes.
 
 As referências Instagram no guia foram indicadas para estudo. Elas não representam parceria, endosso ou autoria do Legacy, e suas legendas não foram reproduzidas nesta documentação.
+
+## Versionamento no GitHub
+
+Trabalhe em branches `codex/…` e abra PRs para `main`. Cada commit recebe uma execução de CI e um instalador identificado pelo SHA. Atualize a versão do pacote, lockfile, preload e CHANGELOG quando preparar uma versão. A workflow de release publica pelo GitHub ao receber uma tag `vX.Y.Z` igual à versão do pacote. Execute a release somente após revisar o PR e validar o CI; não inclua dados locais ou segredos.
