@@ -2,7 +2,7 @@
 
 **Seu estúdio de conteúdo, direto no desktop.**
 
-![Versão 0.3.0](https://img.shields.io/badge/vers%C3%A3o-0.3.0-6366f1)
+![Versão 0.3.1](https://img.shields.io/badge/vers%C3%A3o-0.3.1-6366f1)
 ![Windows x64](https://img.shields.io/badge/plataforma-Windows%2010%2F11-0078d4)
 ![Electron e React](https://img.shields.io/badge/Electron%20%2B%20React-desktop-22c55e)
 
@@ -12,7 +12,7 @@ O Legacy reúne pesquisa de perfis, downloads de reels públicos via Apify, bibl
 
 ![Painel do Legacy: tarefas, perfis, métricas e integrações em uma interface escura](docs/screens/visao-geral.png)
 
-*Captura real do Legacy 0.3.0 com dados de teste. Valores indisponíveis permanecem como “—”.*
+*Captura real do Legacy 0.3.1 com dados de teste. Valores indisponíveis permanecem como “—”.*
 
 ## O que você pode fazer
 
@@ -76,6 +76,8 @@ npm run dist          # instalador NSIS em dist/ (sem assinatura se CSC_LINK nã
 
 Implementação: Node.js no worker do Electron, API REST dos Actors `apify/instagram-scraper` (grade) e `apify/instagram-reel-scraper` (download direto). Chaves cadastradas são criptografadas com safeStorage/DPAPI no banco; a interface recebe somente estado e data de validação, sem ler a chave de volta. O worker recebe as credenciais em memória pelo processo principal. Não exige senha do Instagram. A busca de reels públicos depende da disponibilidade do provedor; não cobre TikTok, perfis privados nem garante todos os vídeos de um perfil. Filtros e seleção trabalham sobre os posts já carregados. Métricas ausentes ficam indisponíveis; `videoViewCount` não é substituído por reproduções.
 
+Ao clicar no card em Perfis ou Biblioteca, o player abre dentro do Legacy. Ele prefere o arquivo baixado e, quando disponível, usa a URL online do CDN do Instagram. Se a URL expirar ou o formato não for suportado, aparece uma mensagem para buscar/baixar novamente. O Instagram abre somente no botão **Ver origem no Instagram**.
+
 ## Visão geral e integrações
 
 A Visão geral reúne indicadores clicáveis de tarefas, fila, falhas, perfis, vídeos guardados e notificações, atualizados a cada cinco segundos. A tabela de perfis mostra somas das métricas conhecidas e a cobertura (quantos posts têm o valor disponível). Um conjunto sem dados exibe `—`, preservando zeros reais. Os números são dos posts carregados no workspace, não o total do perfil na rede social.
@@ -108,7 +110,7 @@ Não foi possível ler os perfis de referência diretamente pelo Instagram duran
 
 ## Instalação e atualizações
 
-Versão: **0.3.0**. O instalador NSIS é gerado por `npm run dist`. Em **Visão geral** ou **Configurações → Atualizações**, use **Verificar atualizações**, **Baixar atualização** e **Instalar e reiniciar**. A instalação espera não haver tarefas em execução. Nenhum download ou reinício acontece sem clicar nos botões.
+Versão: **0.3.1**. O instalador NSIS é gerado por `npm run dist`. Em **Visão geral** ou **Configurações → Atualizações**, use **Verificar atualizações**, **Baixar atualização** e **Instalar e reiniciar**. A instalação espera não haver tarefas em execução. Nenhum download ou reinício acontece sem clicar nos botões.
 
 A versão 0.2 precisa ser atualizada uma vez pelo instalador para receber esses controles. Depois disso, o atualizador consulta Releases públicas de `wineerx/Legacy`, que precisam conter o instalador, `.blockmap` e `latest.yml`. Sem uma Release válida, a interface informa a falha; não afirma que está atualizada. Em desenvolvimento, o atualizador fica indisponível. Dados permanecem fora da pasta do aplicativo; credenciais criptografadas podem exigir novo cadastro ao trocar usuário ou computador Windows.
 
@@ -142,7 +144,7 @@ O fluxo foi implementado para a [API Apify](https://docs.apify.com/api/v2) e o [
 
 Stack: Electron 42.11.10, Node.js 24, React 19, TypeScript, SQLite/Drizzle, TanStack Query e FFmpeg LGPL. Renderer isolado e sem acesso direto ao Node; operações passam por contratos IPC validados, processo principal e worker.
 
-Verificação da versão 0.3.0: **283 testes unitários e de integração**, **13 testes E2E no Electron** e typecheck concluídos. Testes de Apify, Instagram, atualizações e webhook usam respostas simuladas; integração externa com credencial real permanece pendente.
+Verificação da versão 0.3.1: **286 testes unitários e de integração**, **14 testes E2E no Electron** e typecheck concluídos. Testes de Apify, Instagram, atualizações e webhook usam respostas simuladas; integração externa com credencial real permanece pendente.
 
 Para contribuir, descreva o problema, mantenha o isolamento por workspace e execute `npm run typecheck`, `npm test -- --maxWorkers=2` e os E2E pertinentes. Não inclua tokens, bancos locais, vídeos pessoais ou pastas de dados no Git.
 

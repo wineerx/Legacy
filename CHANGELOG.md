@@ -1,5 +1,11 @@
 # Histórico de versões
 
+## 0.3.1
+
+- Player interno em Perfis e Biblioteca, com arquivo local ou prévia online.
+- Link de origem disponível somente por ação explícita.
+- Tratamento de URLs expiradas e formatos não suportados.
+
 ## 0.3.0
 
 - Correções de overflow em Perfis, editor, legendas e Fila; métricas dos cards em uma linha.

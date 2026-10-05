@@ -6,6 +6,7 @@ export type Badge = 'baixado' | 'agendado' | 'publicado' | 'link' | 'favorito' |
 
 export interface GridItem {
   id: string
+  filePath?: string | null
   kind: 'asset' | 'remote'
   videoUrl?: string | null
   assetId?: string | null
