@@ -20,26 +20,29 @@ function Metric({ k, value }: { k: keyof typeof LABELS; value: number | null }) 
   return value === null ? <Tooltip content="Indisponível para este post">{node}</Tooltip> : node
 }
 
-export function MediaCard916({ item, selected, onToggleSelect, onOpen, actions }: {
-  item: GridItem; selected: boolean; onToggleSelect(id: string): void; onOpen?(item: GridItem): void; actions?: ReactNode
+export function MediaCard916({ item, selected, onToggleSelect, onOpen, actions, showBanner = true }: {
+  item: GridItem; selected: boolean; onToggleSelect(id: string): void; onOpen?(item: GridItem): void; actions?: ReactNode; showBanner?: boolean
 }) {
+  const thumbnail = showBanner ? item.thumbnailPath : item.firstFramePath ?? item.thumbnailPath
   const title = item.caption?.slice(0, 80) || 'Vídeo sem legenda'
   return (
     <article aria-label={title} style={{ aspectRatio: '9 / 16' }}
       className={cx('group relative overflow-hidden rounded-ctl border bg-raised', selected ? 'border-fg' : 'border-line')}>
-      {item.thumbnailPath
-        ? <img src={mediaUrl(item.thumbnailPath)} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
+      {thumbnail
+        ? <img src={mediaUrl(thumbnail)} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
         : <div className="absolute inset-0 flex items-center justify-center text-mute"><Film size={28} aria-hidden /></div>}
       {onOpen && <button type="button" onClick={() => onOpen(item)} className="absolute inset-0" aria-label={`Abrir ${title}`} />}
       <label className="absolute left-2 top-2 z-10 flex h-5 w-5 items-center justify-center rounded bg-black/60">
         <input type="checkbox" checked={selected} onChange={() => onToggleSelect(item.id)} aria-label={`Selecionar ${title}`} className="h-3.5 w-3.5 accent-white" />
       </label>
       <div className="absolute right-2 top-2 z-10 flex flex-wrap justify-end gap-1">
-        {item.badges.map((b) => <span key={b} className="rounded bg-black/70 px-1.5 py-0.5 text-[11px] text-fg">{b}</span>)}
+        {item.kind === 'asset' && item.status && <span className="rounded bg-black/70 px-1.5 py-0.5 text-[11px]">{{ ready: 'Pronto', processing: 'Processando', scheduled: 'Agendado', published: 'Publicado', failed: 'Falhou' }[item.status]}</span>}
+        {item.badges.filter(b => b !== 'publicado' && b !== 'agendado').map((b) => <span key={b} className="rounded bg-black/70 px-1.5 py-0.5 text-[11px] text-fg">{b}</span>)}
       </div>
       <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col">
         {actions && <div className="hidden gap-1 px-2 pb-1 group-hover:flex group-focus-within:flex">{actions}</div>}
         {item.durationMs !== null && <span className="mb-1 mr-2 self-end rounded bg-black/70 px-1 text-[11px] tabular-nums">{formatDuration(item.durationMs)}</span>}
+        {item.kind === 'asset' && <div className="bg-black/75 px-2 py-1 text-[11px]"><p className="truncate">{item.sourceProfile ? `@${item.sourceProfile}` : item.caption}</p>{!!item.publishedAccounts?.length && <p className="text-dim">Publicado em {item.publishedAccounts.length} conta(s)</p>}</div>}
         <div data-testid="card-metrics" className="flex flex-nowrap items-center justify-between gap-1 bg-black/75 px-1.5 py-1.5 text-[10px] text-fg">
           <Metric k="views" value={item.metrics.views} />
           <Metric k="likes" value={item.metrics.likes} />

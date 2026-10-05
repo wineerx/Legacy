@@ -9,8 +9,8 @@ describe('onboardingStatus', () => {
     const ws = createWorkspace(db, { name: 'A', timeZone: 'UTC' }).id
     const steps = onboardingStatus(db, ws)
     expect(steps.map((s) => [s.key, s.done])).toEqual([
-      ['workspace', true], ['connect_instagram', false], ['import_videos', false], ['cover', false], ['first_batch', false]
+      ['connect_instagram', false], ['profile', false], ['import_videos', false], ['first_batch', false], ['schedule', false]
     ])
-    expect(steps[1].disabledReason).toBe('Configure a conta profissional por token em Contas.')
+    expect(steps[0].disabledReason).toBe('Configure a conta profissional por token em Contas.')
   })
 })

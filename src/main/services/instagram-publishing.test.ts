@@ -6,7 +6,8 @@ import { addProfileFromUrl } from '../repos/profiles'
 import { addReelLink } from '../repos/remote-posts'
 import { setSetting } from '../repos/settings'
 import { decryptSecret } from './integrations'
-import { connectInstagram, disconnectInstagram, scheduleInstagram, publishInstagram, InstagramPending } from './instagram-publishing'
+import { connectInstagram, disconnectInstagram, scheduleInstagram, publishInstagram, InstagramPending, InstagramApiError, verifyInstagram } from './instagram-publishing'
+import { history } from './publication-history'
 import { leaseNext } from '../queue/queue'
 
 const vault = { available: () => true, encrypt: (s: string) => `protected:${s}`, decrypt: (s: string) => s.slice(10) }
@@ -18,7 +19,7 @@ beforeEach(async () => {
   const profile = addProfileFromUrl(ctx, ws, 'instagram.com/source')
   postId = addReelLink(ctx, ws, profile.id, 'https://www.instagram.com/reel/ABCDE/').id
   setSetting(ctx.db, ws, `remoteMedia.${postId}`, JSON.stringify({ videoUrl: 'https://scontent.cdninstagram.com/v.mp4' }))
-  await connectInstagram(ctx, vault, ws, 'private-token', vi.fn().mockResolvedValue({ id: '12345', username: 'destination' }))
+  await connectInstagram(ctx, vault, ws, 'private-token', vi.fn().mockResolvedValue({ id: 'app-scoped', user_id: '12345', username: 'destination' }))
 })
 function leased() {
   scheduleInstagram(ctx, ws, { postIds: [postId], firstAt: '2026-10-05T12:02:00Z', intervalMin: 60 })
@@ -27,6 +28,26 @@ function leased() {
   return leaseNext(ctx.db, ctx.clock(), 60000)!
 }
 describe('publicação agendada Instagram', () => {
+  it('usa user_id profissional, nunca o id no escopo do app', async () => {
+    const api = vi.fn().mockResolvedValue({ id: '777', user_id: '12345', username: 'destination' })
+    const account = await connectInstagram(ctx, vault, ws, 'private-token', api)
+    expect(account.id).toBe('12345'); expect(api).toHaveBeenCalledWith('me?fields=user_id,username', 'private-token')
+    expect((await verifyInstagram(ctx, vault, ws, api)).revision).toBe(account.revision)
+  })
+  it('recusa token que retorna somente id sem apagar conexão anterior', async () => {
+    await expect(connectInstagram(ctx, vault, ws, 'wrong-token', vi.fn().mockResolvedValue({ id: '777', username: 'wrong' }))).rejects.toThrow(/token não retornou/)
+    expect(decryptSecret(ctx, vault, ws, 'instagramToken')).toBe('private-token')
+  })
+  it('erro HTTP definitivo permite retentativa, resposta perdida permanece bloqueada', async () => {
+    const job = leased(); const api = vi.fn().mockRejectedValueOnce(new InstagramApiError(400, 190))
+    await expect(publishInstagram(ctx, job, api)).rejects.toThrow(/Token Instagram inválido/)
+    expect(history(ctx, ws)).toHaveLength(0)
+    api.mockResolvedValueOnce({ id: '987' }).mockResolvedValueOnce({ status_code: 'FINISHED' }).mockResolvedValueOnce({ id: '456' })
+    await publishInstagram(ctx, job, api); expect(history(ctx, ws)).toHaveLength(1)
+    disconnectInstagram(ctx, vault, ws)
+    expect(await publishInstagram(ctx, job, api)).toMatchObject({ confirmedPublished: true })
+    expect(api).toHaveBeenCalledTimes(4)
+  })
   it('agenda no futuro, sem guardar token no payload, e publica uma vez', async () => {
     const job = leased(); expect(JSON.stringify(job)).not.toContain('private-token')
     const api = vi.fn().mockResolvedValueOnce({ id: '987' }).mockResolvedValueOnce({ status_code: 'FINISHED' }).mockResolvedValueOnce({ id: '456' })

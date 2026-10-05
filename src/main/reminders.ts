@@ -6,7 +6,7 @@ import { getSetting } from './repos/settings'
 // Referências fortes: sem isso o GC pode descartar o toast antes do clique.
 const live = new Set<Notification>()
 
-export function startReminders(db: Db, onClick: (workspaceId: string) => void): () => void {
+export function startReminders(db: Db, onClick: (workspaceId: string) => void, icon?: string): () => void {
   const tick = () => {
     try {
       const groups = new Map<string, ReturnType<typeof dueUnshown>>()
@@ -17,7 +17,7 @@ export function startReminders(db: Db, onClick: (workspaceId: string) => void): 
         if (!desktop || process.env.LEGACY_DISABLE_DESKTOP_NOTIFICATIONS === '1') { rows.forEach((n) => markShown(db, n.id, new Date())); continue }
         if (!Notification.isSupported()) continue
         const n = rows[0]
-        const toast = new Notification({ title: rows.length === 1 ? n.title : `${rows.length} novas notificações do Legacy`, body: rows.length === 1 ? n.body : 'Abra a central para acompanhar tarefas e lembretes.' })
+        const toast = new Notification({ icon, title: rows.length === 1 ? n.title : `${rows.length} novas notificações do Legacy`, body: rows.length === 1 ? n.body : 'Abra a central para acompanhar tarefas e lembretes.' })
         live.add(toast)
         toast.on('click', () => { live.delete(toast); onClick(n.workspaceId) })
         toast.on('close', () => { live.delete(toast) })

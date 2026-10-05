@@ -1,4 +1,5 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { LegacyMascot } from '../../components/brand/LegacyMascot'
 import * as Dialog from '@radix-ui/react-dialog'
 import { Button } from '../../components/ui'
 import { useWorkspace } from '../../lib/workspace'
@@ -86,7 +87,7 @@ export function TutorialProvider({ children, page, navigate }: { children: React
         {!rect && <div aria-hidden className="pointer-events-none fixed inset-0 z-[71] bg-black/75" />}
         <Dialog.Content onCloseAutoFocus={(event) => { event.preventDefault(); requestAnimationFrame(() => document.querySelector<HTMLElement>('main')?.focus()) }} style={{ left, top, width }} className="fixed z-[72] max-h-[calc(100vh-32px)] overflow-auto rounded-card border border-line-strong bg-panel p-5 shadow-2xl">
           <p className="mb-2 text-xs text-dim">{kind === 'profile' ? 'Guia de perfil' : 'Conheça o Legacy'} · {index + 1} de {steps.length}</p>
-          <Dialog.Title className="text-base font-semibold">{step?.title}</Dialog.Title>
+          <div className="flex items-center gap-2"><LegacyMascot state="question" size={44} decorative animated={false} /><Dialog.Title className="text-base font-semibold">{step?.title}</Dialog.Title></div>
           <Dialog.Description className="mt-3 text-sm leading-relaxed text-dim">{step?.body}</Dialog.Description>
           <div className="mt-5 flex flex-wrap items-center gap-2"><Button size="sm" onClick={pause}>Pausar tutorial</Button><div className="ml-auto flex gap-2"><Button size="sm" disabled={index === 0} onClick={() => { if (kind) persist(kind, index - 1, false); setIndex(index - 1) }}>Voltar</Button><Button size="sm" variant="primary" onClick={advance}>{index === steps.length - 1 ? 'Concluir tutorial' : 'Próximo'}</Button></div></div>
           <p className="mt-3 text-[11px] text-dim">Escape pausa. Você pode retomar em Tutoriais.</p>

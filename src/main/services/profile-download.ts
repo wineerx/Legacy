@@ -1,4 +1,5 @@
-import { mkdir, rm } from 'node:fs/promises'
+import { mkdir, rm, rename } from 'node:fs/promises'
+import { randomUUID } from 'node:crypto'
 import { and, eq, inArray } from 'drizzle-orm'
 import { z } from 'zod'
 import { AppError } from '@shared/errors'
@@ -14,13 +15,15 @@ import { resolveInside, workspaceDir } from '../paths'
 import { importFiles } from './library'
 import { allowedUrl, apifyJson, downloadVideo, downloadPreview } from './download-http'
 import { getSetting, setSetting } from '../repos/settings'
+import { probe } from '../media/probe'
+import { mergeAudio } from '../media/ops'
 import { getSecret, notificationPreferences } from './integrations'
 
 const remoteId = z.string().regex(/^[a-zA-Z0-9]+$/)
 const runSchema = z.object({ data: z.object({ id: remoteId, status: z.string(), defaultDatasetId: remoteId.optional() }) })
 const count = (n: unknown) => typeof n === 'number' && Number.isSafeInteger(n) && n >= 0 ? n : null
 export const reelSchema = z.object({
-  url: z.string(), videoUrl: z.string().optional(), displayUrl: z.string().optional(), type: z.string().optional(), videoDuration: z.number().optional(), id: z.string().optional(), caption: z.string().max(10000).optional(),
+  url: z.string(), audioUrl: z.string().optional(), videoUrl: z.string().optional(), displayUrl: z.string().optional(), type: z.string().optional(), videoDuration: z.number().optional(), id: z.string().optional(), caption: z.string().max(10000).optional(),
   timestamp: z.string().optional(), videoViewCount: z.unknown().optional(), likesCount: z.unknown().optional(), commentsCount: z.unknown().optional()
 })
 
@@ -81,7 +84,7 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
     if (!parsed.success) { skipped++; continue }
     const reel = parsed.data
     let ref: ReturnType<typeof normalizeInstagramUrl>
-    try { if (reel.videoUrl) allowedUrl(reel.videoUrl); else if (!discovery) throw new Error('No video'); ref = normalizeInstagramUrl(reel.url) } catch { skipped++; continue }
+    try { if (reel.audioUrl) allowedUrl(reel.audioUrl); if (reel.videoUrl) allowedUrl(reel.videoUrl); else if (!discovery) throw new Error('No video'); ref = normalizeInstagramUrl(reel.url) } catch { skipped++; continue }
     if (ref.kind === 'profile') { skipped++; continue }
     const post = addReelLink(ctx, job.workspaceId, profileId, ref.url)
     if (post.profileId !== profileId) { skipped++; continue }
@@ -91,7 +94,7 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
       views: count(reel.videoViewCount), likes: count(reel.likesCount), comments: count(reel.commentsCount),
       metricsSource: 'api', metricsUpdatedAt: ctx.clock().toISOString()
     }).where(and(eq(remotePosts.workspaceId, job.workspaceId), eq(remotePosts.id, post.id))).run()
-    setSetting(ctx.db, job.workspaceId, `remoteMedia.${post.id}`, JSON.stringify({ videoUrl: reel.videoUrl ?? null, type: reel.type ?? (reel.videoUrl ? 'Video' : 'Image') }))
+    setSetting(ctx.db, job.workspaceId, `remoteMedia.${post.id}`, JSON.stringify({ videoUrl: reel.videoUrl ?? null, audioUrl: reel.audioUrl ?? null, type: reel.type ?? (reel.videoUrl ? 'Video' : 'Image') }))
     if (reel.displayUrl) {
       const previewDir = resolveInside(workspaceDir(ctx.dataRoot, job.workspaceId), 'previews')
       await mkdir(previewDir, { recursive: true })
@@ -103,23 +106,24 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
     }
     if (discovery || (post.assetId && getAsset(ctx.db, job.workspaceId, post.assetId))) continue
     enqueue(ctx.db, {
-      workspaceId: job.workspaceId, type: 'download_reel', payload: { postId: post.id, videoUrl: reel.videoUrl },
+      workspaceId: job.workspaceId, type: 'download_reel', payload: { postId: post.id, videoUrl: reel.videoUrl, audioUrl: reel.audioUrl, batchId: job.id },
       label: `Baixar reel ${ref.code} de @${profile.username}`, idempotencyKey: `download:${job.workspaceId}:${job.id}:${post.id}`, maxAttempts: 3
     }, ctx.clock())
     queued++
   }
   if (!items.length || skipped === items.length) throw new AppError('invalid_input', 'Nenhum post disponível. O perfil pode estar privado, vazio ou bloqueado pelo provedor.')
   ctx.db.update(trackedProfiles).set({ lastSyncedAt: ctx.clock().toISOString() }).where(and(eq(trackedProfiles.workspaceId, job.workspaceId), eq(trackedProfiles.id, profileId))).run()
-  if (notificationPreferences(ctx, job.workspaceId).completed) addNotification(ctx.db, { workspaceId: job.workspaceId, kind: 'info', title: `Busca de @${profile.username} concluída`, body: `${queued} downloads na fila; ${skipped} resultados indisponíveis. Acompanhe cada arquivo na Fila.` }, ctx.clock())
+  if (notificationPreferences(ctx, job.workspaceId).completed) addNotification(ctx.db, { workspaceId: job.workspaceId, kind: 'info', title: `Busca de @${profile.username} concluída`, body: `${queued} downloads na fila; ${skipped} resultados indisponíveis. Acompanhe cada arquivo na Fila.`, actionJson: JSON.stringify({ type: 'open_queue', jobId: job.id, groupId: job.id, category: 'download' }) }, ctx.clock())
   return { ...checkpoint, queued, skipped }
 }
 
 export function requestSelectedDownloads(ctx: Ctx, ws: string, postIds: string[]) {
   const posts = postIds.map(id => getRemotePost(ctx.db, ws, id))
   if (posts.some(p => !p)) throw new AppError('not_found', 'Post não encontrado neste workspace.')
-  const media = posts.map(p => ({ post: p!, url: JSON.parse(getSetting(ctx.db, ws, `remoteMedia.${p!.id}`) ?? '{}').videoUrl as string | undefined }))
-  for (const p of media) if (!p.post.assetId) { if (!p.url) throw new AppError('invalid_input', 'Selecione somente vídeos com URL disponível.'); allowedUrl(p.url) }
-  return ctx.db.transaction(() => media.filter(p => !p.post.assetId).map(p => enqueue(ctx.db, { workspaceId: ws, type: 'download_reel', payload: { postId: p.post.id, videoUrl: p.url }, label: `Baixar vídeo selecionado ${p.post.id.slice(0, 8)}`, idempotencyKey: `selected:${ws}:${p.post.id}:${ctx.clock().getTime()}`, maxAttempts: 3 }, ctx.clock())))
+  const media = posts.map(p => ({ post: p!, url: JSON.parse(getSetting(ctx.db, ws, `remoteMedia.${p!.id}`) ?? '{}').videoUrl as string | undefined, audioUrl: JSON.parse(getSetting(ctx.db, ws, `remoteMedia.${p!.id}`) ?? '{}').audioUrl as string | undefined }))
+  for (const p of media) if (!p.post.assetId) { if (!p.url) throw new AppError('invalid_input', 'Selecione somente vídeos com URL disponível.'); allowedUrl(p.url); if (p.audioUrl) allowedUrl(p.audioUrl) }
+  const batchId = randomUUID()
+  return ctx.db.transaction(() => media.filter(p => !p.post.assetId).map(p => enqueue(ctx.db, { workspaceId: ws, type: 'download_reel', payload: { postId: p.post.id, videoUrl: p.url, audioUrl: p.audioUrl, batchId }, label: `Baixar vídeo selecionado ${p.post.id.slice(0, 8)}`, idempotencyKey: `selected:${ws}:${p.post.id}:${ctx.clock().getTime()}`, maxAttempts: 3 }, ctx.clock())))
 }
 
 export function selectedAssets(ctx: Ctx, ws: string, postIds: string[]): string[] {
@@ -127,7 +131,7 @@ export function selectedAssets(ctx: Ctx, ws: string, postIds: string[]): string[
 }
 
 export async function runReelDownload(ctx: Ctx, job: LeasedJob): Promise<unknown> {
-  const { postId, videoUrl } = z.object({ postId: z.string(), videoUrl: z.string() }).parse(job.payload)
+  const { postId, videoUrl, audioUrl } = z.object({ postId: z.string(), videoUrl: z.string(), audioUrl: z.string().nullish() }).parse(job.payload)
   const post = getRemotePost(ctx.db, job.workspaceId, postId)
   if (!post) throw new AppError('not_found', 'Reel não encontrado.')
   if (post.assetId && getAsset(ctx.db, job.workspaceId, post.assetId)) return { assetId: post.assetId }
@@ -138,6 +142,18 @@ export async function runReelDownload(ctx: Ctx, job: LeasedJob): Promise<unknown
     // A previous worker may have stopped mid-stream. Restart only this job's temporary file.
     await rm(file, { force: true })
     await downloadVideo(videoUrl, file)
+    // Never download a manifest with arbitrary remote URLs through FFmpeg.
+    // Both tracks go through the same bounded, CDN-only HTTP downloader first.
+    if (audioUrl && !(await probe(file, true)).audioCodec) {
+      const audio = resolveInside(dir, 'audio.mp4')
+      const merged = resolveInside(dir, 'merged.mp4')
+      try {
+        await downloadVideo(audioUrl, audio)
+        await mergeAudio(file, audio, merged)
+        await rm(file, { force: true })
+        await rename(merged, file)
+      } finally { await rm(audio, { force: true }); await rm(merged, { force: true }) }
+    }
     const [result] = await importFiles(ctx, job.workspaceId, [file], { origin: 'ig_third_party', rightsNote: `Apify; origem: ${post.permalink}` })
     if (!result.assetId) throw new AppError('invalid_media', result.errors.join(' ') || 'Vídeo inválido.')
     ctx.db.transaction(() => {

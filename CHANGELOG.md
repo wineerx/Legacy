@@ -1,3 +1,22 @@
+# 0.5.0
+
+- Biblioteca como gerenciador: lista/grade persistente, filtros SQL, páginas de 60, estados reais e seleção/exclusão em massa protegida.
+- Modal com arquivo, áudio, origem, métricas, publicações e timeline; salvar cópia e agendar mídia de origem online.
+- Persistência do codec de áudio; junção de faixas explícitas separadas, mantendo o vídeo e falhando se a faixa informada não puder ser baixada.
+- Banner/original e primeiro frame sem alteração destrutiva; player com AAC decodificado e volume ativo.
+- Checklist real e persistente na sidebar, recolhível após conclusão.
+- Perfis com rolagem independente e divisor estável até 1000 reels; eventos de atualização em cadastro e importação de métricas.
+- Identidade e controlador do mascote existentes preservados na integração da interface.
+
+# 0.4.0
+
+- Design System documentado; filtros avançados recolhíveis, ações com ícones e foco acessível.
+- Desafios, conquistas e ofensiva por conta em dias do workspace, com celebração persistida.
+- Histórico permanente de publicações e limpeza opcional após confirmação; proteção de mídia em uso.
+- Biblioteca preserva métricas/origem dos downloads e player interno.
+- Notificações agrupadas por lote, filtros por categoria, não lidas e falhas.
+- Corrigido identificador Instagram: user_id profissional em vez de id no escopo do app; verificação da conexão e retentativas após rejeição HTTP definitiva.
+
 # Histórico de versões
 
 ## 0.3.1

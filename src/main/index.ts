@@ -45,6 +45,7 @@ function showWindow(): void {
 
 function createWindow(): BrowserWindow {
   const w = new BrowserWindow({
+    icon: res(app.isPackaged ? 'icon.ico' : 'resources/icon.ico'),
     width: 1440, height: 900, minWidth: 960, minHeight: 600, backgroundColor: '#0B0B0B', show: false, autoHideMenuBar: true,
     webPreferences: { preload: join(import.meta.dirname, '../preload/index.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false }
   })
@@ -98,6 +99,7 @@ if (gotLock) {
     onJobsChanged: (workspaceId) => send(EVENTS.jobsChanged, { workspaceId }),
     shell: { openPath: (p) => shell.openPath(p) },
     dialogs: {
+      saveVideo: async name => (await dialog.showSaveDialog(win!, { title: 'Salvar cópia do vídeo', defaultPath: name, filters: [{ name: 'Vídeos', extensions: ['mp4', 'mov', 'm4v'] }] })).filePath ?? null,
       pickStorageFolder: async () => (await dialog.showOpenDialog(win!, { title: 'Escolher pasta para vídeos', properties: ['openDirectory', 'createDirectory'] })).filePaths[0] ?? null,
       pickVideos: async () => (await dialog.showOpenDialog(win!, { title: 'Importar vídeos', properties: ['openFile', 'multiSelections'], filters: [{ name: 'Vídeos', extensions: ['mp4', 'mov', 'm4v'] }] })).filePaths,
       pickImage: async () => (await dialog.showOpenDialog(win!, { title: 'Escolher imagem da capa', properties: ['openFile'], filters: [{ name: 'Imagens', extensions: ['png', 'jpg', 'jpeg'] }] })).filePaths[0] ?? null,
@@ -108,7 +110,7 @@ if (gotLock) {
 
   win = createWindow()
   tray = createTray(iconPath, () => win, () => { quitting = true; app.quit() })
-  const stopReminders = startReminders(db, (workspaceId) => { showWindow(); send(EVENTS.navigate, { page: 'notifications', workspaceId }) })
+  const stopReminders = startReminders(db, (workspaceId) => { showWindow(); send(EVENTS.navigate, { page: 'notifications', workspaceId }) }, res(app.isPackaged ? 'icon.png' : 'resources/icon.png'))
 
   win.on('close', (e) => {
     if (quitting) return

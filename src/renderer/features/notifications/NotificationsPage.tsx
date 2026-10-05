@@ -1,63 +1,51 @@
+import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Bell } from 'lucide-react'
+import { Bell, Download, Send, CheckCheck, Check, FolderOpen, ListOrdered, CircleAlert } from 'lucide-react'
 import type { NotificationDto } from '@shared/ipc-contract'
 import { call, ApiError } from '../../lib/api'
 import { useWorkspace } from '../../lib/workspace'
-import { Button, EmptyState, useToast, cx } from '../../components/ui'
+import { Button, EmptyState, Pills, useToast, cx } from '../../components/ui'
+import { ActionIcon } from '../../components/ActionIcon'
 import type { PageProps } from '../../routes'
+import { groupNotifications } from './groups'
 
-type Action = { type: 'open_folder'; path: string } | { type: 'open_queue'; jobId: string }
-
-function parseAction(json: string | null): Action | null {
-  if (!json) return null
-  try { const a = JSON.parse(json) as Action | null; return a && (a.type === 'open_folder' || a.type === 'open_queue') ? a : null } catch { return null }
+function parseAction(json: string | null): { type: string; path?: string; jobId?: string } | null {
+  try { const a = JSON.parse(json ?? '{}'); return a.type === 'open_folder' || a.type === 'open_queue' ? a : null } catch { return null }
 }
-
 export function NotificationsPage({ navigate }: PageProps) {
-  const { workspace } = useWorkspace()
-  const qc = useQueryClient()
-  const toast = useToast()
+  const { workspace } = useWorkspace(); const qc = useQueryClient(); const toast = useToast()
+  const [filter, setFilter] = useState('all')
+  const [expanded, setExpanded] = useState<Set<string>>(new Set())
   const list = useQuery({ queryKey: ['notifications', workspace.id], queryFn: () => call('notifications.list', { workspaceId: workspace.id }), refetchInterval: 5000 })
-  const readAll = useMutation({ mutationFn: () => call('notifications.markAllRead', { workspaceId: workspace.id }), onSuccess: () => qc.invalidateQueries(), onError: () => toast.show({ title: 'Não foi possível marcar as notificações.', tone: 'error' }) })
-  const read = useMutation({ mutationFn: (id: string) => call('notifications.markRead', { workspaceId: workspace.id, id }), onSuccess: () => qc.invalidateQueries(), onError: () => toast.show({ title: 'Não foi possível marcar a notificação.', tone: 'error' }) })
+  const fail = () => toast.show({ title: 'Não foi possível atualizar as notificações.', tone: 'error' })
+  const readAll = useMutation({ mutationFn: () => call('notifications.markAllRead', { workspaceId: workspace.id }), onSuccess: () => qc.invalidateQueries(), onError: fail })
+  const read = useMutation({ mutationFn: async (ids: string[]) => { for (const id of ids) await call('notifications.markRead', { workspaceId: workspace.id, id }) }, onSuccess: () => qc.invalidateQueries(), onError: fail })
   const fmt = new Intl.DateTimeFormat('pt-BR', { timeZone: workspace.timeZone, dateStyle: 'short', timeStyle: 'short' })
-
   const act = async (n: NotificationDto) => {
     const a = parseAction(n.actionJson)
     if (a?.type === 'open_queue') navigate('queue')
-    if (a?.type === 'open_folder') {
+    if (a?.type === 'open_folder' && a.path) {
       try { await call('export.openFolder', { workspaceId: workspace.id, path: a.path }) }
       catch (e) { toast.show({ title: 'Não foi possível abrir a pasta', body: e instanceof ApiError ? e.message : undefined, tone: 'error' }); return }
     }
-    read.mutate(n.id)
+    read.mutate([n.id])
   }
-
-  return (
-    <div className="flex flex-col gap-4 p-6">
-      <header data-tour="notifications" className="flex items-center justify-between"><h1 className="text-lg font-semibold">Notificações</h1><Button disabled={readAll.isPending || !list.data?.some((n) => !n.readAt)} onClick={() => readAll.mutate()}>Marcar todas como lidas</Button></header>
-      {list.isError && <p role="alert" className="text-sm text-danger-fg">Não foi possível carregar as notificações.</p>}
-      {list.data && list.data.length === 0
-        ? <EmptyState icon={<Bell size={28} />} title="Tudo em dia" body="Lembretes de postagem e falhas de processamento aparecem aqui." />
-        : (
-          <ul className="flex flex-col gap-2">
-            {list.data?.map((n) => {
-              const action = parseAction(n.actionJson)
-              return (
-              <li key={n.id} className={cx('flex items-start gap-3 rounded-card border p-3', n.readAt ? 'border-line bg-app' : 'border-line-strong bg-panel')}>
-                <span aria-hidden className={cx('mt-1.5 h-2 w-2 shrink-0 rounded-full', n.readAt ? 'bg-transparent' : n.kind === 'error' ? 'bg-danger' : 'bg-fg')} />
-                <div className="flex-1">
-                  <p className="text-sm font-semibold">{n.title}{!n.readAt && <span className="sr-only"> (não lida)</span>}</p>
-                  <p className="text-xs text-dim">{n.body}</p>
-                  <p className="mt-1 text-[11px] text-mute">{fmt.format(new Date(n.dueAt ?? n.createdAt))}</p>
-                </div>
-                {action
-                  ? <Button size="sm" onClick={() => void act(n)}>{action.type === 'open_folder' ? 'Abrir pasta' : 'Ver na fila'}</Button>
-                  : !n.readAt && <Button size="sm" variant="ghost" onClick={() => read.mutate(n.id)}>Marcar como lida</Button>}
-              </li>
-              )
-            })}
-          </ul>
-        )}
-    </div>
-  )
+  const groups = groupNotifications(list.data ?? [], filter)
+  return <div className="mx-auto flex max-w-5xl min-w-0 flex-col gap-4 p-6">
+    <header data-tour="notifications" className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-lg font-semibold">Notificações</h1><ActionIcon label="Marcar todas como lidas" disabled={readAll.isPending || !list.data?.some(n => !n.readAt)} onClick={() => readAll.mutate()}><CheckCheck size={18} /></ActionIcon></header>
+    <Pills label="Filtrar notificações" value={filter} onChange={setFilter} options={[{value:'all',label:'Todas'},{value:'unread',label:'Não lidas'},{value:'download',label:'Downloads'},{value:'publication',label:'Publicações'},{value:'error',label:'Falhas'},{value:'system',label:'Sistema'}]} />
+    {list.isError && <p role="alert" className="text-sm text-danger-fg">Não foi possível carregar as notificações.</p>}
+    {list.isLoading && <p role="status">Carregando…</p>}
+    {!groups.length && !list.isLoading && !list.isError && <EmptyState icon={<Bell size={28} />} title="Tudo em dia" body="Nenhuma notificação neste filtro." />}
+    {groups.map(g => {
+      const Icon = g.category === 'download' ? Download : g.category === 'publication' ? Send : Bell
+      const unread = g.items.filter(n => !n.readAt).length
+      const rows = <ul className="divide-y divide-line">{g.items.map(n => { const a = parseAction(n.actionJson); return <li key={n.id} className={cx('flex min-w-0 items-start gap-3 p-4', !n.readAt && 'bg-raised/40')}>
+        {n.kind === 'error' ? <CircleAlert aria-label="Falha" size={16} className="mt-1 shrink-0 text-danger-fg" /> : <Icon aria-hidden size={16} className="mt-1 shrink-0 text-dim" />}
+        <div className="min-w-0 flex-1"><p className="text-sm font-medium">{n.title}{!n.readAt && <span className="sr-only"> (não lida)</span>}</p><p className="mt-1 break-words text-xs text-dim">{n.body}</p><time className="mt-2 block text-[11px] text-mute">{fmt.format(new Date(n.dueAt ?? n.createdAt))}</time></div>
+        {a ? <ActionIcon label={a.type === 'open_folder' ? 'Abrir pasta' : 'Ver na fila'} size="sm" onClick={() => void act(n)}>{a.type === 'open_folder' ? <FolderOpen size={16} /> : <ListOrdered size={16} />}</ActionIcon> : !n.readAt && <ActionIcon label="Marcar como lida" size="sm" variant="ghost" onClick={() => read.mutate([n.id])}><Check size={16} /></ActionIcon>}
+      </li> })}</ul>
+      return <section key={g.id} className="overflow-hidden rounded-card border border-line bg-panel">{g.items.length > 1 ? <details open={expanded.has(g.id)}><summary onClick={e => { e.preventDefault(); setExpanded(old => { const next = new Set(old); if (next.has(g.id)) next.delete(g.id); else next.add(g.id); return next }) }} className="cursor-pointer p-4 text-sm font-semibold">{g.category === 'download' ? 'Downloads' : g.category === 'publication' ? 'Publicações' : 'Tarefa'} · {g.items.length} eventos · {unread} não lidas</summary><div className="border-t border-line px-4 py-2"><Button size="sm" disabled={!unread || read.isPending} onClick={() => read.mutate(g.items.filter(n => !n.readAt).map(n => n.id))}>Marcar grupo como lido</Button></div>{rows}</details> : rows}</section>
+    })}
+  </div>
 }

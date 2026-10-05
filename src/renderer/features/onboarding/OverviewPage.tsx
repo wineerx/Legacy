@@ -8,16 +8,20 @@ import { IntegrationPanel } from '../settings/IntegrationPanel'
 import { DashboardWidgets } from './DashboardWidgets'
 import { useTutorial } from '../tutorial/TutorialProvider'
 import { UpdatePanel } from '../settings/UpdatePanel'
+import { LegacyMascot } from '../../components/brand/LegacyMascot'
+import { useMascot } from '../../components/brand/MascotProvider'
 
 export function OverviewPage({ navigate }: PageProps) {
   const { workspace } = useWorkspace()
   const tutorial = useTutorial()
+  const mascot = useMascot()
   const steps = useQuery({ queryKey: ['onboarding', workspace.id], queryFn: () => call('onboarding.status', { workspaceId: workspace.id }) })
   const list = steps.data ?? []
   const done = list.filter((s) => s.done).length
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 p-8">
       <header className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-xl font-semibold">Visão geral</h1><p className="text-sm text-dim">{workspace.name}</p></div><div className="flex gap-2"><Button onClick={() => tutorial.start('app')}>Tour do Legacy</Button><Button onClick={() => navigate('tutorial')}>Guias e legendas</Button></div></header>
+      <section className="brand-welcome"><div><p className="brand-eyebrow">SEU CONTEÚDO. SEU LEGADO.</p><h2>Grandes ideias começam aqui.</h2><p>Organize, crie e publique. O Legacy acompanha você.</p><p className="brand-live-status" aria-live="polite">{mascot.message}</p></div><LegacyMascot state={mascot.state} size={164} interactive decorative /></section>
       <DashboardWidgets navigate={navigate} />
       <IntegrationPanel />
       <section className="rounded-card border border-line bg-panel p-6">

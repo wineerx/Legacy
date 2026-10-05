@@ -5,6 +5,7 @@ import { Button, SettingRow, Toggle, useToast } from '../../components/ui'
 import type { PageProps } from '../../routes'
 import { IntegrationPanel } from './IntegrationPanel'
 import { UpdatePanel } from './UpdatePanel'
+import { BrandPanel } from '../../components/brand/BrandPanel'
 
 type Key = 'minimizeToTray' | 'stripMetadataDefault'
 
@@ -56,6 +57,7 @@ export function SettingsPage(_: PageProps) {
           <li>Instagram: agendamento por token de conta profissional em Contas. TikTok: postagem manual a partir da pasta exportada.</li>
         </ul>
       </section>
+      <BrandPanel />
       <IntegrationPanel />
       <UpdatePanel />
     </div>

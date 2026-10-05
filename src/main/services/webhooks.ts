@@ -35,7 +35,7 @@ export function recordJobOutcome(ctx: Ctx, job: LeasedJob, state: 'done' | 'fail
   if ((state === 'done' && prefs.completed) || (state === 'failed' && prefs.failures)) {
     addNotification(ctx.db, { workspaceId: job.workspaceId, kind: state === 'done' ? 'info' : 'error', title: `${state === 'done' ? 'Concluída' : 'Falhou'}: ${job.label}`,
       body: state === 'done' ? 'A tarefa foi concluída. Consulte a fila para acompanhar o histórico.' : 'A tarefa precisa de atenção. Consulte o erro e as opções de retentativa na fila.',
-      actionJson: JSON.stringify({ type: 'open_queue', jobId: job.id }) }, ctx.clock())
+      actionJson: JSON.stringify({ type: 'open_queue', jobId: job.id, groupId: (job.payload as { batchId?: string }).batchId ?? job.id, category: job.type === 'download_reel' || job.type === 'fetch_profile' ? 'download' : job.type === 'publish_instagram' ? 'publication' : 'system' }) }, ctx.clock())
   }
   enqueueWebhook(ctx, job.workspaceId, `job.${state}`, job)
 }

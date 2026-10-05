@@ -21,8 +21,12 @@ export function startWorker(opts: { dbPath: string; dataRoot: string; migrations
         ...(opts.ffmpegDir ? { LEGACY_FFMPEG_DIR: opts.ffmpegDir } : {})
       }
     })
-    child.once('spawn', () => child?.postMessage({ type: 'credentials', secrets: opts.credentials?.() ?? {} }))
-    child.on('message', (m) => opts.onEvent(m as WorkerEvent))
+    const spawned = child
+    child.on('message', (m) => {
+      if (m && typeof m === 'object' && (m as { type?: string }).type === 'credentials-ready') {
+        spawned.postMessage({ type: 'credentials', secrets: opts.credentials?.() ?? {} })
+      } else opts.onEvent(m as WorkerEvent)
+    })
     child.on('error', (e) => console.error('[supervisor] worker error', e))
     child.on('exit', () => {
       child = null

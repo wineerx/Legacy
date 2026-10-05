@@ -1,15 +1,19 @@
 import type { GridItem } from '@shared/types'
 import { Button, Modal } from '../../components/ui'
+import { useMascotSignal } from '../../components/brand/MascotProvider'
+import { LegacyMascot } from '../../components/brand/LegacyMascot'
 
 export function BatchReviewModal({ open, onOpenChange, items, captions, reminders, timeZone, coverName, bannerOn, stripMetadata, busy, blockReason, onConfirm }: {
   open: boolean; onOpenChange(o: boolean): void; items: GridItem[]; captions: string[]; reminders: (string | null)[]; timeZone: string
   coverName: string | null; bannerOn: boolean; stripMetadata: boolean; busy: boolean; blockReason?: string; onConfirm(): void
 }) {
   const fmt = new Intl.DateTimeFormat('pt-BR', { timeZone, dateStyle: 'short', timeStyle: 'short' })
+  useMascotSignal(open && !busy, 'approval', 'O lote aguarda sua revisão antes da preparação para TikTok.')
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="Revisar lote"
       description={`${items.length} vídeo(s) · capa: ${coverName ?? 'nenhuma'} · banner: ${bannerOn ? 'sim' : 'não'} · metadados opcionais: ${stripMetadata ? 'removidos' : 'mantidos'}`}
       footer={<><Button onClick={() => onOpenChange(false)}>Voltar</Button><Button variant="primary" disabledReason={blockReason ?? (busy ? 'Preparando…' : undefined)} onClick={onConfirm}>Preparar para TikTok</Button></>}>
+      <div className="mb-3 flex items-center gap-2"><LegacyMascot state={busy ? 'working' : 'approval'} size={48} decorative /><p className="text-sm text-dim">Confira o lote antes de continuar.</p></div>
       <ol className="flex flex-col gap-2">
         {items.map((it, i) => (
           <li key={it.id} className="rounded-ctl border border-line p-2.5 text-sm">
