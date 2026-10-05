@@ -6,6 +6,7 @@ import type { GridItem } from '@shared/types'
 import { call, pathForFile, ApiError } from '../../lib/api'
 import { useWorkspace } from '../../lib/workspace'
 import { Button, EmptyState, Modal, Pills, useToast, cx } from '../../components/ui'
+import { MediaPreview } from '../../components/MediaPreview'
 import { MediaGrid } from '../../components/MediaGrid'
 import { useGridQuery } from '../profiles/useGridQuery'
 import { emptySelection, toggleId, selectPage, selectAllFiltered, selectionLabel, selectionCount, resolveSelectedIds, setComposeSelection, type Selection } from '../../lib/selection'
@@ -17,6 +18,7 @@ type Sort = 'importedAt' | 'durationMs'
 export function LibraryPage({ navigate }: PageProps) {
   const { workspace } = useWorkspace()
   const toast = useToast()
+  const [preview, setPreview] = useState<GridItem | null>(null)
   const qc = useQueryClient()
   const [sortBy, setSortBy] = useState<Sort>('importedAt')
   const [favoritesOnly, setFavoritesOnly] = useState(false)
@@ -81,13 +83,14 @@ export function LibraryPage({ navigate }: PageProps) {
       {!grid.isLoading && grid.items.length === 0 && !grid.isError
         ? <EmptyState icon={<Library size={28} />} title="Comece pela biblioteca" body="Importe vídeos do seu computador. Eles ficam guardados aqui, e o original nunca é alterado." action={importButton} />
         : <MediaGrid items={grid.items} loading={grid.isLoading} selection={selection} onToggleSelect={(id) => setSelection(toggleId(selection, id))}
-            onEndReached={grid.hasNextPage ? () => void grid.fetchNextPage() : undefined}
+            onOpen={setPreview} onEndReached={grid.hasNextPage ? () => void grid.fetchNextPage() : undefined}
             renderActions={(i) => (
               <>
                 <Button size="sm" variant="secondary" aria-label={i.badges.includes('favorito') ? 'Remover dos favoritos' : 'Favoritar'} onClick={() => fav.mutate(i)}><Star size={12} /></Button>
                 <Button size="sm" variant="secondary" aria-label="Excluir" onClick={() => setToDelete(i)}><Trash2 size={12} /></Button>
               </>
             )} />}
+      {preview && <MediaPreview key={preview.id} item={preview} onClose={() => setPreview(null)} />}
       <ImportResultsModal results={results} onClose={() => setResults(null)} />
       <Modal open={toDelete !== null} onOpenChange={(o) => !o && setToDelete(null)} title="Excluir vídeo?"
         description="O vídeo, a capa e as versões editadas serão apagados deste computador. O arquivo original que você importou continua na pasta de origem."

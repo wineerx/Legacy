@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { Link2, FileUp, ArrowDownUp, UserSearch, Download } from 'lucide-react'
-import type { SortDir } from '@shared/types'
+import type { SortDir, GridItem } from '@shared/types'
 import { call, ApiError } from '../../lib/api'
 import { useWorkspace } from '../../lib/workspace'
 import { Button, EmptyState, Input, Modal, Pills, useToast, cx } from '../../components/ui'
+import { MediaPreview } from '../../components/MediaPreview'
 import { MediaGrid } from '../../components/MediaGrid'
 import { useGridQuery } from './useGridQuery'
 import { emptySelection, toggleId, selectPage, selectionLabel, selectionCount, setComposeSelection, type Selection } from '../../lib/selection'
@@ -17,6 +18,7 @@ type Sort = 'views' | 'likes' | 'comments' | 'postedAt'
 export function ProfilesPage({ navigate }: PageProps) {
   const { workspace } = useWorkspace()
   const toast = useToast()
+  const [preview, setPreview] = useState<GridItem | null>(null)
   const qc = useQueryClient()
   const profiles = useQuery({ queryKey: ['profiles', workspace.id], queryFn: () => call('profiles.list', { workspaceId: workspace.id }) })
   const [activeId, setActiveId] = useState<string | null>(null)
@@ -153,12 +155,13 @@ export function ProfilesPage({ navigate }: PageProps) {
               ? <EmptyState icon={null} title="Nenhum post ainda" body="Adicione links de reels ou importe um CSV com permalink, views, likes e comments." />
               : <MediaGrid items={grid.items} loading={grid.isLoading} selection={selection}
                   onToggleSelect={(id) => setSelection(toggleId(selection, id))}
-                  onOpen={(i) => i.permalink && window.open(i.permalink, '_blank')}
+                  onOpen={setPreview}
                   onEndReached={grid.hasNextPage ? () => void grid.fetchNextPage() : undefined} />}
             <CaptionRibbon key={active.id} profileId={active.id} defaultMode="ranked" navigate={navigate} />
           </>
         )}
       </section>
+      {preview && <MediaPreview key={preview.id} item={preview} onClose={() => setPreview(null)} />}
       <Modal open={scheduleOpen} onOpenChange={setScheduleOpen} title="Programar reels selecionados" description={`${ids.length} vídeo(s) para publicação no Instagram.`} footer={<><Button onClick={() => setScheduleOpen(false)}>Cancelar</Button><Button variant="primary" disabled={!account.data || !scheduleAt || schedule.isPending || Number(intervalMin) < 15 || Number(intervalMin) > 10080 || !Number.isInteger(Number(intervalMin))} onClick={() => schedule.mutate()}>Confirmar agendamento</Button></>}>
         <div className="flex flex-col gap-3"><p className="text-sm">{account.data ? `Destino: @${account.data.username}` : 'Conecte uma conta profissional em Contas.'}</p>{!account.data && <Button onClick={() => { setScheduleOpen(false); navigate('accounts') }}>Conectar conta</Button>}<Input label={`Primeira publicação (${workspace.timeZone})`} type="datetime-local" value={scheduleAt} onChange={e => setScheduleAt(e.target.value)} /><Input label="Intervalo entre posts (minutos)" type="number" min={15} max={10080} value={intervalMin} onChange={e => setIntervalMin(e.target.value)} /><Input label="Legenda do lote (opcional)" maxLength={2200} value={scheduleCaption} onChange={e => setScheduleCaption(e.target.value)} /><p className="text-xs text-dim">Ao confirmar, serão criadas tarefas de publicação real, com os vídeos de origem e esta legenda (ou a original se o campo estiver vazio). O PC precisa estar ligado e o Legacy aberto. Links podem expirar; erros e retentativas ficam na Fila. Cancelar é possível enquanto a tarefa não começou.</p></div>
       </Modal>

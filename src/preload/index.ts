@@ -3,7 +3,7 @@ import { contextBridge, ipcRenderer, webUtils } from 'electron'
 const ALLOWED_EVENTS = new Set(['jobs.changed', 'app.navigate'])
 
 contextBridge.exposeInMainWorld('legacy', {
-  version: '0.3.0',
+  version: '0.3.1',
   invoke: (channel: string, input: unknown) => ipcRenderer.invoke('legacy:invoke', channel, input),
   on: (event: string, cb: (payload: unknown) => void) => {
     if (!ALLOWED_EVENTS.has(event)) throw new Error(`Evento não permitido: ${event}`)

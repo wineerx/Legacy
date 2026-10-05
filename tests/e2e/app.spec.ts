@@ -51,6 +51,20 @@ test('perfil por link e reel guardado como referência', async () => {
   await expect(page.getByLabel('Visualizações: indisponível')).toBeVisible()
 })
 
+test('clique no card abre player interno e referência fica dentro do Legacy', async () => {
+  await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
+  await page.getByRole('button', { name: 'Abrir clip.mp4', exact: true }).click()
+  await expect(page.getByRole('dialog', { name: 'Visualizar no Legacy' })).toBeVisible()
+  const source = await page.getByLabel('Player de vídeo').getAttribute('src')
+  expect(source).toContain('legacy-media://file/')
+  await page.getByRole('button', { name: 'Fechar player' }).click()
+  await page.getByRole('link', { name: 'Perfis', exact: true }).click()
+  await page.getByRole('button', { name: 'Abrir Vídeo sem legenda', exact: true }).click()
+  await expect(page.getByRole('dialog', { name: 'Visualizar no Legacy' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Ver origem no Instagram' })).toBeVisible()
+  await page.getByRole('button', { name: 'Fechar player' }).click()
+})
+
 test('fila mostra a miniatura concluída', async () => {
   await page.getByRole('link', { name: 'Fila' }).click()
   await expect(page.getByText('Concluída').first()).toBeVisible({ timeout: 30_000 })

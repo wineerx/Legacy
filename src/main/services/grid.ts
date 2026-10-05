@@ -47,7 +47,7 @@ function remoteGrid(db: Db, q: GridQuery): GridPage {
     return {
       id: r.id, kind: 'remote', thumbnailPath: r.thumbnailPath ?? (r.assetId ? db.select({ path: mediaAssets.thumbnailPath }).from(mediaAssets).where(and(eq(mediaAssets.workspaceId, q.workspaceId), eq(mediaAssets.id, r.assetId))).get()?.path ?? null : null), permalink: r.permalink, caption: r.caption,
       postedAt: r.postedAt, durationMs: r.durationMs, metrics: { views: r.views, likes: r.likes, comments: r.comments }, badges,
-      assetId: r.assetId, ...JSON.parse(getSetting(db, q.workspaceId, `remoteMedia.${r.id}`) ?? '{}')
+      assetId: r.assetId, filePath: r.assetId ? db.select({ path: mediaAssets.filePath }).from(mediaAssets).where(and(eq(mediaAssets.workspaceId, q.workspaceId), eq(mediaAssets.id, r.assetId))).get()?.path ?? null : null, ...JSON.parse(getSetting(db, q.workspaceId, `remoteMedia.${r.id}`) ?? '{}')
     }
   })
   return { items, total, loadedNote: `Ranking cobre os ${loaded} posts carregados deste perfil.` }
@@ -76,7 +76,7 @@ function libraryGrid(db: Db, q: GridQuery): GridPage {
     if (exported.has(r.id)) badges.push('exportado')
     if (r.favorite) badges.push('favorito')
     return {
-      id: r.id, kind: 'asset', thumbnailPath: r.thumbnailPath, permalink: null, caption: r.sourceName,
+      id: r.id, kind: 'asset', filePath: r.filePath, thumbnailPath: r.thumbnailPath, permalink: null, caption: r.sourceName,
       postedAt: r.importedAt, durationMs: r.durationMs, metrics: { views: null, likes: null, comments: null }, badges
     }
   })
