@@ -61,3 +61,10 @@ export async function overlayBanner(input: string, bannerPng: string, out: strin
     '-map_metadata', '0', '-movflags', '+faststart', out
   ])
 }
+
+export async function mergeAudio(video: string, audio: string, out: string): Promise<void> {
+  const duration = (await probe(video, true)).durationMs
+  await ff(['-protocol_whitelist', 'file', '-i', video, '-protocol_whitelist', 'file', '-i', audio,
+    '-map', '0:v:0', '-map', '1:a:0', '-c:v', 'copy', '-c:a', 'aac', '-t', seconds(duration), '-movflags', '+faststart', out])
+  if (!(await probe(out, true)).audioCodec) throw new AppError('invalid_media', 'A faixa de áudio não foi preservada.')
+}

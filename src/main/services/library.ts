@@ -68,7 +68,7 @@ async function importOne(ctx: Ctx, workspaceId: string, path: string, provenance
       insertAsset(t, {
         id, workspaceId, origin: provenance?.origin ?? 'pc', rightsNote: provenance?.rightsNote, sourceName: basename(path), filePath: target, sha256: sha,
         sizeBytes: p.sizeBytes, durationMs: p.durationMs, width: p.displayWidth, height: p.displayHeight,
-        videoCodec: p.videoCodec, validationJson: JSON.stringify(v), importedAt: ctx.clock().toISOString()
+        videoCodec: p.videoCodec, audioCodec: p.audioCodec ?? 'none', validationJson: JSON.stringify(v), importedAt: ctx.clock().toISOString()
       })
       enqueue(t, { workspaceId, type: 'make_thumbnail', payload: { assetId: id }, label: `Miniatura de ${basename(path)}`, idempotencyKey: `thumb:${id}` }, ctx.clock())
     }, { behavior: 'immediate' })

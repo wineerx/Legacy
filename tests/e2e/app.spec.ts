@@ -1,5 +1,5 @@
 import { test, expect, _electron as electron, type ElectronApplication, type Page } from '@playwright/test'
-import { mkdtempSync, mkdirSync, existsSync } from 'node:fs'
+import { mkdtempSync, mkdirSync, existsSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 import { execFileSync } from 'node:child_process'
@@ -10,7 +10,7 @@ const dataDir = mkdtempSync(join(tmpdir(), 'legacy-e2e-'))
 const video = join(dataDir, 'clip.mp4')
 
 test.beforeAll(async () => {
-  execFileSync(resolve('resources/bin/win32-x64/ffmpeg.exe'), ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=360x640:rate=30:duration=4', '-c:v', 'libopenh264', video])
+  execFileSync(resolve('resources/bin/win32-x64/ffmpeg.exe'), ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=360x640:rate=30:duration=4', '-f', 'lavfi', '-i', 'sine=frequency=440:duration=4', '-c:v', 'libopenh264', '-c:a', 'aac', '-shortest', video])
   app = await electron.launch({
     executablePath: resolve('node_modules/electron/dist/electron.exe'),
     args: [resolve('out/main/index.js')],
@@ -22,7 +22,7 @@ test.afterAll(async () => { await app.close() })
 
 test('abre na visão geral com checklist', async () => {
   await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible()
-  await expect(page.getByText('Conectar Instagram')).toBeVisible()
+  await expect(page.getByText('Conectar primeira conta').first()).toBeVisible()
   await expect(page.getByText('Processador ativo')).toBeVisible()
 })
 
@@ -200,7 +200,7 @@ test('desafios têm progresso real e filtros avançados recolhem', async () => {
   await page.getByRole('link', { name: 'Desafios e conquistas', exact: true }).click()
   await expect(page.getByRole('heading', { name: 'Ofensiva diária' })).toBeVisible()
   await expect(page.getByText('Sua primeira publicação confirmada inicia a ofensiva.')).toBeVisible()
-  await expect(page.getByRole('progressbar')).toHaveCount(8)
+  await expect(page.locator('main').getByRole('progressbar')).toHaveCount(8)
   await page.screenshot({ path: 'docs/screens/qa-0.4/desafios-0.4.png' })
   await page.evaluate(async () => { const boot = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }; await window.legacy.invoke('profiles.add', { workspaceId: boot.data.workspaces[0].id, url: 'instagram.com/qa.filters' }) })
   await page.getByRole('link', { name: 'Perfis', exact: true }).click()
@@ -223,4 +223,51 @@ test('card tem métricas horizontais e fila permite ver arquivo e origem', async
   await expect(page.getByRole('button', { name: 'Abrir arquivo', exact: true })).toBeVisible()
   await page.screenshot({ path: 'docs/screens/qa-0.4/tarefa-detalhes.png' })
   await page.keyboard.press('Escape')
+})
+
+test('Biblioteca mantém áudio AAC, detalhes e preferência de lista/banner', async () => {
+  await page.evaluate(async path => { const boot = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }; await window.legacy.invoke('library.importPaths', { workspaceId: boot.data.workspaces[0].id, paths: [path] }) }, video)
+  await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
+  await page.getByRole('button', { name: 'Abrir clip.mp4', exact: true }).click()
+  const modal = page.getByRole('dialog', { name: 'Visualizar no Legacy' })
+  await expect(modal.getByText('aac', { exact: true })).toBeVisible()
+  await expect(modal.getByText('360×640', { exact: true })).toBeVisible()
+  const player = modal.getByLabel('Player de vídeo')
+  await player.evaluate(async (video: HTMLVideoElement) => { await video.play() })
+  await expect.poll(() => player.evaluate((video: HTMLVideoElement) => ({ muted: video.muted, volume: video.volume, audio: (video as HTMLVideoElement & { webkitAudioDecodedByteCount: number }).webkitAudioDecodedByteCount > 0 }))).toEqual({ muted: false, volume: 1, audio: true })
+  await modal.getByLabel('Exibir banner').uncheck()
+  await expect.poll(() => player.getAttribute('poster')).toContain('legacy-media://file/')
+  await page.screenshot({ path: 'docs/screens/qa-media/media-details.png', animations: 'disabled' })
+  await modal.getByRole('button', { name: 'Fechar player' }).click()
+  await page.getByRole('button', { name: 'Visualização em lista' }).click()
+  await expect(page.getByRole('table')).toBeVisible()
+  await page.getByRole('link', { name: 'Fila', exact: true }).click()
+  await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
+  await expect(page.getByRole('table')).toBeVisible()
+  await expect(page.getByLabel('Exibir banner')).not.toBeChecked()
+  await page.screenshot({ path: 'docs/screens/qa-media/media-list.png', animations: 'disabled' })
+  await page.getByRole('button', { name: 'Visualização em grade' }).click()
+})
+
+test('divisor de Perfis mantém altura com 1, 10, 100 e 1000 reels', async () => {
+  await page.setViewportSize({ width: 1440, height: 900 })
+  const ws = await page.evaluate(async () => { const r = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }; return r.data.workspaces[0].id })
+  const metricsFile = join(dataDir, 'metrics-layout.json')
+  await app.evaluate(({ dialog }, selected) => { dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [selected] }) }, metricsFile)
+  const heights: number[] = []
+  for (const n of [1, 10, 100, 1000]) {
+    const id = await page.evaluate(async ([workspaceId, count]) => { const r = await window.legacy.invoke('profiles.add', { workspaceId, url: `instagram.com/layout.${count}` }) as { data: { id: string } }; return r.data.id }, [ws, n] as const)
+    writeFileSync(metricsFile, JSON.stringify(Array.from({ length: n }, (_, i) => ({ permalink: `https://instagram.com/reel/LAYOUT${n}X${i}/`, views: i + 1, caption: `Reel ${i}` }))))
+    const report = await page.evaluate(async ([workspaceId, profileId]) => window.legacy.invoke('profiles.importMetricsFile', { workspaceId, profileId }), [ws, id] as const) as { ok: boolean; data: { upserted: number } }
+    expect(report.ok).toBe(true); expect(report.data.upserted).toBe(n)
+    await page.getByRole('link', { name: 'Perfis', exact: true }).click()
+    await page.getByRole('button', { name: `@layout.${n}`, exact: true }).click()
+    await expect(page.getByRole('heading', { name: `@layout.${n}`, exact: true })).toBeVisible()
+    const aside = page.locator('main aside')
+    heights.push(Math.round((await aside.boundingBox())!.height))
+    await expect.poll(() => page.locator('main').evaluate(el => el.scrollHeight - el.clientHeight)).toBe(0)
+    if (n === 1000) await page.screenshot({ path: 'docs/screens/qa-media/profiles-1000.png', animations: 'disabled' })
+    await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
+  }
+  expect(new Set(heights).size).toBe(1)
 })

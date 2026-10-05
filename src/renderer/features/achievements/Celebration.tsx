@@ -1,11 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { Trophy, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { call } from '../../lib/api'
 import { useWorkspace } from '../../lib/workspace'
 import { ActionIcon } from '../../components/ActionIcon'
+import { LegacyMascot } from '../../components/brand/LegacyMascot'
+import { useMascot } from '../../components/brand/MascotProvider'
 
 export function Celebration() {
+  const { celebrate } = useMascot()
   const { workspace } = useWorkspace(); const qc = useQueryClient()
   const [title, setTitle] = useState<string | null>(null)
   const pending = useRef(false)
@@ -21,6 +24,7 @@ export function Celebration() {
     }).catch(() => {}).finally(() => { pending.current = false })
   }, [result.data, workspace.id])
   useEffect(() => { setTitle(null) }, [workspace.id])
+  useEffect(() => { if (title) celebrate(title) }, [title, celebrate])
   useEffect(() => { if (!title) return; const timer = setTimeout(() => setTitle(null), 6000); return () => clearTimeout(timer) }, [title])
-  return title ? <aside role="status" className="celebration fixed right-6 bottom-12 z-50 flex max-w-[calc(100vw-3rem)] items-center gap-4 rounded-card border border-line-strong bg-raised p-4 shadow-xl"><Trophy size={28} className="celebration-icon" /><div><p className="text-xs text-dim">Conquista desbloqueada</p><p className="font-semibold">{title}</p></div><ActionIcon label="Fechar celebração" variant="ghost" onClick={() => setTitle(null)}><X size={16} /></ActionIcon></aside> : null
+  return title ? <aside role="status" className="celebration fixed right-6 bottom-12 z-50 flex max-w-[calc(100vw-3rem)] items-center gap-4 rounded-card border border-line-strong bg-raised p-4 shadow-xl"><LegacyMascot state="proud" size={64} decorative /><div><p className="text-xs text-dim">Conquista desbloqueada</p><p className="font-semibold">{title}</p></div><ActionIcon label="Fechar celebração" variant="ghost" onClick={() => setTitle(null)}><X size={16} /></ActionIcon></aside> : null
 }

@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useMascotSignal } from '../../components/brand/MascotProvider'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { PenSquare } from 'lucide-react'
 import type { CoverTextSpec, GridItem } from '@shared/types'
@@ -91,6 +92,8 @@ export function ComposePage({ navigate }: PageProps) {
     onSuccess: () => { clearComposeSelection(); setReviewOpen(false); toast.show({ title: 'Lote na fila', body: 'Acompanhe em Fila. As pastas abrem pelas notificações.' }); navigate('queue') },
     onError: (e) => { setReviewOpen(false); toast.show({ title: 'Não foi possível preparar o lote', body: e instanceof Error ? e.message : undefined, tone: 'error' }) }
   })
+
+  useMascotSignal(run.isPending, 'working', 'Preparando capas, banners e arquivos do lote.')
 
   if (ids.length === 0) {
     return (

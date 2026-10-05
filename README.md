@@ -2,7 +2,7 @@
 
 **Seu estúdio de conteúdo, direto no desktop.**
 
-![Versão 0.4.0](https://img.shields.io/badge/vers%C3%A3o-0.4.0-6366f1)
+![Versão 0.5.0](https://img.shields.io/badge/vers%C3%A3o-0.5.0-6366f1)
 ![Windows x64](https://img.shields.io/badge/plataforma-Windows%2010%2F11-0078d4)
 ![Electron e React](https://img.shields.io/badge/Electron%20%2B%20React-desktop-22c55e)
 
@@ -10,16 +10,18 @@ O Legacy reúne pesquisa de perfis, downloads de reels públicos via Apify, bibl
 
 **Idealização, direção do produto e autoria: [Eduardo Ximenes — @wineerx](https://github.com/wineerx).** Implementação realizada com assistência do Codex.
 
-![Painel do Legacy: tarefas, perfis, métricas e integrações em uma interface escura](docs/screens/qa-0.4/visao-geral.png)
+![Biblioteca do Legacy: gerenciamento de mídia, lista e primeiros passos](docs/screens/qa-media/media-list.png)
 
-*Captura real do Legacy 0.4.0 com dados de teste. Valores indisponíveis permanecem como “—”.*
+*Captura real do Legacy 0.5.0 com dados de teste. Valores indisponíveis permanecem como “—”.*
 
 ## O que você pode fazer
 
 | Recurso | Uso |
 | --- | --- |
 | Perfis e downloads | Cole uma URL Instagram, defina um limite e acompanhe os downloads via Apify. |
-| Biblioteca | Importe vídeos, preserve métricas dos downloads e assista no player interno. |
+| Biblioteca | Gerencie grade/lista, filtros, seleção em massa, estados, métricas e detalhes no player interno. |
+| Áudio e banner | Registre o áudio real, junte faixas separadas quando fornecidas e alterne banner/original sem modificar o arquivo. |
+| Primeiros passos | Checklist compacto na sidebar com marcos reais e persistentes por workspace. |
 | Desafios e ofensiva | 8 desafios, celebrações e dias consecutivos por conta, baseados em publicações confirmadas. |
 | Histórico e limpeza | Veja contas que já publicaram cada vídeo; limpeza da cópia local é opcional após confirmação. |
 | Preparação de lotes | Ajuste legendas, capas e banners antes de exportar. |
@@ -112,7 +114,7 @@ Não foi possível ler os perfis de referência diretamente pelo Instagram duran
 
 ## Instalação e atualizações
 
-Versão: **0.4.0**. O instalador NSIS é gerado por `npm run dist`. Em **Visão geral** ou **Configurações → Atualizações**, use **Verificar atualizações**, **Baixar atualização** e **Instalar e reiniciar**. A instalação espera não haver tarefas em execução. Nenhum download ou reinício acontece sem clicar nos botões.
+Versão: **0.5.0**. O instalador NSIS é gerado por `npm run dist`. Em **Visão geral** ou **Configurações → Atualizações**, use **Verificar atualizações**, **Baixar atualização** e **Instalar e reiniciar**. A instalação espera não haver tarefas em execução. Nenhum download ou reinício acontece sem clicar nos botões.
 
 A versão 0.2 precisa ser atualizada uma vez pelo instalador para receber esses controles. Depois disso, o atualizador consulta Releases públicas de `wineerx/Legacy`, que precisam conter o instalador, `.blockmap` e `latest.yml`. Sem uma Release válida, a interface informa a falha; não afirma que está atualizada. Em desenvolvimento, o atualizador fica indisponível. Dados permanecem fora da pasta do aplicativo; credenciais criptografadas podem exigir novo cadastro ao trocar usuário ou computador Windows.
 
@@ -146,7 +148,7 @@ O fluxo foi implementado para a [API Apify](https://docs.apify.com/api/v2) e o [
 
 Stack: Electron 42.11.10, Node.js 24, React 19, TypeScript, SQLite/Drizzle, TanStack Query e FFmpeg LGPL. Renderer isolado e sem acesso direto ao Node; operações passam por contratos IPC validados, processo principal e worker.
 
-Verificação da versão 0.4.0: **286 testes unitários e de integração**, **14 testes E2E no Electron** e typecheck concluídos. Testes de Apify, Instagram, atualizações e webhook usam respostas simuladas; integração externa com credencial real permanece pendente.
+Verificação da versão 0.5.0: **286 testes unitários e de integração**, **14 testes E2E no Electron** e typecheck concluídos. Testes de Apify, Instagram, atualizações e webhook usam respostas simuladas; integração externa com credencial real permanece pendente.
 
 Para contribuir, descreva o problema, mantenha o isolamento por workspace e execute `npm run typecheck`, `npm test -- --maxWorkers=2` e os E2E pertinentes. Não inclua tokens, bancos locais, vídeos pessoais ou pastas de dados no Git.
 
@@ -171,3 +173,9 @@ Em **Desafios e conquistas**, a ofensiva conta dias locais com publicação conf
 Em **Programar selecionados**, marque **Apagar a cópia do Legacy após publicação confirmada** somente se quiser liberar espaço. Desligado por padrão. A cópia é mantida se outra tarefa ainda a usa; falhas de limpeza não reenviam a postagem. Arquivos originais importados são preservados.
 
 A conexão Instagram utiliza **user_id**, o identificador profissional documentado pela Meta, e permite **Verificar conexão** sem reexpor o token. Reconectar a mesma conta preserva os agendamentos; trocar o destino invalida os anteriores. Não existe OAuth embutido nesta versão: gere o token Instagram User no painel Meta, aceite o convite de testador quando necessário e conecte em Contas. A identidade validada não garante permissão de publicação.
+
+## Gerenciador de mídia 0.5
+
+[Guia de uso, diagnóstico, limites e recuperação](docs/media-manager-0.5.md). O menu da mídia permite visualizar, criar postagem, agendar conteúdo com origem online e salvar cópias. A exclusão bloqueia arquivos em uso e preserva originais externos e publicações confirmadas. Dados de teste nas capturas não representam publicações reais.
+
+![Detalhes de mídia: áudio, arquivo, origem e histórico](docs/screens/qa-media/media-details.png)

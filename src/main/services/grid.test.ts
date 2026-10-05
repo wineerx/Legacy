@@ -122,7 +122,7 @@ describe('queryGrid library', () => {
     expect(page.items.map((i) => i.id)).toEqual(['a2', 'a1'])
     expect(page.items[1].badges).toEqual(['exportado'])
     expect(page.items[0].metrics).toEqual({ views: null, likes: null, comments: null })
-    expect(page.loadedNote).toBe('2 vídeos na biblioteca.')
+    expect(page.loadedNote).toBe('2 vídeos encontrados na biblioteca.')
     })
   const mk = (id: string, wsId: string, over: object = {}) => insertAsset(ctx.db, {
     id, workspaceId: wsId, origin: 'pc', sourceName: id + '.mp4', filePath: 'C:/x/' + id, sha256: id, sizeBytes: 1,
@@ -138,7 +138,7 @@ describe('queryGrid library', () => {
     const page = queryGrid(ctx.db, base({ source: 'library', profileId: undefined, minViews: 1 }))
     expect(page.items).toEqual([])
     expect(page.total).toBe(0)
-    expect(page.loadedNote).toBe('1 vídeos na biblioteca.')
+    expect(page.loadedNote).toBe('0 vídeos encontrados na biblioteca.')
   })
   it('isola workspace', () => {
     const other = createWorkspace(ctx.db, { name: 'B', timeZone: 'UTC' }).id

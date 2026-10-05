@@ -1,12 +1,17 @@
+import { FirstSteps } from '../features/onboarding/FirstSteps'
 import { useState } from 'react'
 import { PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react'
 import { NAV, SETTINGS_NAV, type PageKey } from '../routes'
 import { cx } from './ui'
+import { LegacyLogo } from './brand/LegacyMascot'
+import { useMascot } from './brand/MascotProvider'
 
 type Props = { current: PageKey; onNavigate(p: PageKey): void; unread: number; collapsed: boolean; onToggle(): void }
 
 export function Sidebar({ current, onNavigate, unread, collapsed, onToggle }: Props) {
   const [q, setQ] = useState('')
+  const mascot = useMascot()
+  const [showStatus, setShowStatus] = useState(false)
   const items = collapsed ? NAV : NAV.filter((n) => n.label.toLowerCase().includes(q.trim().toLowerCase()))
   const link = (n: { key: PageKey; label: string; icon: typeof SETTINGS_NAV.icon }) => {
     const Icon = n.icon
@@ -22,7 +27,11 @@ export function Sidebar({ current, onNavigate, unread, collapsed, onToggle }: Pr
     )
   }
   return (
-    <nav aria-label="Principal" className={cx('flex h-full flex-col border-r border-line bg-side p-2 transition-[width]', collapsed ? 'w-14' : 'w-66')}>
+    <nav aria-label="Principal" className={cx('flex h-full min-h-0 shrink-0 flex-col overflow-y-auto border-r border-line bg-side p-2 transition-[width]', collapsed ? 'w-14' : 'w-66')}>
+      <div className="mascot-sidebar-brand">
+        <button type="button" aria-label="Interagir com o mascote Legacy" aria-expanded={showStatus} onMouseEnter={mascot.react} onClick={() => { mascot.react(); setShowStatus(value => !value) }} onBlur={() => setShowStatus(false)} onKeyDown={event => { if (event.key === 'Escape') setShowStatus(false) }} className={cx('mb-4 mt-1 flex rounded-ctl', collapsed ? 'justify-center' : 'px-1')}><LegacyLogo compact={collapsed} state={mascot.state} interactive /></button>
+        {showStatus && <div className="mascot-status-bubble" role="status"><p>{mascot.message}</p><p className="mt-1 text-dim">{mascot.running} em execução · {mascot.queued} na fila</p></div>}
+      </div>
       <div className="mb-2 flex items-center gap-1">
         {!collapsed && (
           <label className="flex h-8 flex-1 items-center gap-2 rounded-ctl bg-raised px-2.5 text-dim">
@@ -35,6 +44,7 @@ export function Sidebar({ current, onNavigate, unread, collapsed, onToggle }: Pr
         </button>
       </div>
       <div className="flex flex-1 flex-col gap-0.5">{items.map(link)}</div>
+      {!collapsed && <FirstSteps navigate={onNavigate} />}
       <div className="border-t border-line pt-2">{link(SETTINGS_NAV)}</div>
     </nav>
   )

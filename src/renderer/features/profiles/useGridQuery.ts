@@ -18,6 +18,6 @@ export function useGridQuery(q: Omit<GridQuery, 'limit' | 'offset'>, enabled = t
   const pages = r.data?.pages ?? []
   return {
     items: pages.flatMap((p) => p.items), total: pages[0]?.total ?? 0, loadedNote: pages[0]?.loadedNote ?? '',
-    fetchNextPage: r.fetchNextPage, hasNextPage: r.hasNextPage, isLoading: r.isLoading || r.isFetchingNextPage, isError: r.isError, error: r.error
+    fetchNextPage: r.fetchNextPage, hasNextPage: r.hasNextPage, isLoading: r.isLoading || r.isFetchingNextPage, isFetching: r.isFetching, isError: r.isError, error: r.error
   }
 }

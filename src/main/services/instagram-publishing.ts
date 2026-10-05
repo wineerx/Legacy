@@ -83,7 +83,7 @@ export function scheduleInstagram(ctx: Ctx, ws: string, input: { postIds: string
   const batchId = randomUUID()
   return ctx.db.transaction(() => posts.map((post, i) => {
     const runAt = new Date(first.getTime() + i * input.intervalMin * 60_000)
-    return enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', label: `Publicar reel em @${account.username}`, payload: { ...post, accountId: account.id, accountRevision: account.revision, cleanupAfterPublish: input.cleanupAfterPublish ?? false, batchId }, runAt, maxAttempts: 24, idempotencyKey: `publish:${ws}:${account.id}:${post.postId}:${runAt.toISOString()}` }, ctx.clock())
+    return enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', label: `Publicar reel em @${account.username}`, payload: { ...post, username: account.username, accountId: account.id, accountRevision: account.revision, cleanupAfterPublish: input.cleanupAfterPublish ?? false, batchId }, runAt, maxAttempts: 24, idempotencyKey: `publish:${ws}:${account.id}:${post.postId}:${runAt.toISOString()}` }, ctx.clock())
   }))
 }
 export class InstagramPending extends AppError { retryAfterMs = 60_000; constructor() { super('internal', 'O Instagram ainda está preparando o vídeo. Nova consulta em um minuto.') } }

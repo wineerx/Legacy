@@ -9,8 +9,10 @@ export interface GridItem {
   filePath?: string | null
   kind: 'asset' | 'remote'
   videoUrl?: string | null
+  postId?: string | null
   assetId?: string | null
   mediaType?: string | null
+  firstFramePath?: string | null
   thumbnailPath: string | null
   permalink: string | null
   caption: string | null
@@ -20,6 +22,20 @@ export interface GridItem {
   badges: Badge[]
   publishedAccounts?: string[]
   sourceProfile?: string | null
+  status?: MediaState
+  sizeBytes?: number
+  importedAt?: string
+  metricsUpdatedAt?: string | null
+}
+
+export const MEDIA_STATE_LABELS: Record<string, string> = { ready: 'Pronto', processing: 'Processando', scheduled: 'Agendado', published: 'Publicado', failed: 'Falhou', queued: 'Aguardando', running: 'Em execução', exported: 'Exportado para publicação manual' }
+export type MediaState = 'ready' | 'processing' | 'scheduled' | 'published' | 'failed'
+export interface MediaUsage { id: string; platform: 'Instagram' | 'TikTok'; account: string | null; state: string; at: string; error: string | null }
+export interface MediaDetails {
+  name: string; sizeBytes: number; durationMs: number; width: number; height: number; audioCodec: string | null
+  origin: string; sourceProfile: string | null; permalink: string | null; importedAt: string; metricsUpdatedAt: string | null
+  publications: MediaUsage[]; publicationTotal: number
+  timeline: { at: string; label: string }[]; bannerPath: string | null
 }
 
 export interface GridQuery {
@@ -38,6 +54,10 @@ export interface GridQuery {
   minComments?: number
   favoritesOnly?: boolean
   mediaKind?: 'all' | 'videos' | 'images'
+  status?: MediaState | 'unpublished'
+  sourceProfile?: string
+  publicationAccount?: string
+  platform?: 'instagram' | 'tiktok'
   limit: number
   offset: number
 }

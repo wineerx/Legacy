@@ -4,10 +4,11 @@ import type { Selection } from '../lib/selection'
 import { isSelected } from '../lib/selection'
 import { MediaCard916 } from './MediaCard916'
 import { Skeleton } from './ui'
+import { LegacyMascot } from './brand/LegacyMascot'
 
-export function MediaGrid({ items, loading, selection, onToggleSelect, onOpen, renderActions, onEndReached }: {
+export function MediaGrid({ items, loading, selection, onToggleSelect, onOpen, renderActions, onEndReached, showBanner = true }: {
   items: GridItem[]; loading: boolean; selection: Selection; onToggleSelect(id: string): void
-  onOpen?(item: GridItem): void; renderActions?(item: GridItem): ReactNode; onEndReached?(): void
+  onOpen?(item: GridItem): void; renderActions?(item: GridItem): ReactNode; showBanner?: boolean; onEndReached?(): void
 }) {
   const sentinel = useRef<HTMLDivElement>(null)
   useEffect(() => {
@@ -18,9 +19,10 @@ export function MediaGrid({ items, loading, selection, onToggleSelect, onOpen, r
   }, [onEndReached, loading, items.length])
   return (
     <div>
+      {loading && <div role="status" className="mb-2 flex items-center gap-2 text-xs text-dim"><LegacyMascot state="searching" size={32} animated={false} decorative />Carregando mídias…</div>}
       <div className="grid min-w-0 gap-2" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 180px), 1fr))' }}>
         {items.map((it) => (
-          <MediaCard916 key={it.id} item={it} selected={isSelected(selection, it.id)} onToggleSelect={onToggleSelect} onOpen={onOpen} actions={renderActions?.(it)} />
+          <MediaCard916 key={it.id} item={it} showBanner={showBanner} selected={isSelected(selection, it.id)} onToggleSelect={onToggleSelect} onOpen={onOpen} actions={renderActions?.(it)} />
         ))}
         {loading && Array.from({ length: 10 }, (_, i) => <Skeleton key={i} className="aspect-[9/16]" />)}
       </div>

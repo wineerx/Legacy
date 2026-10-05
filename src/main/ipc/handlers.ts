@@ -1,5 +1,6 @@
-import { mkdir, readFile, stat } from 'node:fs/promises'
-import { dirname, extname, join } from 'node:path'
+import { mediaDetails, pendingMedia, deleteMany } from '../services/media-manager'
+import { copyFile, mkdir, readFile, stat } from 'node:fs/promises'
+import { basename, dirname, extname, join, resolve } from 'node:path'
 import { and, desc, eq } from 'drizzle-orm'
 import { AppError } from '@shared/errors'
 import type { Handlers } from './dispatcher'
@@ -33,7 +34,7 @@ import type { UpdateStatus } from '@shared/ipc-contract'
 import { achievements } from '../services/achievements'
 import { history } from '../services/publication-history'
 
-export interface Dialogs { pickVideos(): Promise<string[]>; pickImage(): Promise<string | null>; pickMetricsFile(): Promise<string | null>; pickStorageFolder?(): Promise<string | null> }
+export interface Dialogs { pickVideos(): Promise<string[]>; pickImage(): Promise<string | null>; pickMetricsFile(): Promise<string | null>; saveVideo?(name: string): Promise<string | null>; pickStorageFolder?(): Promise<string | null> }
 export interface HandlerDeps { ctx: Ctx; dialogs: Dialogs; shell: { openPath(p: string): Promise<string> }; workerAlive(): boolean; version: string; onJobsChanged(workspaceId: string): void; vault?: SecretVault; onSecretsChanged?(): void; updates?: { status(): UpdateStatus; check(): Promise<UpdateStatus>; download(): Promise<UpdateStatus>; install(): void } }
 
 const profileDto = (p: Profile) => ({ id: p.id, username: p.username, url: p.url, connected: p.connectedAccountId !== null, lastSyncedAt: p.lastSyncedAt })
@@ -74,7 +75,10 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
       return paths.length ? changed(i.workspaceId, await importFiles(ctx, i.workspaceId, paths)) : []
     },
     'library.importPaths': async (i) => changed(i.workspaceId, await importFiles(ctx, i.workspaceId, i.paths)),
-    'library.delete': async (i) => { await deleteAsset(ctx, i.workspaceId, i.id); return null },
+    'library.details': i => mediaDetails(ctx, i.workspaceId, i.id, i.offset),
+    'library.pending': i => pendingMedia(ctx, i.workspaceId),
+    'library.deleteMany': async i => changed(i.workspaceId, await deleteMany(ctx, i.workspaceId, i.ids)),
+    'library.delete': async i => { const r = await deleteMany(ctx, i.workspaceId, [i.id]); if (r.blocked.length) throw new AppError('invalid_input', 'Vídeo em uso por uma tarefa ativa. Cancele a tarefa antes de excluir.'); if (r.failed.length) throw new AppError('invalid_input', 'Não foi possível excluir o vídeo.'); return changed(i.workspaceId, null) },
     'library.setFavorite': (i) => { setAssetFavorite(ctx.db, i.workspaceId, i.id, i.favorite); return null },
     'library.frame': async (i) => {
       const a = getAsset(ctx.db, i.workspaceId, i.assetId)
@@ -97,13 +101,13 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
     'accounts.connectInstagram': async (i) => { const account = await connectInstagram(ctx, vault, i.workspaceId, i.token); deps.onSecretsChanged?.(); return account },
     'accounts.disconnectInstagram': (i) => { disconnectInstagram(ctx, vault, i.workspaceId); deps.onSecretsChanged?.(); return null },
     'profiles.scheduleInstagram': (i) => changed(i.workspaceId, scheduleInstagram(ctx, i.workspaceId, i)),
-    'profiles.add': (i) => profileDto(addProfileFromUrl(ctx, i.workspaceId, i.url)),
-    'profiles.addReel': (i) => { const r = addReelLink(ctx, i.workspaceId, i.profileId, i.url); return { id: r.id, permalink: r.permalink } },
+    'profiles.add': (i) => changed(i.workspaceId, profileDto(addProfileFromUrl(ctx, i.workspaceId, i.url))),
+    'profiles.addReel': (i) => { const r = addReelLink(ctx, i.workspaceId, i.profileId, i.url); return changed(i.workspaceId, { id: r.id, permalink: r.permalink }) },
     'profiles.importMetricsFile': async (i) => {
       const file = await deps.dialogs.pickMetricsFile()
       if (!file) return null
       const format = extname(file).toLowerCase() === '.json' ? 'json' : 'csv'
-      return importMetrics(ctx, i.workspaceId, i.profileId, await readFile(file, 'utf8'), format)
+      return changed(i.workspaceId, importMetrics(ctx, i.workspaceId, i.profileId, await readFile(file, 'utf8'), format))
     },
     'remote.setFavorite': (i) => { setRemoteFavorite(ctx.db, i.workspaceId, i.id, i.favorite); return null },
     'covers.list': (i) => listCoverTemplates(ctx.db, i.workspaceId).map(coverDto),
@@ -125,6 +129,7 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
     },
     'jobs.list': (i) => listJobs(ctx.db, i.workspaceId),
     'jobs.details': (i) => jobDetails(ctx, i.workspaceId, i.id),
+    'library.saveCopy': async i => { const asset = getAsset(ctx.db, i.workspaceId, i.id); if (!asset) throw new AppError('not_found', 'Vídeo não encontrado.'); const destination = await deps.dialogs.saveVideo?.(basename(asset.sourceName)); if (!destination) return { saved: false }; if (resolve(destination) !== resolve(asset.filePath)) await copyFile(asset.filePath, destination); return { saved: true } },
     'library.openAsset': async (i) => { const a = getAsset(ctx.db, i.workspaceId, i.id); if (!a) throw new AppError('not_found', 'Vídeo não encontrado.'); const error = await deps.shell.openPath(a.filePath); if (error) throw new AppError('internal', 'Não foi possível abrir o arquivo.'); return null },
     'updates.status': () => deps.updates?.status() ?? { state: 'unsupported', version: null, progress: 0, message: 'Atualizador indisponível.' },
     'updates.check': () => { if (!deps.updates) throw new AppError('invalid_input', 'Atualizador indisponível.'); return deps.updates.check() },

@@ -2,7 +2,7 @@ import { join } from 'node:path'
 import { AppError } from '@shared/errors'
 import type { Ctx } from '../context'
 import { complete, fail, heartbeat, leaseNext, recoverExpired, type LeasedJob } from '../queue/queue'
-import { makeThumbnail, overlayBanner } from '../media/ops'
+import { extractFrame, makeThumbnail, overlayBanner } from '../media/ops'
 import { getAsset, insertVersion, setAssetThumbnail } from '../repos/assets'
 import { addNotification } from '../repos/notifications'
 import { storedAssetDir } from '../services/library'
@@ -33,6 +33,7 @@ export async function runJob(ctx: Ctx, job: LeasedJob): Promise<unknown> {
       const a = requireAsset(ctx, ws, assetId)
       const out = join(storedAssetDir(ctx, ws, assetId), 'thumb.jpg')
       await makeThumbnail(a.filePath, out, a.durationMs)
+      await extractFrame(a.filePath, 0, join(storedAssetDir(ctx, ws, assetId), 'first-frame.png'), 360)
       setAssetThumbnail(ctx.db, ws, assetId, out)
       return { thumbnailPath: out }
     }

@@ -13,6 +13,7 @@ import { emptySelection, toggleId, selectPage, selectionLabel, selectionCount, s
 import type { PageProps } from '../../routes'
 import { CaptionRibbon } from '../compose/CaptionRibbon'
 import { zonedToUtc } from '@shared/schedule'
+import { useMascotSignal } from '../../components/brand/MascotProvider'
 
 type Sort = 'views' | 'likes' | 'comments' | 'postedAt'
 
@@ -66,6 +67,11 @@ export function ProfilesPage({ navigate }: PageProps) {
     minLikes: minLikes ? Number(minLikes) : undefined, minComments: minComments ? Number(minComments) : undefined, mediaKind
   }, Boolean(active))
 
+  useMascotSignal(scheduleOpen && !schedule.isPending, 'approval', 'Revise e confirme o agendamento do Instagram.')
+  useMascotSignal(downloadOpen && !download.isPending, 'question', 'Escolha quantos vídeos deseja buscar do perfil.')
+  useMascotSignal(reelOpen, 'question', 'Informe o link do reel para continuar.')
+  useMascotSignal(Boolean(active) && grid.isFetching, 'searching', 'Consultando os posts e suas métricas disponíveis.')
+
   useEffect(() => { setSelection(emptySelection()) }, [active?.id, sortBy, sortDir, text, hashtag, minViews, minLikes, minComments, mediaKind])
   const selectTop = useMutation({ mutationFn: () => call('grid.query', { workspaceId: workspace.id, source: 'remote', profileId: active!.id, sortBy, sortDir: 'desc', limit: Number(topCount), offset: 0, text: text || undefined, hashtag: hashtag || undefined, mediaKind, minViews: sortBy === 'views' ? Math.max(0, Number(minViews)) : minViews ? Number(minViews) : undefined, minLikes: sortBy === 'likes' ? Math.max(0, Number(minLikes)) : minLikes ? Number(minLikes) : undefined, minComments: sortBy === 'comments' ? Math.max(0, Number(minComments)) : minComments ? Number(minComments) : undefined }), onMutate: () => setSortDir('desc'), onSuccess: (page) => { setSelection({ mode: 'ids', ids: new Set(page.items.map(i => i.id)) }); toast.show({ title: `${page.items.length} resultados selecionados`, body: 'Ranking dos posts carregados com a métrica escolhida disponível.' }) }, onError: (e) => toast.show({ title: 'Não foi possível selecionar', body: e instanceof Error ? e.message : undefined, tone: 'error' }) })
 
@@ -91,8 +97,8 @@ export function ProfilesPage({ navigate }: PageProps) {
   })
 
   return (
-    <div className="flex min-h-full w-full min-w-0 flex-col xl:flex-row">
-      <aside className="flex w-full shrink-0 flex-col gap-3 border-b border-line p-4 xl:w-60 xl:border-r xl:border-b-0">
+    <div className="flex h-full w-full min-w-0 flex-col overflow-hidden xl:flex-row">
+      <aside className="flex w-full shrink-0 flex-col gap-3 overflow-y-auto border-b border-line p-4 xl:w-60 xl:border-r xl:border-b-0">
         <form data-tour="profile-url" className="flex flex-col gap-2" onSubmit={(e) => { e.preventDefault(); if (url.trim()) add.mutate() }}>
           <Input label="Link do perfil" placeholder="instagram.com/usuario" value={url} onChange={(e) => setUrl(e.target.value)} error={urlError} />
           <Button type="submit" variant="primary">Adicionar perfil</Button>
@@ -110,7 +116,7 @@ export function ProfilesPage({ navigate }: PageProps) {
           ))}
         </ul>
       </aside>
-      <section data-tour="profiles-content" className="flex w-full min-w-0 flex-1 flex-col gap-4 p-4 xl:w-auto xl:p-6">
+      <section data-tour="profiles-content" className="flex w-full min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto p-4 xl:w-auto xl:p-6">
         {!active ? (
           <EmptyState icon={<UserSearch size={28} />} title="Acompanhe um perfil" body="Cole o link de um perfil público do Instagram para buscar e baixar reels via Apify, ou importar links e métricas." />
         ) : (

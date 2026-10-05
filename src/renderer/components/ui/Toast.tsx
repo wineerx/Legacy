@@ -1,6 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { AlertCircle, X } from 'lucide-react'
+import { X } from 'lucide-react'
 import { cx } from './cx'
+import { LegacyMascot } from '../brand/LegacyMascot'
 
 type Toast = { id: number; title: string; body?: string; tone?: 'info' | 'error' }
 const Ctx = createContext<{ show(t: Omit<Toast, 'id'>): void }>({ show: () => {} })
@@ -24,7 +25,7 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose(id: number): void
       onBlur={() => setPaused(false)}
       className={cx('flex items-start gap-2 rounded-card border bg-panel p-3 shadow-xl', isError ? 'border-danger' : 'border-line')}
     >
-      {isError && <AlertCircle size={16} aria-hidden className="mt-0.5 shrink-0 text-danger-fg" />}
+      <LegacyMascot state={isError ? 'error' : 'notification'} size={36} decorative animated={false} />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold">{isError && <span className="sr-only">Erro: </span>}{toast.title}</p>
         {toast.body && <p className="mt-0.5 text-xs text-dim">{toast.body}</p>}

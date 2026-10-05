@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import type { AchievementSummary } from './achievements'
 import type { AppErrorCode } from './errors'
-import type { GridPage, JobView, DashboardSummary, IntegrationStatus } from './types'
+import type { MediaDetails, GridPage, JobView, DashboardSummary, IntegrationStatus } from './types'
 
 const ws = z.uuid()
 export interface UpdateStatus { state: 'idle' | 'checking' | 'available' | 'current' | 'downloading' | 'downloaded' | 'error' | 'unsupported'; version: string | null; progress: number; message: string }
@@ -35,6 +35,9 @@ export const contract = {
   'workspaces.create': z.object({ name: z.string().min(1).max(80), timeZone: z.string().min(1) }),
   'library.pickAndImport': z.object({ workspaceId: ws }),
   'library.importPaths': z.object({ workspaceId: ws, paths: z.array(z.string().min(1).max(1024)).min(1).max(200) }),
+  'library.details': z.object({ workspaceId: ws, id, offset: z.number().int().min(0).default(0) }),
+  'library.pending': z.object({ workspaceId: ws }),
+  'library.deleteMany': z.object({ workspaceId: ws, ids: z.array(id).min(1).max(200) }),
   'library.delete': z.object({ workspaceId: ws, id }),
   'library.setFavorite': z.object({ workspaceId: ws, id, favorite: z.boolean() }),
   'library.frame': z.object({ workspaceId: ws, assetId: id, atMs: z.number().int().min(0) }),
@@ -45,7 +48,7 @@ export const contract = {
     from: z.iso.datetime().optional(), to: z.iso.datetime().optional(),
     maxDurationMs: z.number().int().positive().optional(), minViews: z.number().int().min(0).optional(),
     minLikes: z.number().int().min(0).optional(), minComments: z.number().int().min(0).optional(),
-    favoritesOnly: z.boolean().optional(), mediaKind: z.enum(['all', 'videos', 'images']).optional(), limit: z.number().int().min(1).max(200), offset: z.number().int().min(0)
+    status: z.enum(['ready', 'processing', 'scheduled', 'published', 'failed', 'unpublished']).optional(), sourceProfile: z.string().max(100).optional(), publicationAccount: z.string().max(100).optional(), platform: z.enum(['instagram', 'tiktok']).optional(), favoritesOnly: z.boolean().optional(), mediaKind: z.enum(['all', 'videos', 'images']).optional(), limit: z.number().int().min(1).max(200), offset: z.number().int().min(0)
   }),
   'profiles.list': z.object({ workspaceId: ws }),
   'storage.get': z.object({ workspaceId: ws }),
@@ -77,6 +80,7 @@ export const contract = {
   'export.openFolder': z.object({ workspaceId: ws, path: z.string().min(1) }),
   'jobs.list': z.object({ workspaceId: ws }),
   'jobs.details': z.object({ workspaceId: ws, id }),
+  'library.saveCopy': z.object({ workspaceId: ws, id }),
   'library.openAsset': z.object({ workspaceId: ws, id }),
   'updates.status': z.object({}),
   'updates.check': z.object({}),
@@ -86,8 +90,8 @@ export const contract = {
   'jobs.retry': z.object({ workspaceId: ws, id }),
   'notifications.list': z.object({ workspaceId: ws }),
   'notifications.markRead': z.object({ workspaceId: ws, id }),
-  'settings.get': z.object({ workspaceId: ws, key: z.enum(['minimizeToTray', 'stripMetadataDefault']) }),
-  'settings.set': z.object({ workspaceId: ws, key: z.enum(['minimizeToTray', 'stripMetadataDefault']), value: z.enum(['true', 'false']) }),
+  'settings.get': z.object({ workspaceId: ws, key: z.enum(['minimizeToTray', 'stripMetadataDefault', 'mediaViewList', 'mediaShowBanner', 'onboardingDismissed']) }),
+  'settings.set': z.object({ workspaceId: ws, key: z.enum(['minimizeToTray', 'stripMetadataDefault', 'mediaViewList', 'mediaShowBanner', 'onboardingDismissed']), value: z.enum(['true', 'false']) }),
   'onboarding.status': z.object({ workspaceId: ws })
 } as const
 
@@ -123,6 +127,9 @@ export interface Outputs {
   'workspaces.create': WorkspaceDto
   'library.pickAndImport': ImportResultDto[]
   'library.importPaths': ImportResultDto[]
+  'library.details': MediaDetails
+  'library.pending': { id: string; label: string; state: 'queued' | 'running' | 'failed'; error: string | null }[]
+  'library.deleteMany': { deleted: string[]; blocked: string[]; failed: string[] }
   'library.delete': null
   'library.setFavorite': null
   'library.frame': { path: string }
@@ -154,6 +161,7 @@ export interface Outputs {
   'export.openFolder': null
   'jobs.list': JobView[]
   'jobs.details': { label: string; runAt: string; error: string | null; files: { id: string; name: string; filePath: string; thumbnailPath: string | null }[]; originUrl: string | null; folders: string[] }
+  'library.saveCopy': { saved: boolean }
   'library.openAsset': null
   'updates.status': UpdateStatus
   'updates.check': UpdateStatus

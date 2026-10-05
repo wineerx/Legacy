@@ -1,3 +1,4 @@
+import { mkdtempSync, mkdirSync, readFileSync, writeFileSync, copyFileSync } from 'node:fs'
 import { mkdtemp, mkdir, writeFile, stat, rm } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
@@ -54,10 +55,11 @@ it('migração recupera publicações confirmadas antigas sem contar falhas', ()
   ctx.db.update(jobs).set({ state: 'done', resultJson: JSON.stringify({ mediaId: '999' }) }).where(eq(jobs.id, old.id)).run()
   enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', label: 'Pendente', payload: { postId, accountId: '123' } }, ctx.clock())
   const client = ctx.db as unknown as { $client: { exec(sql: string): void } }
-  client.$client.exec('DROP TABLE publication_history; DELETE FROM __drizzle_migrations WHERE created_at = 1791220800000;')
-  migrate(ctx.db, { migrationsFolder: MIGRATIONS_DIR })
+  client.$client.exec('DROP TABLE publication_history; DELETE FROM __drizzle_migrations WHERE created_at >= 1791220800000;')
+  const migrationTestDir = mkdtempSync(join(tmpdir(), 'legacy-migration-test-')); mkdirSync(join(migrationTestDir, 'meta')); const journal = JSON.parse(readFileSync(join(MIGRATIONS_DIR, 'meta/_journal.json'), 'utf8')); journal.entries = journal.entries.filter((e: { idx: number }) => e.idx <= 1); writeFileSync(join(migrationTestDir, 'meta/_journal.json'), JSON.stringify(journal)); for (const e of journal.entries) copyFileSync(join(MIGRATIONS_DIR, `${e.tag}.sql`), join(migrationTestDir, `${e.tag}.sql`));
+  migrate(ctx.db, { migrationsFolder: migrationTestDir })
   expect(history(ctx, ws)).toHaveLength(1); expect(history(ctx, ws)[0]).toMatchObject({ username: 'owner', assetSha: 'hash', mediaId: '999' })
-  migrate(ctx.db, { migrationsFolder: MIGRATIONS_DIR }); expect(history(ctx, ws)).toHaveLength(1)
+  migrate(ctx.db, { migrationsFolder: migrationTestDir }); expect(history(ctx, ws)).toHaveLength(1)
 })
 it('limpeza não remove arquivo baixado depois do agendamento', async () => {
   const r = await recordPublication(ctx, { workspaceId: ws, jobId: 'remote-only', accountId: '123', username: 'owner', postId, cleanup: true, cleanupAssetId: null })

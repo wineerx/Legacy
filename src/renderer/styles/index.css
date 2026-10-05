@@ -15,3 +15,8 @@ body { margin: 0; background: var(--color-app); color: var(--color-fg); font-fam
 .celebration-icon { animation: trophy-bounce 600ms ease-out; }
 @keyframes trophy-bounce { 0%,100% { transform: scale(1); } 45% { transform: scale(1.2) rotate(-8deg); } }
 @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+
+.legacy-first-progress { appearance: none; border: 0; background: var(--color-raised); border-radius: 4px; overflow: hidden; }
+.legacy-first-progress::-webkit-progress-bar { background: var(--color-raised); }
+.legacy-first-progress::-webkit-progress-value { background: var(--color-fg); }
+.legacy-first-progress::-moz-progress-bar { background: var(--color-fg); }

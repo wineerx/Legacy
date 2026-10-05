@@ -1,3 +1,13 @@
+# 0.5.0
+
+- Biblioteca como gerenciador: lista/grade persistente, filtros SQL, páginas de 60, estados reais e seleção/exclusão em massa protegida.
+- Modal com arquivo, áudio, origem, métricas, publicações e timeline; salvar cópia e agendar mídia de origem online.
+- Persistência do codec de áudio; junção de faixas explícitas separadas, mantendo o vídeo e falhando se a faixa informada não puder ser baixada.
+- Banner/original e primeiro frame sem alteração destrutiva; player com AAC decodificado e volume ativo.
+- Checklist real e persistente na sidebar, recolhível após conclusão.
+- Perfis com rolagem independente e divisor estável até 1000 reels; eventos de atualização em cadastro e importação de métricas.
+- Identidade e controlador do mascote existentes preservados na integração da interface.
+
 # 0.4.0
 
 - Design System documentado; filtros avançados recolhíveis, ações com ícones e foco acessível.

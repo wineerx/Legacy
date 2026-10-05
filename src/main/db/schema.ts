@@ -25,6 +25,7 @@ export const mediaAssets = sqliteTable('media_assets', {
   width: integer('width').notNull(),
   height: integer('height').notNull(),
   videoCodec: text('video_codec').notNull(),
+  audioCodec: text('audio_codec'),
   thumbnailPath: text('thumbnail_path'),
   validationJson: text('validation_json').notNull(),
   favorite: integer('favorite', { mode: 'boolean' }).notNull().default(false),
@@ -82,7 +83,7 @@ export const remotePosts = sqliteTable('remote_posts', {
   metricsSource: text('metrics_source', { enum: ['api', 'csv'] }),
   metricsUpdatedAt: text('metrics_updated_at'),
   favorite: integer('favorite', { mode: 'boolean' }).notNull().default(false)
-}, (t) => [uniqueIndex('remote_posts_ws_permalink').on(t.workspaceId, t.permalink), index('remote_posts_profile').on(t.profileId)])
+}, (t) => [uniqueIndex('remote_posts_ws_permalink').on(t.workspaceId, t.permalink), index('remote_posts_profile').on(t.profileId), index('remote_posts_ws_asset').on(t.workspaceId, t.assetId, t.metricsUpdatedAt)])
 
 export const metricSnapshots = sqliteTable('metric_snapshots', {
   id: text('id').primaryKey(),
@@ -110,7 +111,7 @@ export const jobs = sqliteTable('jobs', {
   resultJson: text('result_json'),
   createdAt: text('created_at').notNull(),
   updatedAt: text('updated_at').notNull()
-}, (t) => [uniqueIndex('jobs_idem').on(t.idempotencyKey), index('jobs_pick').on(t.state, t.runAt)])
+}, (t) => [uniqueIndex('jobs_idem').on(t.idempotencyKey), index('jobs_pick').on(t.state, t.runAt), index('jobs_ws_type_state').on(t.workspaceId, t.type, t.state)])
 
 export const jobAttempts = sqliteTable('job_attempts', {
   id: text('id').primaryKey(),
@@ -151,4 +152,4 @@ export const publicationHistory = sqliteTable('publication_history', {
   postId: text('post_id').notNull(), assetSha: text('asset_sha'), mediaId: text('media_id'),
   provenanceJson: text('provenance_json').notNull(), publishedAt: text('published_at').notNull(),
   cleanupState: text('cleanup_state').notNull().default('kept')
-}, t => [index('publication_history_ws_account').on(t.workspaceId, t.accountId)])
+}, t => [index('publication_history_ws_account').on(t.workspaceId, t.accountId), index('publication_history_ws_sha').on(t.workspaceId, t.assetSha, t.publishedAt)])

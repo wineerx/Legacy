@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import type { ReactElement } from 'react'
+import type { ReactElement, ReactNode } from 'react'
 import { render } from '@testing-library/react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import type { Channel } from '@shared/ipc-contract'
@@ -10,6 +10,9 @@ export const WS_ID = '3f2b8c1e-8d2a-4b7e-9c11-2a6b5e4d7f10'
 
 export function mockBridge(handlers: Partial<Record<Channel, (input: any) => unknown>>) {
   const all: Partial<Record<Channel, (input: any) => unknown>> = {
+    'settings.get': () => null,
+    'library.pending': () => [],
+    'onboarding.status': () => [],
     'app.bootstrap': () => ({ workspaces: [{ id: WS_ID, name: 'Meu workspace', timeZone: 'America/Sao_Paulo' }], version: 't', workerAlive: true, dataDir: 'C:\\Users\\teste\\AppData\\Roaming\\Legacy' }),
     ...handlers
   }
@@ -24,5 +27,5 @@ export function mockBridge(handlers: Partial<Record<Channel, (input: any) => unk
 
 export function renderWithApp(ui: ReactElement) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-  return render(<QueryClientProvider client={qc}><ToastProvider><WorkspaceProvider>{ui}</WorkspaceProvider></ToastProvider></QueryClientProvider>)
+  return render(ui, { wrapper: ({ children }: { children: ReactNode }) => <QueryClientProvider client={qc}><ToastProvider><WorkspaceProvider>{children}</WorkspaceProvider></ToastProvider></QueryClientProvider> })
 }
