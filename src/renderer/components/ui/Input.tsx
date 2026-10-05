@@ -10,7 +10,7 @@ export function Input({ label, error, className, id, ...rest }: InputHTMLAttribu
       <input
         id={inputId}
         aria-invalid={error ? true : undefined}
-        className={cx('h-9 rounded-ctl bg-panel border px-3 text-sm text-fg placeholder:text-mute focus:border-line-strong outline-none', error ? 'border-danger' : 'border-line', className)}
+        className={cx('ds-field h-9', error && 'border-danger', className)}
         {...rest}
         aria-describedby={[error && `${inputId}-err`, rest['aria-describedby']].filter(Boolean).join(' ') || undefined}
       />

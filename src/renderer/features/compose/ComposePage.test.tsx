@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, fireEvent } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { mockBridge, renderWithApp, WS_ID } from '../../test-utils'
 import { ComposePage } from './ComposePage'
@@ -9,6 +9,21 @@ const item = { id: 'a1', kind: 'asset', thumbnailPath: null, permalink: null, ca
 const base = { 'covers.list': () => [], 'settings.get': () => 'true', 'grid.query': () => ({ items: [item], total: 1, loadedNote: '' }) }
 
 describe('ComposePage', () => {
+  it('conta Instagram conectada cria tarefa real pelo backend de composição', async()=>{
+    setComposeSelection(['a1'])
+    const invoke=mockBridge({...base,'accounts.instagram':()=>({id:'123',revision:'rev',username:'destino',validatedAt:new Date().toISOString()}),'grid.query':()=>({items:[{...item,postId:'post-1'}],total:1,loadedNote:''}),'compose.scheduleInstagram':()=>[]})
+    const navigate=vi.fn();renderWithApp(<ComposePage navigate={navigate}/>)
+    await userEvent.click(await screen.findByRole('checkbox',{name:'Instagram — @destino'}))
+    await userEvent.click(screen.getByRole('checkbox',{name:'TikTok — exportação manual'}))
+    const tomorrow=new Date(Date.now()+86400000).toISOString().slice(0,10)
+    fireEvent.change(screen.getByLabelText('Data'),{target:{value:tomorrow}})
+    fireEvent.change(screen.getByLabelText('Horário'),{target:{value:'18:30'}})
+    await userEvent.click(screen.getByRole('button',{name:'Revisar lote'}))
+    await userEvent.click(screen.getByRole('button',{name:'Confirmar destinos'}))
+    await waitFor(()=>expect(navigate).toHaveBeenCalledWith('queue'))
+    expect(invoke).toHaveBeenCalledWith('compose.scheduleInstagram',expect.objectContaining({assetIds:['a1'],accountId:'123',accountRevision:'rev'}))
+    expect(invoke.mock.calls.some(c=>c[0]==='export.tiktok')).toBe(false)
+  })
   beforeEach(() => clearComposeSelection())
 
   it('sem seleção convida a escolher na biblioteca', async () => {

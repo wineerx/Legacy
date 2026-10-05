@@ -1,3 +1,12 @@
+# 0.6.0
+
+- Criar postagem oferece Instagram conectado e TikTok manual, com revisão de destinos e fila real.
+- Backend valida mídia online, destino/revisão, legendas individuais e horizonte de todo o lote.
+- Modal de contas informa plataforma, permissões, status, erros e reconexão.
+- Componentes compartilhados para calendário/horário, seleção, campos, menus, badges e loading.
+- Sidebar recolhível persistente com tooltips, perfil local, workspace, configurações e saída da conta.
+- Agendamento compartilhado em Biblioteca, Perfis e Criar postagem; original online e limites da integração ficam explícitos.
+
 # 0.5.0
 
 - Biblioteca como gerenciador: lista/grade persistente, filtros SQL, páginas de 60, estados reais e seleção/exclusão em massa protegida.

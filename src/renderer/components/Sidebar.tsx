@@ -2,7 +2,8 @@ import { FirstSteps } from '../features/onboarding/FirstSteps'
 import { useState } from 'react'
 import { PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react'
 import { NAV, SETTINGS_NAV, type PageKey } from '../routes'
-import { cx } from './ui'
+import { cx, Tooltip } from './ui'
+import { SidebarUser } from './SidebarUser'
 import { LegacyLogo } from './brand/LegacyMascot'
 import { useMascot } from './brand/MascotProvider'
 
@@ -16,7 +17,7 @@ export function Sidebar({ current, onNavigate, unread, collapsed, onToggle }: Pr
   const link = (n: { key: PageKey; label: string; icon: typeof SETTINGS_NAV.icon }) => {
     const Icon = n.icon
     const badge = n.key === 'notifications' && unread > 0 ? unread : null
-    return (
+    const anchor = (
       <a key={n.key} href={`#${n.key}`} aria-current={current === n.key ? 'page' : undefined} aria-label={collapsed ? (badge !== null ? `${n.label}, ${badge} não lidas` : n.label) : undefined}
         onClick={(e) => { e.preventDefault(); onNavigate(n.key) }}
         className={cx('flex h-8 items-center gap-2.5 rounded-ctl px-2.5 text-sm', current === n.key ? 'bg-raised text-fg' : 'text-dim hover:bg-raised/60 hover:text-fg')}>
@@ -25,6 +26,7 @@ export function Sidebar({ current, onNavigate, unread, collapsed, onToggle }: Pr
         {badge !== null && <span className="rounded-full bg-fg px-1.5 text-[11px] font-semibold text-app">{badge}</span>}
       </a>
     )
+    return collapsed ? <Tooltip key={n.key} content={n.label}>{anchor}</Tooltip> : anchor
   }
   return (
     <nav aria-label="Principal" className={cx('flex h-full min-h-0 shrink-0 flex-col overflow-y-auto border-r border-line bg-side p-2 transition-[width]', collapsed ? 'w-14' : 'w-66')}>
@@ -46,6 +48,7 @@ export function Sidebar({ current, onNavigate, unread, collapsed, onToggle }: Pr
       <div className="flex flex-1 flex-col gap-0.5">{items.map(link)}</div>
       {!collapsed && <FirstSteps navigate={onNavigate} />}
       <div className="border-t border-line pt-2">{link(SETTINGS_NAV)}</div>
+      <SidebarUser collapsed={collapsed} navigate={onNavigate}/>
     </nav>
   )
 }
