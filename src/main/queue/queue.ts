@@ -1,6 +1,6 @@
-import { and, asc, desc, eq, inArray, isNull, lte, lt } from 'drizzle-orm'
+import { and, asc, desc, eq, inArray, isNull, lte, lt, sql, count, ne } from 'drizzle-orm'
 import { AppError } from '@shared/errors'
-import type { JobState, JobType, JobView } from '@shared/types'
+import type { JobState, JobType, JobView, QueuePageResult } from '@shared/types'
 import { type Db, newId } from '../db/client'
 import { jobs, jobAttempts } from '../db/schema'
 
@@ -128,7 +128,7 @@ export function recoverExpired(db: Db, now: Date): number {
 
 export function cancel(db: Db, workspaceId: string, jobId: string, now: Date): boolean {
   const r = db.update(jobs).set({ state: 'cancelled', updatedAt: now.toISOString() })
-    .where(and(eq(jobs.id, jobId), eq(jobs.workspaceId, workspaceId), eq(jobs.state, 'queued'))).run()
+    .where(and(eq(jobs.id, jobId), eq(jobs.workspaceId, workspaceId), inArray(jobs.state, ['queued', 'failed']))).run()
   return r.changes > 0
 }
 
@@ -142,4 +142,53 @@ export function retryNow(db: Db, workspaceId: string, jobId: string, now: Date):
 export function listJobs(db: Db, workspaceId: string, states?: JobState[]): JobView[] {
   const where = states?.length ? and(eq(jobs.workspaceId, workspaceId), inArray(jobs.state, states)) : eq(jobs.workspaceId, workspaceId)
   return db.select().from(jobs).where(where).orderBy(desc(jobs.createdAt)).limit(500).all().map(toView)
+}
+
+export function queryJobs(db: Db, input: { workspaceId: string; page: number; pageSize: number; search: string; state?: JobState; type?: JobType; batchId?: string }): QueuePageResult {
+  const term = `%${input.search.replace(/[\\%_]/g, '\\$&')}%`
+  const base = and(eq(jobs.workspaceId, input.workspaceId),
+    input.type ? eq(jobs.type, input.type) : undefined,
+    input.search ? sql`(${jobs.label} like ${term} escape '\\' or ${jobs.id} like ${term} escape '\\' or json_extract(${jobs.payloadJson}, '$.username') like ${term} escape '\\')` : undefined,
+    input.batchId ? sql`(${jobs.id} = ${input.batchId} or json_extract(${jobs.payloadJson}, '$.batchId') = ${input.batchId})` : undefined)
+  const counts: QueuePageResult['counts'] = { queued: 0, running: 0, done: 0, failed: 0, cancelled: 0 }
+  for (const r of db.select({ state: jobs.state, n: count() }).from(jobs).where(base).groupBy(jobs.state).all()) counts[r.state] = r.n
+  const total = input.state ? counts[input.state] : Object.values(counts).reduce((a,b) => a+b,0)
+  const page = Math.min(input.page, Math.max(1, Math.ceil(total/input.pageSize)))
+  const items = db.select().from(jobs).where(and(base, input.state ? eq(jobs.state,input.state) : undefined))
+    .orderBy(desc(jobs.createdAt), desc(jobs.id)).limit(input.pageSize).offset((page-1)*input.pageSize).all().map(r => {
+      const payload = JSON.parse(r.payloadJson)
+      return { ...toView(r), batchId: typeof payload.batchId === 'string' ? payload.batchId : null, account: typeof payload.username === 'string' ? payload.username : null }
+    })
+  return { items, total, page, pageSize: input.pageSize, counts }
+}
+
+function movable(db: Db, workspaceId: string, id: string) {
+  const row = db.select().from(jobs).where(and(eq(jobs.workspaceId, workspaceId), eq(jobs.id,id))).get()
+  if (!row || !['queued','failed'].includes(row.state)) throw new AppError('invalid_input', 'A tarefa mudou ou já iniciou. Atualize a fila.')
+  return row
+}
+
+/** Publications move behind queued publications for the same destination, never reset remote checkpoints. */
+export function tailSlot(db: Db, workspaceId: string, id: string, now: Date) {
+  const row = movable(db, workspaceId, id)
+  const payload = JSON.parse(row.payloadJson)
+  const peers = db.select({ runAt: jobs.runAt }).from(jobs).where(and(eq(jobs.workspaceId,workspaceId),
+    ne(jobs.id,id), eq(jobs.state,'queued'), eq(jobs.type,row.type),
+    row.type === 'publish_instagram' ? sql`json_extract(${jobs.payloadJson}, '$.accountId') is ${payload.accountId ?? null}` : undefined)).all()
+  const last = peers.reduce((ms,p) => Math.max(ms, new Date(p.runAt).getTime()),now.getTime())
+  const runAt = new Date(Math.ceil((last+15*60000)/60000)*60000).toISOString()
+  if (new Date(runAt).getTime() > now.getTime()+90*86400000) throw new AppError('invalid_input','O final da fila ultrapassa 90 dias. Escolha outro horário.')
+  return { runAt, ahead: peers.length }
+}
+
+export function reschedule(db: Db, workspaceId: string, id: string, runAt: string, expectedUpdatedAt: string, now: Date): boolean {
+  const ms = new Date(runAt).getTime()
+  if (!Number.isFinite(ms) || ms < now.getTime()+60000 || ms > now.getTime()+90*86400000) throw new AppError('invalid_input','Escolha um horário entre um minuto e 90 dias no futuro.')
+  return db.transaction(tx => {
+    const row = movable(tx,workspaceId,id)
+    if (row.updatedAt !== expectedUpdatedAt) throw new AppError('invalid_input','A tarefa mudou. Reabra o agendamento.')
+    tx.update(jobs).set({ state:'queued', runAt, attempts: row.state === 'failed' ? 0 : row.attempts, lastError:null, updatedAt:now.toISOString() })
+      .where(and(eq(jobs.workspaceId,workspaceId),eq(jobs.id,id),inArray(jobs.state,['queued','failed']))).run()
+    return true
+  }, IMMEDIATE)
 }

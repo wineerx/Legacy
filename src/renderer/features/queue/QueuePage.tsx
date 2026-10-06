@@ -1,64 +1,74 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
-import { ListOrdered } from 'lucide-react'
-import type { JobState } from '@shared/types'
+import { ListOrdered, FolderTree, List, Clock } from 'lucide-react'
+import type { JobState, JobType, JobView } from '@shared/types'
 import { call, ApiError, mediaUrl } from '../../lib/api'
 import { useWorkspace } from '../../lib/workspace'
-import { Button, EmptyState, Modal, useToast, cx } from '../../components/ui'
+import { Button, EmptyState, Modal, useToast, cx, SearchInput, Select, Spinner, Badge, DeliveryTime, Tooltip } from '../../components/ui'
 import type { PageProps } from '../../routes'
+import { zonedToUtc } from '@shared/schedule'
+import { deliveryError } from '../../components/ui/DeliveryTime'
 
 const STATE: Record<JobState, { label: string; tone: string }> = {
   queued: { label: 'Na fila', tone: 'text-dim' }, running: { label: 'Em execução', tone: 'text-warn' },
   done: { label: 'Concluída', tone: 'text-ok' }, failed: { label: 'Falhou', tone: 'text-danger-fg' }, cancelled: { label: 'Cancelada', tone: 'text-mute' }
 }
 
-export function QueuePage(_: PageProps) {
-  const { workspace } = useWorkspace()
+const TYPES: Record<JobType,string> = { make_thumbnail:'Miniatura', apply_banner:'Edição', export_tiktok:'Exportação TikTok', fetch_profile:'Busca de perfil', download_reel:'Download', webhook_delivery:'Webhook', publish_instagram:'Publicação Instagram' }
+const readDetails = (workspaceId:string,id:string) => call('jobs.details',{workspaceId,id})
+function localTime(iso:string,timeZone:string) {
+ const p = Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).formatToParts(new Date(iso)).map(p=>[p.type,p.value]))
+ return `${p.year}-${p.month}-${p.day}T${p.hour}:${p.minute}`
+}
+function AttemptHistory({data,timeZone}:{data:Awaited<ReturnType<typeof readDetails>>;timeZone:string}) {
+ const fmt = new Intl.DateTimeFormat('pt-BR',{timeZone,dateStyle:'short',timeStyle:'medium'})
+ return <div className="grid gap-3 text-xs">{data.account && <p>Destino: @{data.account.replace(/^@/,'')}</p>}{data.checkpoint && <p role="status" className="rounded border border-line p-3 text-warn">{data.checkpoint}</p>}<p className="text-dim">Histórico de tentativas: {data.attemptTotal}. Mostrando as últimas {data.attempts.length}. Fuso: {timeZone}.</p><ol className="divide-y divide-line rounded border border-line">{data.attempts.map((a,i)=><li key={`${a.startedAt}-${i}`} className="grid gap-1 p-3"><strong>{a.outcome==='ok' ? 'Concluída' : a.outcome==='retry' ? 'Nova tentativa programada' : a.outcome==='failed' ? 'Falhou' : a.outcome==='lease_expired' ? 'Execução interrompida' : 'Em execução'}</strong><time>{fmt.format(new Date(a.startedAt))} até {a.finishedAt ? fmt.format(new Date(a.finishedAt)) : 'em andamento'}</time>{a.finishedAt && <p>Duração: {Math.max(0,Math.round((Date.parse(a.finishedAt)-Date.parse(a.startedAt))/1000))} s</p>}{a.errorMessage && <p className="break-words text-danger-fg">{a.errorMessage}</p>}</li>)}</ol></div>
+}
+function ExtraDetails({workspaceId,id,timeZone}:{workspaceId:string;id:string;timeZone:string}) {
+ const [expanded,setExpanded]=useState(false)
+ const q=useQuery({queryKey:['job-details',workspaceId,id],queryFn:()=>readDetails(workspaceId,id),enabled:expanded,refetchInterval:expanded ? 5000 : false})
+ return <details className="mt-3 border-t border-line pt-2" onToggle={e=>setExpanded(e.currentTarget.open)}><summary className="cursor-pointer text-xs text-dim">Andamento e tentativas</summary><div className="mt-3">{q.isPending && <Spinner/>}{q.isError && <p role="alert">Não foi possível consultar o andamento.</p>}{q.data && <AttemptHistory data={q.data} timeZone={timeZone}/>}</div></details>
+}
+export function QueuePage(_:PageProps) {
+ const {workspace}=useWorkspace()
+ return <WorkspaceQueue key={workspace.id} workspace={workspace}/>
+}
+function WorkspaceQueue({workspace}:{workspace:ReturnType<typeof useWorkspace>['workspace']}) {
   const qc = useQueryClient()
   const toast = useToast()
+  const [page,setPage]=useState(1), [pageSize,setPageSize]=useState(25)
+  const [search,setSearch]=useState(''), [state,setState]=useState<JobState | ''>(''), [type,setType]=useState<JobType | ''>('')
+  const [batchId,setBatchId]=useState<string | undefined>(), [tree,setTree]=useState(false)
+  const [moving,setMoving]=useState<JobView | null>(null), [delivery,setDelivery]=useState(''), [cancelId,setCancelId]=useState<string | null>(null)
   const [detailId, setDetailId] = useState<string | null>(null)
   const details = useQuery({ queryKey: ['job-details', workspace.id, detailId], queryFn: () => call('jobs.details', { workspaceId: workspace.id, id: detailId! }), enabled: Boolean(detailId), refetchInterval: 5000 })
   const open = useMutation({ mutationFn: (id: string) => call('library.openAsset', { workspaceId: workspace.id, id }), onError: (e) => toast.show({ title: 'Arquivo não abriu', body: e instanceof Error ? e.message : undefined, tone: 'error' }) })
   const folder = useMutation({ mutationFn: (path: string) => call('export.openFolder', { workspaceId: workspace.id, path }), onError: (e) => toast.show({ title: 'Pasta não abriu', body: e instanceof Error ? e.message : undefined, tone: 'error' }) })
   const fail = (title: string) => (e: unknown) => toast.show({ title, body: e instanceof ApiError ? e.message : undefined, tone: 'error' })
-  const jobs = useQuery({ queryKey: ['jobs', workspace.id], queryFn: () => call('jobs.list', { workspaceId: workspace.id }), refetchInterval: 5000 })
-  const cancel = useMutation({ mutationFn: (id: string) => call('jobs.cancel', { workspaceId: workspace.id, id }), onSuccess: () => qc.invalidateQueries(), onError: fail('Não foi possível cancelar') })
-  const retry = useMutation({ mutationFn: (id: string) => call('jobs.retry', { workspaceId: workspace.id, id }), onSuccess: () => qc.invalidateQueries(), onError: fail('Não foi possível tentar de novo') })
+  const jobs = useQuery({queryKey:['jobs',workspace.id,page,pageSize,search,state,type,batchId],queryFn:()=>call('jobs.query',{workspaceId:workspace.id,page,pageSize,search,state:state || undefined,type:type || undefined,batchId}),refetchInterval:5000})
+  const success=(result:boolean)=>{if(!result){toast.show({title:'A tarefa mudou ou já iniciou',body:'Atualize a fila antes de tentar novamente.',tone:'error'});return};setCancelId(null);qc.invalidateQueries()}
+  const cancel=useMutation({mutationFn:(id:string)=>call('jobs.cancel',{workspaceId:workspace.id,id}),onSuccess:success,onError:fail('Não foi possível cancelar')})
+  const retry=useMutation({mutationFn:(id:string)=>call('jobs.retry',{workspaceId:workspace.id,id}),onSuccess:success,onError:fail('Não foi possível tentar de novo')})
+  const tail=useMutation({mutationFn:(id:string)=>call('jobs.tail',{workspaceId:workspace.id,id}),onSuccess:r=>setDelivery(localTime(r.runAt,workspace.timeZone)),onError:fail('Não foi possível consultar o final da fila')})
+  const move=useMutation({mutationFn:()=>{const [date,time]=delivery.split('T');return call('jobs.reschedule',{workspaceId:workspace.id,id:moving!.id,expectedUpdatedAt:moving!.updatedAt,runAt:zonedToUtc(date,time,workspace.timeZone).toISOString()})},onSuccess:r=>{success(r);if(r)setMoving(null)},onError:fail('Não foi possível realocar')})
   const fmt = new Intl.DateTimeFormat('pt-BR', { timeZone: workspace.timeZone, dateStyle: 'short', timeStyle: 'short' })
   return (
-    <div className="flex flex-col gap-4 p-6">
-      <header data-tour="queue"><h1 className="text-lg font-semibold">Fila</h1><p className="text-xs text-dim">Buscas, downloads, processamento, exportações e webhooks. Roda enquanto o PC estiver ligado e o Legacy aberto (inclusive na bandeja).</p></header>
-      {jobs.data && jobs.data.length === 0 ? (
-        <EmptyState icon={<ListOrdered size={28} />} title="Nada na fila" body="Miniaturas, banners e exportações aparecem aqui enquanto são processados." />
-      ) : (
-        <div className="relative max-w-full overflow-x-auto rounded-card border border-line">
-          <table className="w-full min-w-[760px] text-sm">
-            <thead className="bg-panel text-left text-xs uppercase tracking-wide text-dim">
-              <tr><th className="px-3 py-2">Tarefa</th><th className="px-3 py-2">Estado</th><th className="px-3 py-2">Tentativas</th><th className="px-3 py-2">Atualizada</th><th className="px-3 py-2">Detalhe</th><th className="px-3 py-2"><span className="sr-only">Ações</span></th></tr>
-            </thead>
-            <tbody>
-              {jobs.data?.map((j) => (
-                <tr key={j.id} className="border-t border-line">
-                  <td className="px-3 py-2">{j.label}</td>
-                  <td className={cx('px-3 py-2', STATE[j.state].tone)}>{STATE[j.state].label}</td>
-                  <td className="px-3 py-2 tabular-nums">{j.attempts}/{j.maxAttempts}</td>
-                  <td className="px-3 py-2 text-dim">{fmt.format(new Date(j.updatedAt))}</td>
-                  <td className="max-w-80 truncate px-3 py-2 text-xs text-dim" title={j.lastError ?? undefined}>{j.lastError ?? ''}</td>
-                  <td className="px-3 py-2 text-right">
-                    <Button size="sm" variant="ghost" onClick={() => setDetailId(j.id)}>Ver tarefa</Button>
-                    {j.state === 'queued' && <Button size="sm" variant="ghost" onClick={() => cancel.mutate(j.id)}>Cancelar</Button>}
-                    {j.state === 'failed' && <Button size="sm" onClick={() => retry.mutate(j.id)}>Tentar de novo</Button>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
+    <div className="flex min-w-0 flex-col gap-4 p-4 md:p-6">
+      <header data-tour="queue"><h1 className="text-lg font-semibold">Fila</h1><p className="text-xs text-dim">Acompanhe buscas, downloads e publicações. O Legacy precisa estar aberto para executar tarefas.</p></header>
+      <div className="grid grid-cols-2 gap-3 xl:grid-cols-5" aria-label="Resumo da fila">{Object.entries(STATE).map(([key,info])=><button key={key} type="button" aria-pressed={state===key} className={cx('ds-summary text-left',state===key && 'ring-1 ring-fg')} onClick={()=>{setState(state===key ? '' : key as JobState);setPage(1)}}><span className={cx('text-xs',info.tone)}>{info.label}</span><strong className="mt-1 block text-xl tabular-nums">{jobs.data?.counts[key as JobState] ?? '—'}</strong></button>)}</div>
+      <div className="flex flex-wrap items-end gap-3"><div className="min-w-48 flex-1"><SearchInput label="Buscar tarefa ou conta" value={search} onChange={e=>{setSearch(e.target.value);setPage(1)}}/></div><Select label="Estado" value={state} onChange={e=>{setState(e.target.value as JobState | '');setPage(1)}}><option value="">Todos</option>{Object.entries(STATE).map(([k,v])=><option key={k} value={k}>{v.label}</option>)}</Select><Select label="Tipo" value={type} onChange={e=>{setType(e.target.value as JobType | '');setPage(1)}}><option value="">Todos</option>{Object.entries(TYPES).map(([k,v])=><option key={k} value={k}>{v}</option>)}</Select><Tooltip content="Lista de tarefas"><Button aria-label="Lista de tarefas" aria-pressed={!tree} icon={<List size={16}/>} onClick={()=>setTree(false)}/></Tooltip><Tooltip content="Árvore de lotes"><Button aria-label="Árvore de lotes" aria-pressed={tree} icon={<FolderTree size={16}/>} onClick={()=>setTree(true)}/></Tooltip>{(search || state || type || batchId) && <Button variant="ghost" onClick={()=>{setSearch('');setState('');setType('');setBatchId(undefined);setPage(1)}}>Limpar filtros</Button>}</div>
+      {batchId && <p className="break-all text-xs text-dim">Filtrando o lote {batchId}</p>}
+      {jobs.isPending && <Spinner label="Carregando fila"/>}
+      {jobs.isError && <div role="alert" className="ds-summary"><p>Não foi possível carregar a fila.</p><Button onClick={()=>jobs.refetch()}>Tentar novamente</Button></div>}
+      {jobs.data?.total===0 && <EmptyState icon={<ListOrdered size={28}/>} title="Nada na fila" body="Nenhuma tarefa corresponde aos filtros atuais."/>}
+      {jobs.data && <div className="grid gap-3">{(tree ? [...new Set(jobs.data.items.map(j=>j.batchId ?? j.id))] : ['all']).map(group=><section key={group} className={tree ? 'rounded-card border border-line p-3' : ''}>{tree && <header className="mb-3 flex flex-wrap items-center justify-between gap-2"><h2 className="flex min-w-0 items-center gap-2 text-sm"><FolderTree size={16}/><span className="break-all">{jobs.data.items.find(j=>j.id===group)?.label ?? (jobs.data.items.some(j=>j.batchId===group) ? `Lote ${group.slice(0,8)}` : 'Tarefa independente')}</span></h2>{jobs.data.items.some(j=>j.batchId===group) && <Button size="sm" onClick={()=>{setBatchId(group);setPage(1);setState('');setType('');setSearch('')}}>Ver lote completo</Button>}</header>}<div className={cx('grid gap-3',tree && 'border-l border-line pl-3')}>{jobs.data.items.filter(j=>!tree || (j.batchId ?? j.id)===group).map(j=><article key={j.id} aria-label={j.label} className="min-w-0 rounded-card border border-line bg-panel p-4"><div className="flex flex-wrap items-start justify-between gap-3"><div className="min-w-0 flex-1"><h2 className="break-words text-sm font-semibold">{j.label}</h2><p className="mt-1 text-xs text-dim">{TYPES[j.type]}{j.account && ` · @${j.account.replace(/^@/,'')}`}</p></div><Badge tone={j.state==='failed' ? 'error' : j.state==='done' ? 'success' : 'default'}>{j.state==='running' && <Spinner label="Executando"/>}{STATE[j.state].label}</Badge></div><div className="mt-3 flex flex-wrap gap-x-5 gap-y-2 text-xs text-dim"><span className="flex items-center gap-1"><Clock size={12}/>Prevista: {fmt.format(new Date(j.runAt))}</span><span>Tentativas: {j.attempts}/{j.maxAttempts}</span><span>Atualizada: {fmt.format(new Date(j.updatedAt))}</span></div>{j.lastError && <p className="mt-3 break-words text-xs text-danger-fg">{j.lastError}</p>}<div className="mt-3 flex flex-wrap gap-2"><Button size="sm" variant="ghost" onClick={()=>setDetailId(j.id)}>Ver tarefa</Button>{['queued','failed'].includes(j.state) && <><Button size="sm" variant="ghost" disabled={cancel.isPending} onClick={()=>{cancel.reset();setCancelId(j.id)}}>Cancelar</Button><Button size="sm" disabled={tail.isPending} onClick={()=>{setMoving(j);setDelivery('');tail.reset();move.reset();tail.mutate(j.id)}}>Passar a vez</Button></>}{j.state==='failed' && <Button size="sm" disabled={retry.isPending} onClick={()=>retry.mutate(j.id)}>Tentar de novo</Button>}</div><ExtraDetails workspaceId={workspace.id} id={j.id} timeZone={workspace.timeZone}/></article>)}</div></section>)}</div>}
+      {jobs.data && jobs.data.total>0 && <footer className="flex flex-wrap items-center justify-between gap-3 text-xs text-dim"><span>{jobs.data.total} tarefas · Página {jobs.data.page} de {Math.max(1,Math.ceil(jobs.data.total/pageSize))}{tree && ' · Árvore dos itens desta página'}</span><div className="flex flex-wrap items-end gap-2"><Select label="Por página" value={pageSize} onChange={e=>{setPageSize(Number(e.target.value));setPage(1)}}>{[10,25,50,100].map(n=><option key={n} value={n}>{n}</option>)}</Select><Button size="sm" disabled={jobs.data.page<=1} onClick={()=>setPage(jobs.data!.page-1)}>Anterior</Button><Button size="sm" disabled={jobs.data.page*pageSize>=jobs.data.total} onClick={()=>setPage(jobs.data!.page+1)}>Próxima</Button></div></footer>}
+      <Modal open={!!cancelId} onOpenChange={v=>{if(!v)setCancelId(null)}} title="Cancelar tarefa?" description="A tarefa ficará no histórico e não será executada novamente." footer={<><Button variant="ghost" onClick={()=>setCancelId(null)}>Voltar</Button><Button disabled={cancel.isPending} onClick={()=>cancel.mutate(cancelId!)}>Confirmar cancelamento</Button></>}><p className="text-sm text-dim">O cancelamento local não desfaz uma publicação que a plataforma já tenha recebido. Se a resposta foi incerta, confira a conta no Instagram.</p>{(cancel.isError || cancel.data===false) && <p role="alert" className="mt-3 text-sm text-danger-fg">Não foi possível cancelar. {cancel.error instanceof Error ? cancel.error.message : 'A tarefa mudou ou já iniciou. Atualize a fila.'}</p>}</Modal>
+      <Modal open={!!moving} onOpenChange={v=>{if(!v)setMoving(null)}} title="Passar a vez" description={moving?.label} footer={<><Button variant="ghost" onClick={()=>setMoving(null)}>Voltar</Button><Button disabled={move.isPending || tail.isPending || !!deliveryError(delivery,workspace.timeZone)} onClick={()=>move.mutate()}>Confirmar novo horário</Button></>}><div className="grid gap-4"><p className="text-xs text-dim">Horário sugerido: 15 minutos após a última tarefa pendente do mesmo tipo e conta. Escolha outra data se preferir.</p>{tail.isPending && <Spinner/>}{tail.isError && <p role="alert" className="text-danger-fg">{tail.error instanceof Error ? tail.error.message : 'Não foi possível consultar a fila.'}</p>}{tail.data && <p className="text-xs text-dim">{tail.data.ahead} tarefas pendentes antes do horário sugerido.</p>}<DeliveryTime compact value={delivery} onChange={setDelivery} timeZone={workspace.timeZone}/><p className="text-xs text-dim">Histórico e registros de envio preservados. Os outros horários não mudam.</p>{move.isError && <p role="alert" className="text-danger-fg">{move.error instanceof Error ? move.error.message : 'Não foi possível realocar.'}</p>}</div></Modal>
       <Modal open={Boolean(detailId)} onOpenChange={(value) => { if (!value) setDetailId(null) }} title="Detalhes da tarefa" description={details.data?.label ?? 'Consultando arquivos e origem…'} footer={<Button onClick={() => setDetailId(null)}>Fechar</Button>}>
         <div className="flex min-w-0 flex-col gap-4">
           {details.isError && <p role="alert" className="text-danger-fg">Não foi possível consultar esta tarefa.</p>}
-          {details.data && <><p className="text-xs text-dim">Execução prevista: {fmt.format(new Date(details.data.runAt))}</p>{details.data.error && <p className="break-words text-sm text-danger-fg">{details.data.error}</p>}{details.data.originUrl && <Button onClick={() => window.open(details.data!.originUrl!, '_blank')}>Abrir origem no Instagram</Button>}{details.data.files.map(f => <section key={f.id} className="min-w-0 rounded border border-line p-3"><p className="mb-2 break-words text-sm">{f.name}</p><video controls preload="metadata" src={mediaUrl(f.filePath)} poster={f.thumbnailPath ? mediaUrl(f.thumbnailPath) : undefined} className="mx-auto max-h-72 w-full object-contain" /><Button size="sm" className="mt-2" onClick={() => open.mutate(f.id)}>Abrir arquivo</Button></section>)}{details.data.folders.map(path => <Button key={path} onClick={() => folder.mutate(path)}>Abrir pasta exportada</Button>)}{!details.data.files.length && <p className="text-sm text-dim">O arquivo ainda não está na Biblioteca. Use o link de origem ou acompanhe o processamento.</p>}</>}
+          {details.data && <><details><summary className="cursor-pointer text-xs text-dim">Histórico e estado do envio</summary><div className="mt-3"><AttemptHistory data={details.data} timeZone={workspace.timeZone}/></div></details><p className="text-xs text-dim">Execução prevista: {fmt.format(new Date(details.data.runAt))}</p>{details.data.error && <p className="break-words text-sm text-danger-fg">{details.data.error}</p>}{details.data.originUrl && <Button onClick={() => window.open(details.data!.originUrl!, '_blank')}>Abrir origem no Instagram</Button>}{details.data.files.map(f => <section key={f.id} className="min-w-0 rounded border border-line p-3"><p className="mb-2 break-words text-sm">{f.name}</p><video controls preload="metadata" src={mediaUrl(f.filePath)} poster={f.thumbnailPath ? mediaUrl(f.thumbnailPath) : undefined} className="mx-auto max-h-72 w-full object-contain" /><Button size="sm" className="mt-2" onClick={() => open.mutate(f.id)}>Abrir arquivo</Button></section>)}{details.data.folders.map(path => <Button key={path} onClick={() => folder.mutate(path)}>Abrir pasta exportada</Button>)}{!details.data.files.length && <p className="text-sm text-dim">O arquivo ainda não está na Biblioteca. Use o link de origem ou acompanhe o processamento.</p>}</>}
         </div>
       </Modal>
     </div>

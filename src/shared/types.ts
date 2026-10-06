@@ -102,3 +102,10 @@ export interface CoverTextSpec {
   color: string
   background: string | null
 }
+export interface QueuePageResult {
+  items: (JobView & { batchId: string | null; account: string | null })[]
+  total: number
+  page: number
+  pageSize: number
+  counts: Record<JobState, number>
+}
