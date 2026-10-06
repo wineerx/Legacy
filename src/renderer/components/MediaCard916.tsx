@@ -46,12 +46,12 @@ export function MediaCard916({ item, selected, onToggleSelect, onOpen, actions, 
           ))}
         </div>
       </div>
-      <div className="absolute inset-x-0 bottom-0 z-10 flex flex-col">
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 z-10 flex flex-col">
         {/* Opacidade em vez de display:none: o gatilho do menu precisa continuar no layout para o popover manter a âncora ao sair do card. */}
-        {actions && <div className="pointer-events-none flex gap-1 px-2 pb-1 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 has-[[data-state=open]]:pointer-events-auto has-[[data-state=open]]:opacity-100">{actions}</div>}
+        {actions && <div className="pointer-events-auto flex gap-1 px-2 pb-1 opacity-0 transition-opacity group-hover:pointer-events-auto group-hover:opacity-100 group-focus-within:pointer-events-auto group-focus-within:opacity-100 has-[[data-state=open]]:pointer-events-auto has-[[data-state=open]]:opacity-100">{actions}</div>}
         {item.durationMs !== null && <span className="mb-1 mr-2 self-end rounded bg-black/70 px-1 text-[11px] tabular-nums">{formatDuration(item.durationMs)}</span>}
         {item.kind === 'asset' && <div className="bg-black/75 px-2 py-1 text-[11px]"><p className="truncate">{item.sourceProfile ? `@${item.sourceProfile}` : item.caption}</p>{!!item.publishedAccounts?.length && <p className="text-dim">Publicado em {item.publishedAccounts.length} conta(s)</p>}</div>}
-        <div data-testid="card-metrics" className="flex flex-nowrap items-center justify-between gap-1 bg-black/75 px-1.5 py-1.5 text-[10px] text-fg">
+        <div data-testid="card-metrics" className="pointer-events-auto flex flex-nowrap items-center justify-between gap-1 bg-black/75 px-1.5 py-1.5 text-[10px] text-fg">
           <Metric k="views" value={item.metrics.views} />
           <Metric k="likes" value={item.metrics.likes} />
           <Metric k="comments" value={item.metrics.comments} />
