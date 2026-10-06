@@ -2,7 +2,7 @@ import { join } from 'node:path'
 import { AppError } from '@shared/errors'
 import type { Ctx } from '../context'
 import { complete, fail, heartbeat, leaseNext, recoverExpired, type LeasedJob } from '../queue/queue'
-import { extractFrame, makeThumbnail, overlayBanner } from '../media/ops'
+import { extractFrame, makeThumbnail, renderVideoVersion } from '../media/ops'
 import { getAsset, insertVersion, setAssetThumbnail } from '../repos/assets'
 import { addNotification } from '../repos/notifications'
 import { storedAssetDir } from '../services/library'
@@ -38,13 +38,14 @@ export async function runJob(ctx: Ctx, job: LeasedJob): Promise<unknown> {
       return { thumbnailPath: out }
     }
     case 'apply_banner': {
-      const p = job.payload as { assetId: string; bannerPath: string; startMs: number; endMs: number; versionId: string }
+      const p = job.payload as { assetId: string; versionId: string; bannerPath?: string; startMs?: number; endMs?: number; coverPath?: string }
       const a = requireAsset(ctx, ws, p.assetId)
       const out = join(storedAssetDir(ctx, ws, p.assetId), 'versions', `banner-${p.versionId}.mp4`)
-      await overlayBanner(a.filePath, p.bannerPath, out, { startMs: p.startMs, endMs: p.endMs })
+      const banner = p.bannerPath ? { png: p.bannerPath, window: { startMs: p.startMs ?? NaN, endMs: p.endMs ?? NaN } } : undefined
+      await renderVideoVersion(a.filePath, out, { banner, coverPng: p.coverPath })
       insertVersion(ctx.db, {
         id: p.versionId, workspaceId: ws, assetId: p.assetId, kind: 'banner',
-        paramsJson: JSON.stringify({ bannerPath: p.bannerPath, startMs: p.startMs, endMs: p.endMs }),
+        paramsJson: JSON.stringify({ bannerPath: p.bannerPath ?? null, startMs: p.startMs ?? null, endMs: p.endMs ?? null, coverPath: p.coverPath ?? null }),
         filePath: out, createdAt: ctx.clock().toISOString()
       })
       return { filePath: out }

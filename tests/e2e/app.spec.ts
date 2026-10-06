@@ -3,6 +3,7 @@ import { mkdtempSync, mkdirSync, existsSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { tmpdir } from 'node:os'
 import { execFileSync } from 'node:child_process'
+import { openSettings } from './helpers'
 
 let app: ElectronApplication
 let page: Page
@@ -72,7 +73,8 @@ test('fila mostra a miniatura concluída', async () => {
 
 test('captura screenshots das telas principais', async () => {
   for (const [nome, rotulo] of [['visao-geral', 'Visão geral'], ['biblioteca', 'Biblioteca'], ['perfis', 'Perfis'], ['fila', 'Fila'], ['configuracoes', 'Configurações']] as const) {
-    await page.getByRole('link', { name: rotulo }).click()
+    if (rotulo === 'Configurações') await openSettings(page)
+    else await page.getByRole('link', { name: rotulo }).click()
     await page.waitForTimeout(400)
     await page.screenshot({ path: `docs/screens/qa-0.4/${nome}.png` })
   }
@@ -85,7 +87,7 @@ test('configura pasta externa, importa e preserva miniatura após restaurar padr
   await app.evaluate(({ dialog }, selected) => {
     dialog.showOpenDialog = async () => ({ canceled: false, filePaths: [selected] })
   }, folder)
-  await page.getByRole('link', { name: 'Configurações' }).click()
+  await openSettings(page)
   await page.getByRole('button', { name: 'Alterar pasta dos vídeos' }).click()
   await expect(page.getByText(/armazenamento-alternativo/).first()).toBeVisible()
   const secondVideo = join(dataDir, 'outro.mp4')
@@ -184,7 +186,8 @@ test('telas cabem em 800, 1024 e 1440 pixels sem overflow da janela', async () =
   for (const width of [800, 1024, 1440]) {
     await page.setViewportSize({ width, height: 900 })
     for (const label of ['Perfis', 'Biblioteca', 'Criar postagem', 'Visão geral', 'Fila', 'Configurações', 'Tutoriais', 'Contas', 'Notificações', 'Desafios e conquistas']) {
-      await page.getByRole('link', { name: label, exact: true }).click()
+      if (label === 'Configurações') await openSettings(page)
+      else await page.getByRole('link', { name: label, exact: true }).click()
       await page.waitForTimeout(250)
       const overflow = await page.evaluate(() => {
         const main = document.querySelector('main')!

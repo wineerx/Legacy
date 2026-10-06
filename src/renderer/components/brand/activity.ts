@@ -16,6 +16,7 @@ const operations: Partial<Record<Channel, MascotSignal>> = {
   'accounts.verifyInstagram': { state: 'searching', message: 'Consultando a conta do Instagram.' },
   'versions.saveCover': { state: 'working', message: 'Salvando a capa.' },
   'versions.requestBanner': { state: 'working', message: 'Preparando o banner.' },
+  'versions.prepareVideo': { state: 'working', message: 'Preparando capa e banner no vídeo.' },
   'export.tiktok': { state: 'working', message: 'Preparando arquivos para postagem manual no TikTok.' },
 }
 type ActivityEvent = { id: number; workspaceId: string; signal: MascotSignal; phase: 'start' | 'end'; outcome?: 'finished' | 'error' | 'warning' | 'cancelled'; message?: string }

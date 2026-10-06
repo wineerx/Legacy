@@ -16,7 +16,7 @@ Busca por URL de perfil, métricas e download: **condicionados** a APIFY_TOKEN, 
 | Métricas | condicionada | Insights de Reels (views, likes, comments, reach, saved, shares, total_interactions, tempo médio) com `instagram_business_manage_insights`. Hoje só por CSV/JSON |
 | Download de mídia | condicionada | Na integração oficial planejada: própria conta conectada (`media_url`). Reels públicos de terceiros têm fluxo separado via Apify, descrito acima |
 | Publicação de Reels | condicionada | `media_type=REELS` com `video_url` público (broker); limite de 100 posts por 24 h por conta. Fase B |
-| Capa | não verificada | `cover_url` existe em `/<IG_ID>/media`, mas não foi confirmado em `graph.instagram.com`; plano B `thumb_offset` |
+| Capa | exportação manual | A capa é inserida no primeiro frame da versão local. Publicação editada por Instagram Login permanece bloqueada; requer um transporte compatível validado |
 | Agendamento | indisponível | Sem agendamento nativo na API; o app agenda localmente (PC ligado) |
 
 ## TikTok

@@ -1,3 +1,10 @@
+# 0.6.1
+
+- Prévias de capa, banner e grade; exportação manual com capa no primeiro frame, preservando o original e o áudio.
+- TikTok desmarcado por padrão; menu de mídia ancorado e seleção sem sobreposição de selos.
+- Configurações no menu do perfil; indicador baixados/posts na ordem correta.
+- Backend bloqueia versões locais editadas no Instagram Login; original online mantém a fila de publicação.
+
 # 0.6.0
 
 - Criar postagem oferece Instagram conectado e TikTok manual, com revisão de destinos e fila real.
