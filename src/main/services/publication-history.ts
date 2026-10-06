@@ -15,7 +15,7 @@ export async function recordPublication(ctx: Ctx, input: { workspaceId: string; 
   const profile = post ? ctx.db.select().from(trackedProfiles).where(and(eq(trackedProfiles.workspaceId, ws), eq(trackedProfiles.id, post.profileId))).get() : undefined
   ctx.db.insert(publicationHistory).values({ workspaceId: ws, jobId, accountId: input.accountId, username: input.username, postId,
     assetSha: asset?.sha256 ?? null, mediaId: input.mediaId ?? null, publishedAt: ctx.clock().toISOString(),
-    provenanceJson: JSON.stringify({ profile: profile?.username ?? null, permalink: post?.permalink ?? null, caption: post?.caption ?? null, views: post?.views ?? null, likes: post?.likes ?? null, comments: post?.comments ?? null, assetId: asset?.id ?? null, downloadedAt: asset?.importedAt ?? null }),
+    provenanceJson: JSON.stringify({ sourceName: asset?.sourceName ?? null, platform: profile?.platform ?? null, remoteId: post?.remoteId ?? null, profile: profile?.username ?? null, permalink: post?.permalink ?? null, caption: post?.caption ?? null, views: post?.views ?? null, likes: post?.likes ?? null, comments: post?.comments ?? null, assetId: asset?.id ?? null, downloadedAt: asset?.importedAt ?? null }),
     cleanupState: input.cleanup ? 'pending' : 'kept'
   }).onConflictDoNothing().run()
   const row = ctx.db.select().from(publicationHistory).where(and(eq(publicationHistory.workspaceId, ws), eq(publicationHistory.jobId, jobId))).get()!

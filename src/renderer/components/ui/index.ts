@@ -14,3 +14,4 @@ export { DeliveryTime, deliveryError } from './DeliveryTime'
 export { Dropdown, DropdownClose } from './Dropdown'
 
 export { DatePicker } from './DatePicker'
+export { Collapsible, CollapsibleTrigger, CollapsibleContent, CollapsibleCard } from './Collapsible'

@@ -1,3 +1,4 @@
+import { takeLibraryFocus } from '../../lib/selection'
 import { describe, it, expect, vi } from 'vitest'
 import { screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -77,4 +78,14 @@ describe('QueuePage', () => {
     await userEvent.click(screen.getByRole('button',{name:'Ver lote completo'}))
     await waitFor(()=>expect(invoke).toHaveBeenCalledWith('jobs.query',expect.objectContaining({batchId:'batch-a',page:1})))
   })
+})
+
+it('identifica o vídeo publicado e abre um filtro exato na Biblioteca', async () => {
+ const navigate=vi.fn()
+ mockBridge({'jobs.query':()=>({items:[{id:'published-job',workspaceId:WS_ID,type:'publish_instagram',state:'done',attempts:1,maxAttempts:24,label:'Publicar Reel',runAt:new Date().toISOString(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),batchId:null,account:'destino',lastError:null,publishedVideo:{assetId:'a',name:'Vídeo específico'}}],total:1,page:1,pageSize:25,counts:{done:1,queued:0,running:0,failed:0,cancelled:0}})})
+ renderWithApp(<QueuePage navigate={navigate}/>)
+ expect(await screen.findByText('Publicado: Vídeo específico')).toBeInTheDocument()
+ await userEvent.click(screen.getByRole('button',{name:'Ver vídeo na Biblioteca'}))
+ expect(navigate).toHaveBeenCalledWith('library')
+ expect(takeLibraryFocus(WS_ID)).toMatchObject({publicationJobId:'published-job'})
 })

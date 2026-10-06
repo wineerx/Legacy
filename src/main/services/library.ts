@@ -33,7 +33,7 @@ export function storedAssetDir(ctx: Ctx, workspaceId: string, assetId: string): 
   return dirname(asset.filePath)
 }
 
-type Provenance = { origin: 'ig_third_party'; rightsNote: string }
+type Provenance = { origin: 'ig_third_party' | 'tiktok_third_party'; rightsNote: string }
 
 async function importOne(ctx: Ctx, workspaceId: string, path: string, provenance?: Provenance): Promise<ImportResult> {
   const ext = extname(path).toLowerCase()

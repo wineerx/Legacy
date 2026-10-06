@@ -13,7 +13,7 @@ import { notificationPreferences } from '../services/integrations'
 import { publishInstagram, InstagramPending } from '../services/instagram-publishing'
 
 export type WorkerEvent = { type: 'job-updated'; workspaceId: string; jobId: string; state: 'running' | 'done' | 'retry' | 'failed' }
-export const PERMANENT_CODES = new Set(['invalid_media', 'not_found', 'invalid_input', 'forbidden'])
+export const PERMANENT_CODES = new Set(['invalid_media', 'not_found', 'invalid_input', 'forbidden', 'duplicate'])
 
 function requireAsset(ctx: Ctx, ws: string, assetId: string) {
   const a = getAsset(ctx.db, ws, assetId)
@@ -76,7 +76,9 @@ export async function processNext(ctx: Ctx, notify: (e: WorkerEvent) => void, le
     let failure: unknown
     let failed = false
     try {
-      result = await runJob(ctx, job)
+      result = job.type === 'publish_instagram'
+        ? await publicationUntilTerminal(() => runJob(ctx, job))
+        : await runJob(ctx, job)
     } catch (e) {
       failed = true
       failure = e
@@ -96,7 +98,7 @@ export async function processNext(ctx: Ctx, notify: (e: WorkerEvent) => void, le
       const code = failure instanceof AppError ? failure.code : 'internal'
       const message = failure instanceof Error ? failure.message : String(failure)
       const outcome = ctx.db.transaction(() => {
-        const outcome = fail(ctx.db, job, ctx.clock(), { code, message, permanent: PERMANENT_CODES.has(code), retryAfterMs: failure instanceof WebhookRetryError || failure instanceof InstagramPending ? failure.retryAfterMs : undefined })
+        const outcome = fail(ctx.db, job, ctx.clock(), { code, message, permanent: job.type === 'publish_instagram' || PERMANENT_CODES.has(code), retryAfterMs: failure instanceof WebhookRetryError || failure instanceof InstagramPending ? failure.retryAfterMs : undefined })
         if (outcome === 'failed') recordJobOutcome(ctx, job, 'failed')
         return outcome
       })
@@ -111,4 +113,18 @@ export async function processNext(ctx: Ctx, notify: (e: WorkerEvent) => void, le
     clearInterval(beat)
   }
   return true
+}
+
+/** Keep the lease and persisted running state while Meta prepares/acknowledges the container. */
+export async function publicationUntilTerminal(run: () => Promise<unknown>, wait = (ms: number) => new Promise<void>(resolve => setTimeout(resolve, ms)), now = () => Date.now()): Promise<unknown> {
+  const deadline = now() + 60 * 60_000
+  for (;;) {
+    try { return await run() } catch (error) {
+      const pending = error instanceof InstagramPending
+      const transient = !(error instanceof AppError) || error.code === 'internal'
+      if (!pending && !transient) throw error
+      if (now() >= deadline) throw new AppError('invalid_input', 'O Instagram não confirmou a publicação dentro de uma hora. Confira a conta antes de tentar novamente; o contêiner foi preservado.')
+      await wait(pending ? error.retryAfterMs : 15_000)
+    }
+  }
 }

@@ -1,3 +1,5 @@
+import { repostWarnings } from '../services/repost-check'
+import { deleteNotifications } from '../repos/notifications'
 import { mediaDetails, pendingMedia, deleteMany } from '../services/media-manager'
 import { copyFile, mkdir, readFile, stat } from 'node:fs/promises'
 import { basename, dirname, extname, join, resolve } from 'node:path'
@@ -39,7 +41,7 @@ import { profileImportProgress } from '../services/profile-download'
 export interface Dialogs { pickVideos(): Promise<string[]>; pickImage(): Promise<string | null>; pickMetricsFile(): Promise<string | null>; saveVideo?(name: string): Promise<string | null>; pickStorageFolder?(): Promise<string | null> }
 export interface HandlerDeps { session?: ReturnType<typeof createGuestSession>; ctx: Ctx; dialogs: Dialogs; shell: { openPath(p: string): Promise<string> }; workerAlive(): boolean; version: string; onJobsChanged(workspaceId: string): void; vault?: SecretVault; onSecretsChanged?(): void; updates?: { status(): UpdateStatus; check(): Promise<UpdateStatus>; download(): Promise<UpdateStatus>; install(): void } }
 
-const profileDto = (p: Profile) => ({ platform: p.platform, id: p.id, username: p.username, url: p.url, connected: p.connectedAccountId !== null, lastSyncedAt: p.lastSyncedAt })
+const profileDto = (p: Profile, avatarPath: string | null = null) => ({ avatarPath, platform: p.platform, id: p.id, username: p.username, url: p.url, connected: p.connectedAccountId !== null, lastSyncedAt: p.lastSyncedAt })
 const coverDto = (c: CoverTemplate) => ({ id: c.id, name: c.name, kind: c.kind, imagePath: c.imagePath, frameMs: c.frameMs, textJson: c.textJson })
 
 export function buildHandlers(deps: HandlerDeps): Handlers {
@@ -49,6 +51,8 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
   const now = () => ctx.clock()
   const changed = <T>(workspaceId: string, v: T): T => { deps.onJobsChanged(workspaceId); return v }
   return {
+    'publications.checkRepost': i => repostWarnings(ctx, i.workspaceId, i.accountId, i),
+    'notifications.delete': i => { requireWorkspace(ctx, i.workspaceId); return changed(i.workspaceId, { deleted: deleteNotifications(ctx.db, i.workspaceId, i) }) },
     'session.get': () => session.get(),
     'session.enterGuest': () => session.enter(),
     'session.exit': () => session.exit(),
@@ -99,7 +103,7 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
       return { path: out }
     },
     'grid.query': (i) => queryGrid(ctx.db, i),
-    'profiles.list': (i) => listProfiles(ctx.db, i.workspaceId).map(profileDto),
+    'profiles.list': (i) => listProfiles(ctx.db, i.workspaceId).map(p => profileDto(p, getSetting(ctx.db, i.workspaceId, `profileAvatar.${p.id}`))),
     'profiles.downloadStatus': (i) => ({ configured: downloadConfigured(ctx, i.workspaceId) }),
     'profiles.download': (i) => changed(i.workspaceId, requestProfileDownload(ctx, i.workspaceId, i.profileId, i.limit)),
     'profiles.discover': (i) => changed(i.workspaceId, requestProfileDownload(ctx, i.workspaceId, i.profileId, i.limit, true)),

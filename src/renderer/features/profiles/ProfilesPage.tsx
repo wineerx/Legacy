@@ -1,3 +1,6 @@
+import { useRepostConfirmation } from '../compose/useRepostConfirmation'
+import { CollapsibleCard } from '../../components/ui'
+import { ProfileAvatar } from '../../components/ui/ProfileAvatar'
 import * as Popover from '@radix-ui/react-popover'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
@@ -106,8 +109,9 @@ export function ProfilesPage({ navigate }: PageProps) {
     queryKey: ['instagram-account', workspace.id],
     queryFn: () => call('accounts.instagram', { workspaceId: workspace.id })
   })
+  const repost = useRepostConfirmation(workspace.id, account.data?.id, navigate)
   const schedule = useMutation({
-    mutationFn: () => {
+    mutationFn: (allowRepost: boolean = false) => {
       const [date, time] = scheduleAt.split('T')
       return call('profiles.scheduleInstagram', {
         workspaceId: workspace.id,
@@ -115,7 +119,7 @@ export function ProfilesPage({ navigate }: PageProps) {
         firstAt: zonedToUtc(date, time, workspace.timeZone).toISOString(),
         intervalMin: ids.length > 1 ? Number(intervalMin) : 60,
         caption: scheduleCaption || undefined,
-        cleanupAfterPublish
+        cleanupAfterPublish, allowRepost
       })
     },
     onSuccess: () => {
@@ -415,7 +419,7 @@ export function ProfilesPage({ navigate }: PageProps) {
               <div className="min-w-0 flex-1">
                 <Input
                   label="Link do perfil"
-                  placeholder="instagram.com/usuario"
+                  placeholder="instagram.com/usuario ou tiktok.com/@usuario"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   error={urlError}
@@ -573,16 +577,17 @@ export function ProfilesPage({ navigate }: PageProps) {
                     <li key={p.id}>
                       <button
                         type="button"
+                        aria-label={`@${p.username}`}
                         onClick={() => setActiveId(p.id)}
                         aria-current={active?.id === p.id}
                         className={cx(
-                          'w-full rounded-ctl px-2.5 py-1.5 text-left text-sm',
+                          'flex w-full items-center gap-2 rounded-ctl px-2.5 py-1.5 text-left text-sm',
                           active?.id === p.id
                             ? 'bg-raised text-fg'
                             : 'text-dim hover:text-fg'
                         )}
                       >
-                        @{p.username}
+                        <ProfileAvatar username={p.username} path={p.avatarPath}/><span className="truncate">@{p.username}</span>
                       </button>
                     </li>
                   ))}
@@ -599,7 +604,7 @@ export function ProfilesPage({ navigate }: PageProps) {
           <EmptyState
             icon={<UserSearch size={28} />}
             title="Acompanhe um perfil"
-            body="Cole o link de um perfil público do Instagram para buscar e baixar reels via Apify, ou importar links e métricas."
+            body="Cole o link de um perfil público do Instagram ou TikTok para importar vídeos via Apify, ou importar links e métricas."
           />
         ) : (
           <>
@@ -682,11 +687,8 @@ export function ProfilesPage({ navigate }: PageProps) {
               >
                 {sortDir === 'desc' ? 'Maior primeiro' : 'Menor primeiro'}
               </Button>
-              <details className="w-full rounded-card border border-line bg-panel p-3">
-                <summary className="cursor-pointer text-sm font-medium">
-                  Filtros avançados
-                </summary>
-                <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <CollapsibleCard className="w-full" title={<>Filtros avançados</>}>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                   <Input
                     label="Texto na legenda"
                     aria-label="Texto na legenda"
@@ -747,7 +749,7 @@ export function ProfilesPage({ navigate }: PageProps) {
                     ]}
                   />
                 </div>
-              </details>
+              </CollapsibleCard>
             </div>
             <div className="flex flex-wrap items-center gap-2 rounded-card border border-line bg-panel p-3 text-xs text-dim">
               <span>{selectionLabel(selection)}</span>
@@ -848,6 +850,7 @@ export function ProfilesPage({ navigate }: PageProps) {
           onClose={() => setPreview(null)}
         />
       )}
+      {repost.modal}
       <Modal
         open={scheduleOpen}
         onOpenChange={setScheduleOpen}
@@ -874,7 +877,7 @@ export function ProfilesPage({ navigate }: PageProps) {
                     Number(intervalMin) > 10080 ||
                     !Number.isInteger(Number(intervalMin))))
               }
-              onClick={() => schedule.mutate()}
+              onClick={() => void repost.review({ postIds: ids }, allow => schedule.mutate(allow))}
             >
               Confirmar agendamento
             </Button>
@@ -1051,7 +1054,7 @@ export function ProfilesPage({ navigate }: PageProps) {
       >
         <Input
           label="Link do reel"
-          placeholder="instagram.com/reel/…"
+          placeholder="instagram.com/reel/… ou tiktok.com/@usuario/video/…"
           value={reelUrl}
           onChange={(e) => setReelUrl(e.target.value)}
           error={reelError}

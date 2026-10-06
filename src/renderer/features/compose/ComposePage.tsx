@@ -1,3 +1,6 @@
+import { InstagramLogo } from '../../components/brand/PlatformLogo'
+import { useRepostConfirmation } from './useRepostConfirmation'
+import { CollapsibleCard } from '../../components/ui'
 import { useMemo, useState } from 'react'
 import { useMascotSignal } from '../../components/brand/MascotProvider'
 import { useMutation, useQuery } from '@tanstack/react-query'
@@ -161,8 +164,6 @@ export function ComposePage({ navigate }: PageProps) {
             ? 'Conecte uma conta Instagram.'
             : instagram && items.some((i) => !i.postId)
               ? 'Instagram exige uma URL pública de origem. Use vídeos baixados pela grade de Perfis.'
-              : instagram && (cover || bannerActive)
-                ? 'Capas e banners locais ainda não podem ser publicados com Instagram Login. Use o vídeo sem essas edições ou exporte para postagem manual.'
                 : instagram && captions.some((c) => c.length > 2200)
                   ? 'Instagram permite legendas de até 2200 caracteres.'
                   : bannerActive &&
@@ -180,9 +181,10 @@ export function ComposePage({ navigate }: PageProps) {
                           )
                         : undefined
 
+  const repost = useRepostConfirmation(workspace.id, instagram ? account.data?.id : undefined, navigate)
   const edited = Boolean(cover) || bannerActive
   const run = useMutation({
-    mutationFn: async () => {
+    mutationFn: async (allowRepost: boolean = false) => {
       if (blockReason) throw new Error(blockReason)
       const prepared: {
         cover?: Uint8Array<ArrayBuffer>
@@ -279,7 +281,7 @@ export function ComposePage({ navigate }: PageProps) {
           workspaceId: workspace.id,
           assetIds: items.map((i) => i.id),
           accountId: account.data!.id,
-          accountRevision: account.data!.revision,
+          accountRevision: account.data!.revision, allowRepost,
           firstAt: zonedToUtc(date, time, workspace.timeZone).toISOString(),
           intervalMin: effectiveInterval,
           captions: Object.fromEntries(
@@ -371,19 +373,13 @@ export function ComposePage({ navigate }: PageProps) {
             onChange={(e) => setBase(e.target.value)}
             placeholder="Legenda aplicada a todos os vídeos"
           />
-          <details className="rounded-ctl border border-line p-3">
-            <summary className="cursor-pointer text-sm font-medium">
-              Modelos de legenda
-            </summary>
-            <div className="mt-3">
+          <CollapsibleCard title={<>Modelos de legenda</>}>
+            <div>
               <CaptionRibbon onUse={setBase} navigate={navigate} />
             </div>
-          </details>
-          <details className="rounded-ctl border border-line p-3">
-            <summary className="cursor-pointer text-sm font-medium">
-              Legendas individuais · {items.length} vídeo(s)
-            </summary>
-            <ul className="mt-3 flex max-h-80 flex-col gap-2 overflow-y-auto">
+          </CollapsibleCard>
+          <CollapsibleCard title={<>Legendas individuais · {items.length} vídeo(s)</>}>
+            <ul className="flex max-h-80 flex-col gap-2 overflow-y-auto">
               {items.map((it) => (
                 <li
                   key={it.id}
@@ -417,7 +413,7 @@ export function ComposePage({ navigate }: PageProps) {
                 </li>
               ))}
             </ul>
-          </details>
+          </CollapsibleCard>
           <CoverEditor
             workspaceId={workspace.id}
             covers={covers.data ?? []}
@@ -429,6 +425,7 @@ export function ComposePage({ navigate }: PageProps) {
         <section className="grid gap-3 rounded-card border border-line bg-panel p-4">
           <h2 className="text-sm font-semibold">Publicar em</h2>
           <Checkbox
+            icon={<InstagramLogo/>}
             label={
               account.data
                 ? `Instagram — @${account.data.username}`
@@ -577,6 +574,7 @@ export function ComposePage({ navigate }: PageProps) {
           </p>
         )}
       </aside>
+      {repost.modal}
       <BatchReviewModal
         open={reviewOpen}
         onOpenChange={setReviewOpen}
@@ -593,7 +591,7 @@ export function ComposePage({ navigate }: PageProps) {
         delivery={delivery}
         intervalMin={effectiveInterval}
         tiktok={tiktok}
-        onConfirm={() => run.mutate()}
+        onConfirm={() => void repost.review({ assetIds: items.map(i => i.id) }, allow => run.mutate(allow))}
       />
     </div>
   )

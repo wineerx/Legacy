@@ -142,3 +142,29 @@ it('progresso real preserva runId, resultados ignorados e falhas de prévia', as
   const other = createWorkspace(ctx.db, { name: 'Other', timeZone: 'UTC' }).id
   expect(() => profileImportProgress(ctx, other, profileId)).toThrow(/Perfil não encontrado/)
 })
+
+it('atualização incremental reutiliza ID e não baixa outra prévia ou abre outro Actor no checkpoint', async () => {
+  requestProfileDownload(ctx,ws,profileId,100,true)
+  const job=leaseNext(ctx.db,ctx.clock(),60000)!
+  const sample={...reel,id:'remote1',displayUrl:'https://scontent.cdninstagram.com/thumb.jpg'}
+  vi.mocked(apifyJson).mockResolvedValueOnce({data:{id:'run1',status:'READY'}}).mockResolvedValueOnce({data:{id:'run1',status:'SUCCEEDED',defaultDatasetId:'ds1'}}).mockResolvedValueOnce([sample])
+  await fetchProfile(ctx,job)
+  vi.mocked(apifyJson).mockResolvedValueOnce({data:{id:'run1',status:'SUCCEEDED',defaultDatasetId:'ds1'}}).mockResolvedValueOnce([{...sample,caption:'Atualizada'}])
+  await fetchProfile(ctx,job)
+  expect(ctx.db.select().from(remotePosts).all()).toHaveLength(1)
+  expect(ctx.db.select().from(remotePosts).all()[0].caption).toBe('Atualizada')
+  expect(downloadPreview).toHaveBeenCalledTimes(1)
+  expect(vi.mocked(apifyJson).mock.calls.filter(c=>c[0].includes('actors/'))).toHaveLength(1)
+  expect(profileImportProgress(ctx,ws,profileId)?.progress).toMatchObject({imported:0,skipped:1,percent:100})
+})
+it('importa TikTok com metadados e avatar na grade, sem baixar vídeos automaticamente', async () => {
+  const profile=addProfileFromUrl(ctx,ws,'https://www.tiktok.com/@example')
+  requestProfileDownload(ctx,ws,profile.id,100,true)
+  const job=leaseNext(ctx.db,ctx.clock(),60000)!
+  vi.mocked(apifyJson).mockResolvedValueOnce({data:{id:'run2',status:'READY'}}).mockResolvedValueOnce({data:{id:'run2',status:'SUCCEEDED',defaultDatasetId:'ds2'}}).mockResolvedValueOnce([{id:'123456789',webVideoUrl:'https://www.tiktok.com/@example/video/123456789',text:'TikTok',playCount:123,diggCount:12,commentCount:3,createTime:1720000000,videoMeta:{duration:12,downloadAddr:'https://v16-webapp-prime.tiktok.com/video/a',coverUrl:'https://p16.tiktokcdn.com/cover.jpg'},authorMeta:{avatar:'https://p16.tiktokcdn.com/avatar.jpg'}}])
+  await fetchProfile(ctx,job)
+  expect(apifyJson).toHaveBeenCalledWith('actors/clockworks~tiktok-profile-scraper/runs?timeout=600','test-token',expect.objectContaining({profiles:['example'],shouldDownloadVideos:false}))
+  expect(ctx.db.select().from(remotePosts).all()[0]).toMatchObject({caption:'TikTok',remoteId:'123456789',views:123,durationMs:12000})
+  expect(downloadPreview).toHaveBeenCalledTimes(2)
+  expect(listJobs(ctx.db,ws).filter(j=>j.type==='download_reel')).toHaveLength(0)
+})

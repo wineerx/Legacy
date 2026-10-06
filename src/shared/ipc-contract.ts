@@ -15,6 +15,8 @@ const coverText = z.object({
 
 export const contract = {
   'app.bootstrap': z.object({}),
+  'notifications.delete': z.object({ workspaceId: ws, ids: z.array(id).max(1000).optional(), all: z.boolean().optional() }).refine(v => v.all || Boolean(v.ids?.length), 'Selecione notificações.'),
+  'publications.checkRepost': z.object({ workspaceId: ws, accountId: z.string().min(1), postIds: z.array(id).max(1000).optional(), assetIds: z.array(id).max(1000).optional() }),
   'session.get': z.object({}),
   'session.enterGuest': z.object({}),
   'session.exit': z.object({}),
@@ -48,7 +50,7 @@ export const contract = {
   'library.setFavorite': z.object({ workspaceId: ws, id, favorite: z.boolean() }),
   'library.frame': z.object({ workspaceId: ws, assetId: id, atMs: z.number().int().min(0) }),
   'grid.query': z.object({
-    workspaceId: ws, source: z.enum(['library', 'remote']), profileId: id.optional(),
+    workspaceId: ws, source: z.enum(['library', 'remote']), profileId: id.optional(), assetId: id.optional(), publicationJobId: id.optional(),
     sortBy: z.enum(['views', 'likes', 'comments', 'postedAt', 'importedAt', 'durationMs']), sortDir: z.enum(['asc', 'desc']),
     text: z.string().max(100).optional(), hashtag: z.string().max(100).optional(),
     from: z.iso.datetime().optional(), to: z.iso.datetime().optional(),
@@ -66,11 +68,11 @@ export const contract = {
   'profiles.downloadSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
   'profiles.prepareSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
   'accounts.instagram': z.object({ workspaceId: ws }),
-  'compose.scheduleInstagram': z.object({ workspaceId: ws, assetIds: z.array(id).min(1).max(100), accountId: z.string().regex(/^\d+$/), accountRevision: z.string().min(1), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), captions: z.record(z.string(),z.string().max(2200)), cleanupAfterPublish: z.boolean().default(false), versionIds: z.record(id, id).optional() }),
+  'compose.scheduleInstagram': z.object({ workspaceId: ws, assetIds: z.array(id).min(1).max(100), accountId: z.string().regex(/^\d+$/), accountRevision: z.string().min(1), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), captions: z.record(z.string(),z.string().max(2200)), allowRepost: z.boolean().optional(), cleanupAfterPublish: z.boolean().default(false), versionIds: z.record(id, id).optional() }),
   'accounts.verifyInstagram': z.object({ workspaceId: ws }),
   'accounts.connectInstagram': z.object({ workspaceId: ws, token: z.string().trim().min(20).max(4096).regex(/^[A-Za-z0-9_.-]+$/) }),
   'accounts.disconnectInstagram': z.object({ workspaceId: ws }),
-  'profiles.scheduleInstagram': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), caption: z.string().max(2200).optional(), cleanupAfterPublish: z.boolean().default(false) }),
+  'profiles.scheduleInstagram': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), caption: z.string().max(2200).optional(), allowRepost: z.boolean().optional(), cleanupAfterPublish: z.boolean().default(false) }),
   'profiles.add': z.object({ workspaceId: ws, url: z.string().min(1).max(300) }),
   'profiles.addReel': z.object({ workspaceId: ws, profileId: id, url: z.string().min(1).max(300) }),
   'profiles.importMetricsFile': z.object({ workspaceId: ws, profileId: id }),
@@ -113,12 +115,14 @@ export interface WorkspaceDto { id: string; name: string; timeZone: string }
 export interface ImportResultDto { path: string; status: 'imported' | 'duplicate' | 'rejected'; assetId?: string; errors: string[]; warnings: string[] }
 export interface GuestSessionDto { entered: boolean; email: 'guest@legacy.com'; mode: 'development' }
 export interface ImportProgress { phase: 'searching' | 'importing' | 'done'; processed: number; total: number | null; imported: number; skipped: number; previewFailures: number; percent: number | null }
-export interface ProfileDto { platform: string; id: string; username: string; url: string; connected: boolean; lastSyncedAt: string | null }
+export interface ProfileDto { avatarPath?: string | null; platform: string; id: string; username: string; url: string; connected: boolean; lastSyncedAt: string | null }
 export interface CoverDto { id: string; name: string; kind: 'image' | 'frame_text'; imagePath: string | null; frameMs: number | null; textJson: string | null }
 export interface NotificationDto { id: string; kind: 'info' | 'error' | 'manual_task'; title: string; body: string; actionJson: string | null; dueAt: string | null; readAt: string | null; createdAt: string }
 export interface OnboardingStepDto { key: string; label: string; done: boolean; disabledReason?: string }
 
 export interface Outputs {
+  'notifications.delete': { deleted: number }
+  'publications.checkRepost': { id: string; name: string; reason: string }[]
   'session.get': GuestSessionDto
   'session.enterGuest': GuestSessionDto
   'session.exit': GuestSessionDto
@@ -184,7 +188,7 @@ export interface Outputs {
   'jobs.query': QueuePageResult
   'jobs.tail': { runAt: string; ahead: number }
   'jobs.reschedule': boolean
-  'jobs.details': { attempts: { startedAt: string; finishedAt: string | null; outcome: string | null; errorMessage: string | null }[]; attemptTotal: number; batchId: string | null; account: string | null; checkpoint: string | null; label: string; runAt: string; error: string | null; files: { id: string; name: string; filePath: string; thumbnailPath: string | null }[]; originUrl: string | null; folders: string[] }
+  'jobs.details': { attempts: { startedAt: string; finishedAt: string | null; outcome: string | null; errorMessage: string | null }[]; attemptTotal: number; batchId: string | null; account: string | null; checkpoint: string | null; confirmedPublished?: boolean; publishedVideo?: { assetId: string | null; name: string } | null; label: string; runAt: string; error: string | null; files: { id: string; name: string; filePath: string; thumbnailPath: string | null }[]; originUrl: string | null; folders: string[] }
   'library.saveCopy': { saved: boolean }
   'library.openAsset': null
   'updates.status': UpdateStatus

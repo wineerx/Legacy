@@ -1,6 +1,6 @@
 import { and, eq } from 'drizzle-orm'
 import { AppError } from '@shared/errors'
-import { normalizeInstagramUrl } from '@shared/instagram-url'
+import { normalizeSocialUrl } from '@shared/social-url'
 import type { Ctx } from '../context'
 import { type Db, newId } from '../db/client'
 import { remotePosts } from '../db/schema'
@@ -18,8 +18,10 @@ export function findByPermalink(db: Db, workspaceId: string, permalink: string):
 
 export function addReelLink(ctx: Ctx, workspaceId: string, profileId: string, input: string): RemotePost {
   if (!getProfile(ctx.db, workspaceId, profileId)) throw new AppError('not_found', 'Perfil não encontrado.')
-  const ref = normalizeInstagramUrl(input)
+  const ref = normalizeSocialUrl(input)
   if (ref.kind === 'profile') throw new AppError('invalid_url', 'Cole o link de um reel ou post.')
+  const profile = getProfile(ctx.db, workspaceId, profileId)!
+  if (profile.platform !== ref.platform) throw new AppError('invalid_url', 'A plataforma do vídeo é diferente da plataforma do perfil.')
   const existing = findByPermalink(ctx.db, workspaceId, ref.url)
   if (existing) return existing
   return ctx.db.insert(remotePosts).values({

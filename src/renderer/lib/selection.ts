@@ -43,3 +43,8 @@ let composeIds: string[] = []
 export const setComposeSelection = (ids: string[]): void => { composeIds = ids }
 export const peekComposeSelection = (): string[] => composeIds
 export const clearComposeSelection = (): void => { composeIds = [] }
+
+let libraryFocus: { workspaceId: string; assetId?: string; publicationJobId?: string } | null = null
+export const focusLibraryAsset = (workspaceId: string, assetId: string) => { libraryFocus = { workspaceId, assetId } }
+export const focusLibraryPublication = (workspaceId: string, publicationJobId: string) => { libraryFocus = { workspaceId, publicationJobId } }
+export const takeLibraryFocus = (workspaceId: string) => { const result = libraryFocus?.workspaceId === workspaceId ? libraryFocus : undefined; libraryFocus = null; return result }

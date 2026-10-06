@@ -60,13 +60,14 @@ function remoteGrid(db: Db, q: GridQuery): GridPage {
 
 function libraryGrid(db: Db, q: GridQuery): GridPage {
   const where: SQL[] = [eq(mediaAssets.workspaceId, q.workspaceId)]
+  if (q.assetId) where.push(eq(mediaAssets.id, q.assetId))
   const sourceMatch = (extra: SQL) => sql`EXISTS (SELECT 1 FROM ${remotePosts} LEFT JOIN ${trackedProfiles} ON ${trackedProfiles.id} = ${remotePosts.profileId} AND ${trackedProfiles.workspaceId} = ${remotePosts.workspaceId} WHERE ${remotePosts.workspaceId} = ${mediaAssets.workspaceId} AND ${remotePosts.assetId} = ${mediaAssets.id} AND ${extra})`
   if (q.text) where.push(or(contains(mediaAssets.sourceName, q.text), sourceMatch(or(contains(remotePosts.caption, q.text), contains(trackedProfiles.username, q.text), contains(remotePosts.permalink, q.text))!))!)
   if (q.sourceProfile) where.push(sourceMatch(contains(trackedProfiles.username, q.sourceProfile.replace(/^@/, ''))))
   if (q.hashtag) where.push(sourceMatch(contains(remotePosts.caption, `#${q.hashtag.replace(/^#/, '')}`)))
   if (q.publicationAccount) where.push(sql`EXISTS (SELECT 1 FROM ${publicationHistory} WHERE ${publicationHistory.workspaceId} = ${mediaAssets.workspaceId} AND (${publicationHistory.assetSha} = ${mediaAssets.sha256} OR EXISTS (SELECT 1 FROM ${remotePosts} WHERE ${remotePosts.workspaceId} = ${mediaAssets.workspaceId} AND ${remotePosts.assetId} = ${mediaAssets.id} AND ${remotePosts.id} = ${publicationHistory.postId})) AND ${contains(publicationHistory.username, q.publicationAccount.replace(/^@/, ''))})`)
-  if (q.platform === 'instagram') where.push(or(sourceMatch(sql`1`), hasPublication(), hasJob(['queued', 'running', 'failed'], ['publish_instagram']))!)
-  if (q.platform === 'tiktok') where.push(hasJob(['queued', 'running', 'done', 'failed'], ['export_tiktok']))
+  if (q.platform === 'instagram') where.push(or(sourceMatch(sql`${trackedProfiles.platform} = 'instagram'`), hasPublication(), hasJob(['queued', 'running', 'failed'], ['publish_instagram']))!)
+  if (q.platform === 'tiktok') where.push(or(sourceMatch(sql`${trackedProfiles.platform} = 'tiktok'`), hasJob(['queued', 'running', 'done', 'failed'], ['export_tiktok']))!)
   const state = sql`CASE WHEN ${hasJob(['queued', 'running'], ['make_thumbnail', 'apply_banner'])} THEN 'processing' WHEN ${hasJob(['queued', 'running'], ['publish_instagram'])} THEN 'scheduled' WHEN ${hasJob(['failed'])} THEN 'failed' WHEN ${hasPublication()} THEN 'published' ELSE 'ready' END`
   if (q.status === 'unpublished') where.push(sql`NOT ${hasPublication()}`)
   else if (q.status) where.push(sql`${state} = ${q.status}`)
@@ -85,7 +86,7 @@ function libraryGrid(db: Db, q: GridQuery): GridPage {
   const total = db.select({ n: sql<number>`count(*)` }).from(mediaAssets).where(cond).get()!.n
   const ids = rows.map(r => r.asset.id)
   const sha = rows.map(r => r.asset.sha256)
-  const posts = ids.length ? db.select({ post: remotePosts, username: trackedProfiles.username }).from(remotePosts).leftJoin(trackedProfiles, and(eq(trackedProfiles.id, remotePosts.profileId), eq(trackedProfiles.workspaceId, q.workspaceId))).where(and(eq(remotePosts.workspaceId, q.workspaceId), inArray(remotePosts.assetId, ids), sql`${remotePosts.id} = (SELECT r.id FROM remote_posts r WHERE r.workspace_id = ${q.workspaceId} AND r.asset_id = ${remotePosts.assetId} ORDER BY r.metrics_updated_at DESC, r.id ASC LIMIT 1)`)).orderBy(desc(remotePosts.metricsUpdatedAt), asc(remotePosts.id)).all() : []
+  const posts = ids.length ? db.select({ post: remotePosts, username: trackedProfiles.username, platform: trackedProfiles.platform }).from(remotePosts).leftJoin(trackedProfiles, and(eq(trackedProfiles.id, remotePosts.profileId), eq(trackedProfiles.workspaceId, q.workspaceId))).where(and(eq(remotePosts.workspaceId, q.workspaceId), inArray(remotePosts.assetId, ids), sql`${remotePosts.id} = (SELECT r.id FROM remote_posts r WHERE r.workspace_id = ${q.workspaceId} AND r.asset_id = ${remotePosts.assetId} ORDER BY r.metrics_updated_at DESC, r.id ASC LIMIT 1)`)).orderBy(desc(remotePosts.metricsUpdatedAt), asc(remotePosts.id)).all() : []
   const sourceIds = ids.length ? db.select({ id: remotePosts.id, assetId: remotePosts.assetId }).from(remotePosts).where(and(eq(remotePosts.workspaceId, q.workspaceId), inArray(remotePosts.assetId, ids))).all() : []
   const sourceAsset = new Map(sourceIds.map(p => [p.id, p.assetId]))
   const published = sha.length ? db.select({ sha: publicationHistory.assetSha, postId: publicationHistory.postId, username: publicationHistory.username }).from(publicationHistory).where(and(eq(publicationHistory.workspaceId, q.workspaceId), or(inArray(publicationHistory.assetSha, sha), sourceIds.length ? inArray(publicationHistory.postId, sourceIds.map(p => p.id)) : sql`0`))).groupBy(publicationHistory.assetSha, publicationHistory.postId, publicationHistory.username).all() : []
@@ -96,7 +97,7 @@ function libraryGrid(db: Db, q: GridQuery): GridPage {
   for (const h of published) { const key = h.sha ?? shaById.get(sourceAsset.get(h.postId) ?? ''); if (key) accountMap.set(key, [...new Set([...(accountMap.get(key) ?? []), h.username])]) }
   const items: GridItem[] = rows.map(({ asset: r, state: st, exported }) => {
     const badges: Badge[] = []
-    if (r.origin === 'ig_own' || r.origin === 'ig_third_party') badges.push('baixado')
+    if (r.origin === 'ig_own' || r.origin === 'ig_third_party' || r.origin === 'tiktok_third_party') badges.push('baixado')
     if (exported) badges.push('exportado')
     if (r.favorite) badges.push('favorito')
     const source = postMap.get(r.id)
@@ -106,11 +107,20 @@ function libraryGrid(db: Db, q: GridQuery): GridPage {
     if (st === 'scheduled') badges.push('agendado')
     return { id: r.id, kind: 'asset', postId: post?.id ?? null, filePath: r.filePath, firstFramePath: existsSync(join(dirname(r.filePath), 'first-frame.png')) ? join(dirname(r.filePath), 'first-frame.png') : null, thumbnailPath: r.thumbnailPath, permalink: post?.permalink ?? null, caption: post?.caption ?? r.sourceName,
       postedAt: r.importedAt, importedAt: r.importedAt, sizeBytes: r.sizeBytes, status: st as GridItem['status'], metricsUpdatedAt: post?.metricsUpdatedAt ?? null,
-      durationMs: r.durationMs, metrics: { views: post?.views ?? null, likes: post?.likes ?? null, comments: post?.comments ?? null }, badges, publishedAccounts, sourceProfile: source?.username ?? null }
+      durationMs: r.durationMs, metrics: { views: post?.views ?? null, likes: post?.likes ?? null, comments: post?.comments ?? null }, badges, publishedAccounts, sourcePlatform: source?.platform ?? null, sourceProfile: source?.username ?? null }
   })
   return { items, total, loadedNote: `${total} vídeos encontrados na biblioteca.` }
 }
 
 export function queryGrid(db: Db, q: GridQuery): GridPage {
+  if (q.source === 'library' && q.publicationJobId) {
+    const record = db.select().from(publicationHistory).where(and(eq(publicationHistory.workspaceId, q.workspaceId), eq(publicationHistory.jobId, q.publicationJobId))).get()
+    if (!record) throw new AppError('not_found', 'Publicação não encontrada neste workspace.')
+    const post = db.select().from(remotePosts).where(and(eq(remotePosts.workspaceId, q.workspaceId), eq(remotePosts.id, record.postId))).get()
+    const info = JSON.parse(record.provenanceJson)
+    const asset = db.select().from(mediaAssets).where(and(eq(mediaAssets.workspaceId, q.workspaceId), or(eq(mediaAssets.id, post?.assetId ?? info.assetId ?? ''), eq(mediaAssets.sha256, record.assetSha ?? '')))).get()
+    if (asset) return libraryGrid(db, { ...q, publicationJobId: undefined, assetId: asset.id })
+    return { total: 1, loadedNote: 'A cópia local foi removida. O histórico da publicação permanece.', items: [{ id: record.postId, kind: 'remote', thumbnailPath: post?.thumbnailPath ?? null, permalink: post?.permalink ?? info.permalink ?? null, caption: post?.caption ?? info.caption ?? info.sourceName ?? 'Vídeo publicado', postedAt: record.publishedAt, durationMs: post?.durationMs ?? null, metrics: { views: post?.views ?? null, likes: post?.likes ?? null, comments: post?.comments ?? null }, badges: ['publicado'], publishedAccounts: [record.username] }] }
+  }
   return q.source === 'remote' ? remoteGrid(db, q) : libraryGrid(db, q)
 }

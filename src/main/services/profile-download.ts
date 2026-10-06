@@ -4,7 +4,7 @@ import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { AppError } from '@shared/errors'
 import type { ImportProgress } from '@shared/ipc-contract'
-import { normalizeInstagramUrl } from '@shared/instagram-url'
+import { normalizeSocialUrl } from '@shared/social-url'
 import type { Ctx } from '../context'
 import { jobs, remotePosts, trackedProfiles } from '../db/schema'
 import { enqueue, type LeasedJob } from '../queue/queue'
@@ -47,7 +47,8 @@ export const reelSchema = z.object({
   timestamp: z.string().optional(),
   videoViewCount: z.unknown().optional(),
   likesCount: z.unknown().optional(),
-  commentsCount: z.unknown().optional()
+  commentsCount: z.unknown().optional(),
+  ownerProfilePicUrl: z.string().optional(), profilePicUrl: z.string().optional()
 })
 
 export function downloadConfigured(ctx: Ctx, ws: string): boolean {
@@ -159,6 +160,8 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
     runId?: string
     progress?: ImportProgress
   } = saved ? JSON.parse(saved) : {}
+  let accepted = 0
+  let avatarAttempted = false
   let processed = 0,
     imported = 0,
     previewFailures = 0
@@ -202,9 +205,9 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
       .run()
     const run = runSchema.parse(
       await apifyJson(
-        `actors/apify~instagram-${discovery ? 'scraper' : 'reel-scraper'}/runs?timeout=600`,
+        profile.platform === 'tiktok' ? 'actors/clockworks~tiktok-profile-scraper/runs?timeout=600' : `actors/apify~instagram-${discovery ? 'scraper' : 'reel-scraper'}/runs?timeout=600`,
         key,
-        discovery
+        profile.platform === 'tiktok' ? { profiles: [profile.username], resultsPerPage: limit, profileSorting: 'latest', shouldDownloadVideos: false, shouldDownloadCovers: false } : discovery
           ? {
               directUrls: [profile.url],
               resultsType: 'posts',
@@ -267,18 +270,18 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
   saveProgress('importing', true)
   for (const item of items) {
     try {
-      const parsed = reelSchema.safeParse(item)
+      const parsed = reelSchema.safeParse(profile.platform === 'tiktok' ? tiktokItem(item) : item)
       if (!parsed.success) {
         skipped++
         continue
       }
       const reel = parsed.data
-      let ref: ReturnType<typeof normalizeInstagramUrl>
+      let ref: ReturnType<typeof normalizeSocialUrl>
       try {
         if (reel.audioUrl) allowedUrl(reel.audioUrl)
         if (reel.videoUrl) allowedUrl(reel.videoUrl)
         else if (!discovery) throw new Error('No video')
-        ref = normalizeInstagramUrl(reel.url)
+        ref = normalizeSocialUrl(reel.url)
       } catch {
         skipped++
         continue
@@ -287,7 +290,9 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
         skipped++
         continue
       }
-      const post = addReelLink(ctx, job.workspaceId, profileId, ref.url)
+      accepted++
+      const existing = ctx.db.select().from(remotePosts).where(and(eq(remotePosts.workspaceId, job.workspaceId), eq(remotePosts.profileId, profileId), reel.id ? eq(remotePosts.remoteId, reel.id) : eq(remotePosts.permalink, ref.url))).get()
+      const post = existing ?? addReelLink(ctx, job.workspaceId, profileId, ref.url)
       if (post.profileId !== profileId) {
         skipped++
         continue
@@ -299,7 +304,8 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
       ctx.db
         .update(remotePosts)
         .set({
-          remoteId: reel.id ?? null,
+          durationMs: reel.videoDuration !== undefined && Number.isFinite(reel.videoDuration) && reel.videoDuration >= 0 ? Math.round(reel.videoDuration * 1000) : post.durationMs,
+          remoteId: reel.id ?? post.remoteId,
           caption: reel.caption ?? null,
           postedAt: timestamp,
           mediaProductType: reel.videoUrl
@@ -330,8 +336,15 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
           type: reel.type ?? (reel.videoUrl ? 'Video' : 'Image')
         })
       )
-      imported++
-      if (reel.displayUrl) {
+      if (existing || post.metricsUpdatedAt) skipped++; else imported++
+      const avatarUrl = reel.ownerProfilePicUrl ?? reel.profilePicUrl
+      if (avatarUrl && !avatarAttempted && !getSetting(ctx.db, job.workspaceId, `profileAvatar.${profile.id}`)) {
+        avatarAttempted = true
+        const dir = resolveInside(workspaceDir(ctx.dataRoot, job.workspaceId), 'previews'); await mkdir(dir, { recursive: true })
+        const path = resolveInside(dir, `profile-${profile.id}.jpg`)
+        try { await downloadPreview(avatarUrl, path); setSetting(ctx.db, job.workspaceId, `profileAvatar.${profile.id}`, path) } catch { /* Optional avatar never fails the import. */ }
+      }
+      if (reel.displayUrl && !post.thumbnailPath) {
         const previewDir = resolveInside(
           workspaceDir(ctx.dataRoot, job.workspaceId),
           'previews'
@@ -361,7 +374,8 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
       }
       if (
         discovery ||
-        (post.assetId && getAsset(ctx.db, job.workspaceId, post.assetId))
+        (post.assetId && getAsset(ctx.db, job.workspaceId, post.assetId)) ||
+        ctx.db.select().from(jobs).where(and(eq(jobs.workspaceId, job.workspaceId), eq(jobs.type, 'download_reel'), inArray(jobs.state, ['queued', 'running']))).all().some(j => JSON.parse(j.payloadJson).postId === post.id)
       )
         continue
       enqueue(
@@ -387,7 +401,7 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
       saveProgress('importing', processed === total)
     }
   }
-  if (!items.length || skipped === items.length)
+  if (!items.length || !accepted)
     throw new AppError(
       'invalid_input',
       'Nenhum post disponível. O perfil pode estar privado, vazio ou bloqueado pelo provedor.'
@@ -410,7 +424,7 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
         workspaceId: job.workspaceId,
         kind: 'info',
         title: `Busca de @${profile.username} concluída`,
-        body: `${queued} downloads na fila; ${skipped} resultados indisponíveis. Acompanhe cada arquivo na Fila.`,
+        body: `${queued} downloads na fila; ${skipped} resultados já conhecidos ou ignorados. Acompanhe cada arquivo na Fila.`,
         actionJson: JSON.stringify({
           type: 'open_queue',
           jobId: job.id,
@@ -451,7 +465,7 @@ export function requestSelectedDownloads(
   const batchId = randomUUID()
   return ctx.db.transaction(() =>
     media
-      .filter((p) => !p.post.assetId)
+      .filter((p) => !p.post.assetId && !ctx.db.select().from(jobs).where(and(eq(jobs.workspaceId, ws), eq(jobs.type, 'download_reel'), inArray(jobs.state, ['queued', 'running']))).all().some(j => JSON.parse(j.payloadJson).postId === p.post.id))
       .map((p) =>
         enqueue(
           ctx.db,
@@ -532,7 +546,7 @@ export async function runReelDownload(
       }
     }
     const [result] = await importFiles(ctx, job.workspaceId, [file], {
-      origin: 'ig_third_party',
+      origin: getProfile(ctx.db, job.workspaceId, post.profileId)?.platform === 'tiktok' ? 'tiktok_third_party' : 'ig_third_party',
       rightsNote: `Apify; origem: ${post.permalink}`
     })
     if (!result.assetId)
@@ -560,4 +574,10 @@ export async function runReelDownload(
   } finally {
     await rm(file, { force: true })
   }
+}
+
+function tiktokItem(item: unknown): unknown {
+  if (!item || typeof item !== 'object') return item
+  const p = item as Record<string, any>
+  return { id: p.id, url: p.webVideoUrl, caption: p.text, timestamp: p.createTimeISO ?? (typeof p.createTime === 'number' && Number.isFinite(p.createTime) ? new Date(p.createTime * 1000).toISOString() : undefined), videoUrl: p.videoMeta?.downloadAddr ?? p.videoMeta?.originalDownloadAddr ?? p.mediaUrls?.[0], displayUrl: p.videoMeta?.coverUrl ?? p.videoMeta?.originalCoverUrl, ownerProfilePicUrl: p.authorMeta?.avatar, videoDuration: p.videoMeta?.duration, videoViewCount: p.playCount, likesCount: p.diggCount, commentsCount: p.commentCount, type: 'Video' }
 }

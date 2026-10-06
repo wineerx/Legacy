@@ -10,6 +10,7 @@ export const WS_ID = '3f2b8c1e-8d2a-4b7e-9c11-2a6b5e4d7f10'
 
 export function mockBridge(handlers: Partial<Record<Channel, (input: any) => unknown>>) {
   const all: Partial<Record<Channel, (input: any) => unknown>> = {
+    'publications.checkRepost': () => [],
     'session.get': () => ({ entered: true, email: 'guest@legacy.com', mode: 'development' }),
     'session.enterGuest': () => ({ entered: true, email: 'guest@legacy.com', mode: 'development' }),
     'session.exit': () => ({ entered: false, email: 'guest@legacy.com', mode: 'development' }),

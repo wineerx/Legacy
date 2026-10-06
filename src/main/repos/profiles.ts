@@ -1,6 +1,6 @@
 import { and, asc, eq } from 'drizzle-orm'
 import { AppError } from '@shared/errors'
-import { normalizeInstagramUrl } from '@shared/instagram-url'
+import { normalizeSocialUrl } from '@shared/social-url'
 import type { Ctx } from '../context'
 import { type Db, newId } from '../db/client'
 import { trackedProfiles } from '../db/schema'
@@ -8,14 +8,14 @@ import { trackedProfiles } from '../db/schema'
 export type Profile = typeof trackedProfiles.$inferSelect
 
 export function addProfileFromUrl(ctx: Ctx, workspaceId: string, input: string): Profile {
-  const ref = normalizeInstagramUrl(input)
-  if (ref.kind !== 'profile') throw new AppError('invalid_url', 'Esse é o link de um post. Cole o link do perfil (instagram.com/usuario).')
+  const ref = normalizeSocialUrl(input)
+  if (ref.kind !== 'profile') throw new AppError('invalid_url', 'Esse é o link de um post. Cole o link do perfil (instagram.com/usuario ou tiktok.com/@usuario).')
   const existing = ctx.db.select().from(trackedProfiles).where(and(
-    eq(trackedProfiles.workspaceId, workspaceId), eq(trackedProfiles.platform, 'instagram'), eq(trackedProfiles.username, ref.username)
+    eq(trackedProfiles.workspaceId, workspaceId), eq(trackedProfiles.platform, ref.platform), eq(trackedProfiles.username, ref.username)
   )).get()
   if (existing) return existing
   return ctx.db.insert(trackedProfiles).values({
-    id: newId(), workspaceId, platform: 'instagram', username: ref.username, url: ref.url, createdAt: ctx.clock().toISOString()
+    id: newId(), workspaceId, platform: ref.platform, username: ref.username, url: ref.url, createdAt: ctx.clock().toISOString()
   }).returning().get()
 }
 

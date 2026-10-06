@@ -1,3 +1,4 @@
+import { CollapsibleCard } from '../../components/ui'
 import { useState } from 'react'
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import type { CoverDto } from '@shared/ipc-contract'
@@ -26,9 +27,8 @@ export function CoverEditor({ workspaceId, covers, selectedId, onSelect }: { wor
         <Button size="sm" variant={selectedId === null ? 'primary' : 'secondary'} onClick={() => onSelect(null)}>Sem capa</Button>
         {covers.map((c) => <Button key={c.id} size="sm" variant={selectedId === c.id ? 'primary' : 'secondary'} onClick={() => onSelect(c.id)}>{c.name}</Button>)}
       </div>
-      <details className="rounded-ctl border border-line p-3">
-        <summary className="cursor-pointer text-sm">Nova capa</summary>
-        <div className="mt-3 flex flex-col gap-3">
+      <CollapsibleCard title={<>Nova capa</>}>
+        <div className="flex flex-col gap-3">
           <Input label="Nome" value={name} onChange={(e) => setName(e.target.value)} />
           <Button onClick={() => createImage.mutate()}>Usar uma imagem (PNG/JPG)</Button>
           <p className="text-xs text-dim">ou um frame de cada vídeo com texto por cima:</p>
@@ -37,7 +37,7 @@ export function CoverEditor({ workspaceId, covers, selectedId, onSelect }: { wor
           <Pills label="Posição do texto" value={text.position} onChange={(position) => setText({ ...text, position })} options={[{ value: 'top', label: 'Topo' }, { value: 'center', label: 'Centro' }, { value: 'bottom', label: 'Base' }]} />
           <Button variant="primary" disabledReason={!Number.isFinite(frameS) || frameS < 0 ? 'Escolha um segundo válido para o frame.' : undefined} onClick={() => createFrame.mutate()}>Criar capa com frame e texto</Button>
         </div>
-      </details>
+      </CollapsibleCard>
     </section>
   )
 }

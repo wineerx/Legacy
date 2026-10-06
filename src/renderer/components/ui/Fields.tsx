@@ -4,9 +4,9 @@ import { cx } from './cx'
 import { Input } from './Input'
 
 export function Spinner({ label = 'Carregando' }: { label?: string }) { return <LoaderCircle role="status" aria-label={label} size={16} className="animate-spin shrink-0" /> }
-export function Checkbox({ label, description, error, className, ...props }: InputHTMLAttributes<HTMLInputElement> & { label: string; description?: string; error?: string }) {
+export function Checkbox({ label, description, error, className, icon, ...props }: InputHTMLAttributes<HTMLInputElement> & { label: string; description?: string; error?: string; icon?: ReactNode }) {
  const auto = useId(); const id = props.id ?? auto
- return <label className={cx('ds-choice', props.checked && 'ds-selected', props.disabled && 'opacity-50', className)} htmlFor={id}><input {...props} id={id} type="checkbox" aria-labelledby={`${id}-label`} aria-invalid={!!error || undefined} aria-describedby={description || error ? `${id}-help` : undefined} /><span><span id={`${id}-label`} className="font-medium">{label}</span>{(description || error) && <span id={`${id}-help`} className={cx('mt-1 block text-xs', error ? 'text-danger-fg' : 'text-dim')}>{error ?? description}</span>}</span></label>
+ return <label className={cx('ds-choice', props.checked && 'ds-selected', props.disabled && 'opacity-50', className)} htmlFor={id}><input {...props} id={id} type="checkbox" aria-labelledby={`${id}-label`} aria-invalid={!!error || undefined} aria-describedby={description || error ? `${id}-help` : undefined} />{icon && <span aria-hidden className="self-center shrink-0">{icon}</span>}<span className="min-w-0"><span id={`${id}-label`} className="font-medium">{label}</span>{(description || error) && <span id={`${id}-help`} className={cx('mt-1 block text-xs', error ? 'text-danger-fg' : 'text-dim')}>{error ?? description}</span>}</span></label>
 }
 export function Radio({ label, description, ...props }: InputHTMLAttributes<HTMLInputElement> & { label: string; description?: string }) {
  const id = useId(); return <label htmlFor={id} className={cx('ds-choice',props.checked && 'ds-selected',props.disabled && 'opacity-50')}><input {...props} type="radio" id={id} /><span><span className="font-medium">{label}</span>{description && <span className="mt-1 block text-xs text-dim">{description}</span>}</span></label>

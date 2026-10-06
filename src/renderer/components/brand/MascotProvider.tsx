@@ -6,17 +6,18 @@ import { subscribeActivity, type MascotSignal } from './activity'
 import { dominantSignal, isRateLimit, processorSignal } from './status'
 
 type Value = MascotSignal & {
-  running: number; queued: number; unread: number; workerAlive: boolean
+  progress: number; running: number; queued: number; unread: number; workerAlive: boolean
   react(): void; celebrate(message: string): void
   register(id: symbol, signal: MascotSignal | null): void
 }
-const Context = createContext<Value>({ state: 'idle', message: 'Legacy', running: 0, queued: 0, unread: 0, workerAlive: true, react() {}, celebrate() {}, register() {} })
+const Context = createContext<Value>({ state: 'idle', message: 'Legacy', progress: 0, running: 0, queued: 0, unread: 0, workerAlive: true, react() {}, celebrate() {}, register() {} })
 export const useMascot = () => useContext(Context)
 export const SLEEP_AFTER_MS = 120_000
 
 export function MascotProvider({ children }: { children: ReactNode }) {
   const { workspace, workerAlive } = useWorkspace()
   const jobs = useQuery({ queryKey: ['jobs', workspace.id], queryFn: () => call('jobs.list', { workspaceId: workspace.id }), refetchInterval: 5000 })
+  const summary = useQuery({ queryKey: ['queue-summary', workspace.id], queryFn: () => call('jobs.query', { workspaceId: workspace.id, page: 1, pageSize: 10, search: '' }), refetchInterval: 5000 })
   const notes = useQuery({ queryKey: ['notifications', workspace.id], queryFn: () => call('notifications.list', { workspaceId: workspace.id }), refetchInterval: 5000 })
   const [signals, setSignals] = useState<Map<symbol | number, MascotSignal>>(() => new Map())
   const [pulse, setPulse] = useState<(MascotSignal & { until: number }) | null>({ state: 'greeting', message: 'Bem-vindo ao Legacy.', until: Date.now() + 1000 })
@@ -78,7 +79,7 @@ export function MascotProvider({ children }: { children: ReactNode }) {
       emit({ state, message: event.message ?? 'Operação concluída.' }, state === 'finished' ? 650 : 6000)
     }
   }), [workspace.id, emit])
-  const running = jobs.data?.filter(job => job.state === 'running').length ?? 0
+  const running = summary.data?.counts?.running ?? jobs.data?.filter(job => job.state === 'running').length ?? 0
   const busy = running > 0 || signals.size > 0
   useEffect(() => {
     let asleep = false
@@ -119,9 +120,10 @@ export function MascotProvider({ children }: { children: ReactNode }) {
   }, [emit])
   const celebrate = useCallback((message: string) => emit({ state: 'proud', message }, 1600), [emit])
   const processor = processorSignal(workerAlive, jobs.data, jobs.isError)
+  if (processor.state === 'idle' && summary.data?.counts) processor.message = summary.data.counts.queued ? `${summary.data.counts.queued} tarefa(s) agendada(s). Nenhuma em execução agora.` : processor.message
   const primary = dominantSignal([processor, ...signals.values(), ...(pulse ? [pulse] : []), ...(!online ? [{ state: 'offline' as const, message: 'O sistema informa que está sem rede. Operações locais continuam disponíveis.' }] : [])])
   const state = primary.state === 'idle' && sleeping ? 'sleeping' : primary.state
-  const value = useMemo(() => ({ state, message: primary.message || processor.message, running, queued: jobs.data?.filter(job => job.state === 'queued').length ?? 0, unread: notes.data?.filter(note => !note.readAt).length ?? 0, workerAlive, react, celebrate, register }), [state, primary.message, processor.message, running, jobs.data, notes.data, workerAlive, react, celebrate, register])
+  const value = useMemo(() => ({ progress: summary.data?.counts && summary.data.total ? summary.data.counts.done / summary.data.total * 100 : 0, state, message: primary.message || processor.message, running, queued: summary.data?.counts?.queued ?? jobs.data?.filter(job => job.state === 'queued').length ?? 0, unread: notes.data?.filter(note => !note.readAt).length ?? 0, workerAlive, react, celebrate, register }), [summary.data, state, primary.message, processor.message, running, jobs.data, notes.data, workerAlive, react, celebrate, register])
   return <Context.Provider value={value}>{children}</Context.Provider>
 }
 

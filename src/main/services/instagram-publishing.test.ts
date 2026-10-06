@@ -1,3 +1,7 @@
+import { repostWarnings } from './repost-check'
+import { insertVersion } from '../repos/assets'
+import { queryGrid } from './grid'
+import { queryJobs } from '../queue/queue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { mkdtempSync, writeFileSync } from 'node:fs'
 import { join } from 'node:path'
@@ -87,7 +91,7 @@ describe('publicação agendada Instagram', () => {
     const job = leased(); const api = vi.fn().mockResolvedValueOnce({ id: '987' }).mockResolvedValueOnce({ status_code: 'FINISHED' }).mockRejectedValueOnce(new Error('response lost'))
     await expect(publishInstagram(ctx, job, api, deps)).rejects.toThrow('response lost')
     api.mockResolvedValueOnce({ status_code: 'FINISHED' })
-    await expect(publishInstagram(ctx, job, api, deps)).rejects.toThrow(/sem confirmação/)
+    await expect(publishInstagram(ctx, job, api, deps)).rejects.toBeInstanceOf(InstagramPending)
     expect(api.mock.calls.filter(c => c[0] === '12345/media_publish')).toHaveLength(1)
     api.mockResolvedValueOnce({ status_code: 'PUBLISHED' })
     expect(await publishInstagram(ctx, job, api, deps)).toMatchObject({ confirmedPublished: true })
@@ -166,9 +170,9 @@ it('compõe publicação com destino fixo e legenda por vídeo, rejeitando locai
  expect(()=>scheduleComposition(ctx,ws,{...input,captions:{[asset.id]:'x'.repeat(2201)}})).toThrow(/2200/)
 })
 
-it('bloqueia upload editado não suportado antes de criar tarefas Instagram', () => {
+it('recusa versão editada inexistente antes de criar tarefas Instagram', () => {
  const account=instagramAccount(ctx,ws)!
- expect(()=>scheduleComposition(ctx,ws,{assetIds:['asset-local'],accountId:account.id,accountRevision:account.revision,firstAt:'2026-10-05T12:02:00Z',intervalMin:60,captions:{},cleanupAfterPublish:false,versionIds:{'asset-local':'edited-version'}})).toThrow(/Instagram Login/)
+ expect(()=>scheduleComposition(ctx,ws,{assetIds:['asset-local'],accountId:account.id,accountRevision:account.revision,firstAt:'2026-10-05T12:02:00Z',intervalMin:60,captions:{},cleanupAfterPublish:false,versionIds:{'asset-local':'edited-version'}})).toThrow(/Versão editada/)
  expect(ctx.db.select().from(jobs).all()).toHaveLength(0)
 })
 
@@ -198,3 +202,36 @@ it('bloqueia upload editado não suportado antes de criar tarefas Instagram', ()
   await expect(publishInstagram(ctx,job,vi.fn().mockResolvedValue({status_code:'UNKNOWN'}),deps)).rejects.toThrow(/desconhecido/)
   expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id,job.id)).get()!.resultJson!)).toMatchObject({containerId:'111'})
  })
+
+it('avisa repostagem pela conta/histórico/hash, exige confirmação e mantém outros destinos independentes', async () => {
+  const job = leased()
+  expect(repostWarnings(ctx, ws, '12345', { assetIds: [assetId] })[0].reason).toMatch(/andamento/)
+  await publishInstagram(ctx, job, vi.fn().mockResolvedValueOnce({id:'987'}).mockResolvedValueOnce({status_code:'FINISHED'}).mockResolvedValueOnce({id:'456'}), deps)
+  const next = { postIds: [postId], firstAt: '2026-10-05T14:00:00Z', intervalMin: 60 }
+  expect(() => scheduleInstagram(ctx, ws, next)).toThrow(/repostagem/)
+  expect(scheduleInstagram(ctx, ws, {...next,allowRepost:true})).toHaveLength(1)
+  expect(repostWarnings(ctx, ws, '999', { postIds: [postId] })).toEqual([])
+  const queue = queryJobs(ctx.db, { workspaceId: ws, page: 1, pageSize: 25, search: '' })
+  expect(queue.items.find(i => i.id === job.id)?.publishedVideo).toMatchObject({assetId,name:'reel.mp4'})
+  expect(queryGrid(ctx.db, {workspaceId:ws,source:'library',publicationJobId:job.id,sortBy:'importedAt',sortDir:'desc',limit:60,offset:0}).items.map(i=>i.id)).toEqual([assetId])
+})
+it('envia a versão editada local e referencia o primeiro frame como thumbnail', async () => {
+  const account = instagramAccount(ctx, ws)!
+  const path = join(mkdtempSync(join(tmpdir(),'legacy-edited-')), 'edited.mp4'); writeFileSync(path,'edited')
+  insertVersion(ctx.db, {id:'edited',workspaceId:ws,assetId,kind:'banner',paramsJson:'{}',filePath:path,createdAt:ctx.clock().toISOString()})
+  scheduleComposition(ctx,ws,{assetIds:[assetId],accountId:account.id,accountRevision:account.revision,firstAt:'2026-10-05T12:02:00Z',intervalMin:60,captions:{},cleanupAfterPublish:false,versionIds:{[assetId]:'edited'}})
+  ctx.clock=()=>new Date('2026-10-05T12:02:00Z')
+  const job = leaseNext(ctx.db,ctx.clock(),60000)!
+  const api=vi.fn().mockResolvedValueOnce({id:'987'}).mockResolvedValueOnce({status_code:'FINISHED'}).mockResolvedValueOnce({id:'456'})
+  await publishInstagram(ctx,job,api,deps)
+  expect(deps.prepare).toHaveBeenCalledWith(path,expect.any(String))
+  expect(api.mock.calls[0][2]).toMatchObject({thumb_offset:'0'})
+})
+
+it('detecta dois registros de origem do mesmo arquivo dentro do lote', () => {
+ const profile=addProfileFromUrl(ctx,ws,'instagram.com/source')
+ const second=addReelLink(ctx,ws,profile.id,'https://www.instagram.com/reel/FGHIJ/')
+ ctx.db.update(remotePosts).set({assetId}).where(eq(remotePosts.id,second.id)).run()
+ expect(repostWarnings(ctx,ws,'12345',{postIds:[postId,second.id]})).toEqual([expect.objectContaining({id:assetId,reason:'Este lote contém o mesmo vídeo mais de uma vez.'})])
+ expect(()=>scheduleInstagram(ctx,ws,{postIds:[postId,second.id],firstAt:'2026-10-05T12:02:00Z',intervalMin:60})).toThrow(/repostagem/)
+})

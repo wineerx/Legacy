@@ -38,7 +38,7 @@ test('fila paginada, árvore, falha, cancelamento, realocação e layout menor',
     await page.getByRole('option',{name:'Falhou',exact:true}).click()
     await expect(page.getByRole('article')).toHaveCount(2)
     const failure=page.getByRole('article',{name:'Reel QA 0',exact:true})
-    await failure.locator('summary').click()
+    await failure.getByRole('button', {name:'Andamento e tentativas'}).click()
     await expect(failure.getByText(/Histórico de tentativas: 1/)).toBeVisible()
     await expect(failure.getByText(/confirme no Instagram/)).toBeVisible()
     mkdirSync('docs/screens/qa-queue',{recursive:true})
