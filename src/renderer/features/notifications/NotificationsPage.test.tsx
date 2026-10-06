@@ -53,3 +53,16 @@ it('seleção múltipla e exclusão em massa aguardam confirmação', async () =
   await userEvent.click(screen.getByRole('button',{name:'Confirmar exclusão'}))
   expect(invoke).toHaveBeenCalledWith('notifications.delete',{workspaceId:WS_ID,ids:['n1','n2']})
 })
+
+it('selecionar todas fica desativado quando o filtro não contém notificações', async () => {
+ mockBridge({'notifications.list':()=>[]})
+ renderWithApp(<NotificationsPage navigate={vi.fn()}/>)
+ await screen.findByText('Tudo em dia')
+ await userEvent.click(screen.getByRole('button',{name:'Selecionar notificações'}))
+ const input=screen.getByRole('checkbox',{name:'Selecionar todas'})
+ expect(input).toBeDisabled()
+ expect(input.closest('label')).toHaveClass('ds-choice-compact')
+ await userEvent.click(input)
+ expect(input).not.toBeChecked()
+ expect(screen.getByRole('button',{name:'Excluir selecionadas (0)'})).toBeDisabled()
+})

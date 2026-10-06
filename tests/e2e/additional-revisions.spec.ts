@@ -181,6 +181,10 @@ test('publicação identificada, Biblioteca exata, balão, badges e exclusão co
     await expect(
       page.getByRole('link', { name: 'Notificações, 0 não lidas' })
     ).toContainText('0')
+    const selectAll = page.getByRole('checkbox', { name: 'Selecionar todas', exact: true })
+    await expect(selectAll).toBeDisabled()
+    expect((await selectAll.locator('..').boundingBox())!.height).toBe(28)
+    await page.screenshot({ path: 'docs/screens/qa-revisions/selecionar-todas.png' })
     const profile = await page.evaluate(
       async (ws) =>
         window.legacy.invoke('profiles.add', {
