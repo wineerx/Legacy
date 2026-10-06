@@ -18,7 +18,7 @@ import { createImageCover, createFrameTextCover, listCoverTemplates, type CoverT
 import { saveRenderedCover, requestBanner, requestVideoVersion } from '../services/versions'
 import { requestTiktokExport } from '../services/export-tiktok'
 import { workspaceDir, resolveInside } from '../paths'
-import { listJobs, cancel, retryNow } from '../queue/queue'
+import { listJobs, cancel, retryNow, queryJobs, tailSlot, reschedule } from '../queue/queue'
 import { listNotifications, markRead, markAllRead, addNotification } from '../repos/notifications'
 import { onboardingStatus } from '../services/onboarding'
 import { downloadConfigured, requestProfileDownload, requestSelectedDownloads, selectedAssets } from '../services/profile-download'
@@ -130,6 +130,9 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
       return null
     },
     'jobs.list': (i) => listJobs(ctx.db, i.workspaceId),
+    'jobs.query': (i) => queryJobs(ctx.db, i),
+    'jobs.tail': (i) => tailSlot(ctx.db, i.workspaceId, i.id, now()),
+    'jobs.reschedule': (i) => changed(i.workspaceId, reschedule(ctx.db, i.workspaceId, i.id, i.runAt, i.expectedUpdatedAt, now())),
     'jobs.details': (i) => jobDetails(ctx, i.workspaceId, i.id),
     'library.saveCopy': async i => { const asset = getAsset(ctx.db, i.workspaceId, i.id); if (!asset) throw new AppError('not_found', 'Vídeo não encontrado.'); const destination = await deps.dialogs.saveVideo?.(basename(asset.sourceName)); if (!destination) return { saved: false }; if (resolve(destination) !== resolve(asset.filePath)) await copyFile(asset.filePath, destination); return { saved: true } },
     'library.openAsset': async (i) => { const a = getAsset(ctx.db, i.workspaceId, i.id); if (!a) throw new AppError('not_found', 'Vídeo não encontrado.'); const error = await deps.shell.openPath(a.filePath); if (error) throw new AppError('internal', 'Não foi possível abrir o arquivo.'); return null },

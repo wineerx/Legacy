@@ -2,7 +2,7 @@
 
 **Seu estúdio de conteúdo, direto no desktop.**
 
-![Versão 0.6.1](https://img.shields.io/badge/vers%C3%A3o-0.6.1-6366f1)
+![Versão 0.7.0](https://img.shields.io/badge/vers%C3%A3o-0.7.0-6366f1)
 ![Windows x64](https://img.shields.io/badge/plataforma-Windows%2010%2F11-0078d4)
 ![Electron e React](https://img.shields.io/badge/Electron%20%2B%20React-desktop-22c55e)
 
@@ -10,9 +10,9 @@ O Legacy reúne pesquisa de perfis, downloads de reels públicos via Apify, bibl
 
 **Idealização, direção do produto e autoria: [Eduardo Ximenes — @wineerx](https://github.com/wineerx).** Implementação realizada com assistência do Codex.
 
-![Biblioteca do Legacy: gerenciamento de mídia, lista e primeiros passos](docs/screens/qa-media/media-list.png)
+![Fila do Legacy: recuperação de falhas, filtros e acompanhamento](docs/screens/qa-queue/falha.png)
 
-*Captura real do Legacy 0.6.1 com dados de teste. Valores indisponíveis permanecem como “—”.*
+*Captura real do Legacy 0.7.0 com dados de teste. Valores indisponíveis permanecem como “—”.*
 
 ## O que você pode fazer
 
@@ -114,7 +114,7 @@ Não foi possível ler os perfis de referência diretamente pelo Instagram duran
 
 ## Instalação e atualizações
 
-Versão: **0.6.1**. O instalador NSIS é gerado por `npm run dist`. Em **Visão geral** ou **Configurações → Atualizações**, use **Verificar atualizações**, **Baixar atualização** e **Instalar e reiniciar**. A instalação espera não haver tarefas em execução. Nenhum download ou reinício acontece sem clicar nos botões.
+Versão: **0.7.0**. O instalador NSIS é gerado por `npm run dist`. Em **Visão geral** ou **Configurações → Atualizações**, use **Verificar atualizações**, **Baixar atualização** e **Instalar e reiniciar**. A instalação espera não haver tarefas em execução. Nenhum download ou reinício acontece sem clicar nos botões.
 
 A versão 0.2 precisa ser atualizada uma vez pelo instalador para receber esses controles. Depois disso, o atualizador consulta Releases públicas de `wineerx/Legacy`, que precisam conter o instalador, `.blockmap` e `latest.yml`. Sem uma Release válida, a interface informa a falha; não afirma que está atualizada. Em desenvolvimento, o atualizador fica indisponível. Dados permanecem fora da pasta do aplicativo; credenciais criptografadas podem exigir novo cadastro ao trocar usuário ou computador Windows.
 
@@ -148,7 +148,7 @@ O fluxo foi implementado para a [API Apify](https://docs.apify.com/api/v2) e o [
 
 Stack: Electron 42.11.10, Node.js 24, React 19, TypeScript, SQLite/Drizzle, TanStack Query e FFmpeg LGPL. Renderer isolado e sem acesso direto ao Node; operações passam por contratos IPC validados, processo principal e worker.
 
-Verificação da versão 0.6.1: **286 testes unitários e de integração**, **14 testes E2E no Electron** e typecheck concluídos. Testes de Apify, Instagram, atualizações e webhook usam respostas simuladas; integração externa com credencial real permanece pendente.
+Verificação da versão 0.7.0: **345 testes unitários e de integração**, **20 testes E2E no Electron** e typecheck concluídos. Testes de Apify, Instagram, atualizações e webhook usam respostas simuladas; integração externa com credencial real permanece pendente.
 
 Para contribuir, descreva o problema, mantenha o isolamento por workspace e execute `npm run typecheck`, `npm test -- --maxWorkers=2` e os E2E pertinentes. Não inclua tokens, bancos locais, vídeos pessoais ou pastas de dados no Git.
 
@@ -183,3 +183,11 @@ A conexão Instagram utiliza **user_id**, o identificador profissional documenta
 ## Publicação e componentes 0.6
 
 Consulte [o guia de publicação e UI](docs/publishing-ui-0.6.md) para destinos, conexão por token, calendário, sidebar e limites da integração. TikTok permanece exportação manual.
+
+## Fila e recuperação — 0.7.0
+
+A fila tem contagens completas, busca por tarefa/conta, filtros por estado e tipo, paginação e árvore dos lotes reais. Cada tarefa revela seu andamento e as últimas 50 tentativas com duração e erro. O player e a origem permanecem acessíveis em **Ver tarefa**.
+
+Uma publicação falhada pode ser **cancelada**, **realocada com Passar a vez** ou repetida. Passar a vez sugere 15 minutos após o último agendamento pendente do mesmo tipo e conta; você revisa o horário no calendário antes de confirmar. Histórico e checkpoints remotos permanecem, e os demais horários não mudam. Tarefas em execução não podem ser canceladas ou realocadas.
+
+Consulte o [guia da fila](docs/queue-operations.md) e a [análise de login Instagram pelo navegador](docs/instagram-login.md). OAuth é viável para contas profissionais, mas depende de um servidor HTTPS e configuração Meta. A versão 0.7.0 ainda usa token protegido pelo Windows; nenhum segredo de app foi colocado no instalador.

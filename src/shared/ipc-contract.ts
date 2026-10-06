@@ -1,7 +1,7 @@
 import { z } from 'zod'
 import type { AchievementSummary } from './achievements'
 import type { AppErrorCode } from './errors'
-import type { MediaDetails, GridPage, JobView, DashboardSummary, IntegrationStatus } from './types'
+import type { MediaDetails, GridPage, JobView, QueuePageResult, DashboardSummary, IntegrationStatus } from './types'
 
 const ws = z.uuid()
 export interface UpdateStatus { state: 'idle' | 'checking' | 'available' | 'current' | 'downloading' | 'downloaded' | 'error' | 'unsupported'; version: string | null; progress: number; message: string }
@@ -81,6 +81,9 @@ export const contract = {
   }).refine((v) => v.remindAt.length === v.assetIds.length, { message: 'Lembretes e vídeos não conferem.', path: ['remindAt'] }),
   'export.openFolder': z.object({ workspaceId: ws, path: z.string().min(1) }),
   'jobs.list': z.object({ workspaceId: ws }),
+  'jobs.query': z.object({ workspaceId: ws, page: z.number().int().min(1).max(1000000), pageSize: z.number().int().min(5).max(100), search: z.string().max(160), state: z.enum(['queued','running','done','failed','cancelled']).optional(), type: z.enum(['make_thumbnail','apply_banner','export_tiktok','fetch_profile','download_reel','webhook_delivery','publish_instagram']).optional(), batchId: id.optional() }),
+  'jobs.tail': z.object({ workspaceId: ws, id }),
+  'jobs.reschedule': z.object({ workspaceId: ws, id, runAt: z.iso.datetime(), expectedUpdatedAt: z.iso.datetime() }),
   'jobs.details': z.object({ workspaceId: ws, id }),
   'library.saveCopy': z.object({ workspaceId: ws, id }),
   'library.openAsset': z.object({ workspaceId: ws, id }),
@@ -164,7 +167,10 @@ export interface Outputs {
   'export.tiktok': JobView
   'export.openFolder': null
   'jobs.list': JobView[]
-  'jobs.details': { label: string; runAt: string; error: string | null; files: { id: string; name: string; filePath: string; thumbnailPath: string | null }[]; originUrl: string | null; folders: string[] }
+  'jobs.query': QueuePageResult
+  'jobs.tail': { runAt: string; ahead: number }
+  'jobs.reschedule': boolean
+  'jobs.details': { attempts: { startedAt: string; finishedAt: string | null; outcome: string | null; errorMessage: string | null }[]; attemptTotal: number; batchId: string | null; account: string | null; checkpoint: string | null; label: string; runAt: string; error: string | null; files: { id: string; name: string; filePath: string; thumbnailPath: string | null }[]; originUrl: string | null; folders: string[] }
   'library.saveCopy': { saved: boolean }
   'library.openAsset': null
   'updates.status': UpdateStatus
