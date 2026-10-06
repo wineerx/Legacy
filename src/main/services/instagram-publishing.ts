@@ -24,7 +24,7 @@ const numericId = z.string().regex(/^\d+$/)
 const accountSchema = z.object({ id: numericId, username: z.string().min(1), revision: z.string(), validatedAt: z.string() })
 export class InstagramApiError extends AppError {
   constructor(public status: number, public apiCode: number) {
-    super('invalid_input', apiCode === 190 ? 'Token Instagram inválido ou expirado. Gere um token Instagram User na Meta e reconecte em Contas.' : apiCode === 10 || apiCode === 200 ? 'Permissão recusada. Autorize instagram_business_basic e instagram_business_content_publish; em modo de teste a conta deve aceitar o convite do app.' : apiCode === 100 ? 'Parâmetro recusado. Confira a conta profissional, a URL pública do vídeo e a validade do link; atualize a grade antes de reagendar.' : `Instagram recusou a operação (HTTP ${status}, código ${apiCode || 'indisponível'}). Confira token, permissões e limite de publicação.`)
+    super('invalid_input', apiCode === 190 ? 'Token Instagram inválido ou expirado. Gere um token Instagram User na Meta e reconecte em Contas.' : apiCode === 10 || apiCode === 200 ? 'Permissão recusada. Autorize instagram_business_basic e instagram_business_content_publish; em modo de teste a conta deve aceitar o convite do app.' : apiCode === 100 ? 'Parâmetro recusado. Confira a conta profissional e se o vídeo atende às especificações de Reels.' : `Instagram recusou a operação (HTTP ${status}, código ${apiCode || 'indisponível'}). Confira token, permissões e limite de publicação.`)
   }
 }
 export async function instagramJson(path: string, token: string, body?: Record<string, string>): Promise<unknown> {
@@ -73,30 +73,32 @@ export async function verifyInstagram(ctx: Ctx, vault: SecretVault, ws: string, 
 export function disconnectInstagram(ctx: Ctx, vault: SecretVault, ws: string) {
   ctx.db.transaction(() => { saveSecret(ctx, vault, ws, 'instagramToken', ''); setSetting(ctx.db, ws, 'instagramAccount', '') })
 }
-export function scheduleInstagram(ctx: Ctx, ws: string, input: { postIds: string[]; firstAt: string; intervalMin: number; caption?: string; captions?: Record<string,string>; cleanupAfterPublish?: boolean; allowRepost?: boolean; versionIds?: Record<string,string> }) {
+type PublishItem = { postId: string | null; localAssetId: string; caption: string }
+type ScheduleInput = { firstAt: string; intervalMin: number; cleanupAfterPublish?: boolean; allowRepost?: boolean; versionIds?: Record<string,string> }
+function enqueuePublications(ctx: Ctx, ws: string, account: NonNullable<ReturnType<typeof instagramAccount>>, posts: PublishItem[], input: ScheduleInput) {
+  const first = new Date(input.firstAt)
+  const last = first.getTime() + (posts.length - 1) * input.intervalMin * 60000
+  if (!posts.length || !Number.isFinite(first.getTime()) || !Number.isInteger(input.intervalMin) || input.intervalMin < 15 || first.getTime() < ctx.clock().getTime() + 60_000 || last > ctx.clock().getTime() + 90 * 86400_000) throw new AppError('invalid_input', 'Escolha entre um minuto e 90 dias no futuro para todo o lote.')
+  for (const post of posts) if (post.caption.length > 2200) throw new AppError('invalid_input', 'Edite a legenda: o limite é de 2200 caracteres.')
+  const key = (post: PublishItem, i: number) => `publish:${ws}:${account.id}:${post.postId ?? post.localAssetId}:${new Date(first.getTime() + i * input.intervalMin * 60000).toISOString()}`
+  const batchId = randomUUID()
+  return ctx.db.transaction(() => {
+    const repeated = posts.map((post, i) => ctx.db.select().from(jobs).where(and(eq(jobs.workspaceId, ws), eq(jobs.idempotencyKey, key(post, i)))).get())
+    if (repeated.every(Boolean)) return repeated.map(r => ({ ...r!, type: 'publish_instagram' as const }))
+    if (!input.allowRepost && repostWarnings(ctx, ws, account.id, { postIds: posts.flatMap(p => p.postId ? [p.postId] : []), assetIds: posts.filter(p => !p.postId).map(p => p.localAssetId) }).length) throw new AppError('duplicate', 'Possível repostagem nesta conta. Revise o aviso e confirme antes de agendar novamente.')
+    return posts.map((post, i) => enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', label: `Publicar reel em @${account.username}`, payload: { ...post, username: account.username, accountId: account.id, accountRevision: account.revision, cleanupAfterPublish: input.cleanupAfterPublish ?? false, versionId: input.versionIds?.[post.localAssetId], allowRepost: input.allowRepost ?? false, batchId }, runAt: new Date(first.getTime() + i * input.intervalMin * 60000), maxAttempts: 24, idempotencyKey: key(post, i) }, ctx.clock()))
+  })
+}
+export function scheduleInstagram(ctx: Ctx, ws: string, input: ScheduleInput & { postIds: string[]; caption?: string; captions?: Record<string,string> }) {
   const account = instagramAccount(ctx, ws)
   if (!account) throw new AppError('invalid_input', 'Conecte uma conta profissional Instagram em Contas antes de programar.')
-  const first = new Date(input.firstAt)
-  const last = first.getTime() + (new Set(input.postIds).size-1)*input.intervalMin*60000
-  if (!Number.isFinite(first.getTime()) || !Number.isInteger(input.intervalMin) || input.intervalMin < 15 || first.getTime() < ctx.clock().getTime() + 60_000 || last > ctx.clock().getTime() + 90 * 86400_000) throw new AppError('invalid_input', 'Escolha entre um minuto e 90 dias no futuro para todo o lote.')
   const posts = [...new Set(input.postIds)].map(id => {
     const post = getRemotePost(ctx.db, ws, id)
     if (!post) throw new AppError('not_found', 'Post não encontrado neste workspace.')
     if (!post.assetId) throw new AppError('invalid_input', 'Baixe o vídeo antes de agendar. O Instagram publica a cópia local.')
-    const url = JSON.parse(getSetting(ctx.db, ws, `remoteMedia.${id}`) ?? '{}').videoUrl
-    const caption = input.captions?.[id] ?? input.caption ?? post.caption ?? ''
-    if (caption.length > 2200) throw new AppError('invalid_input', 'Edite a legenda: o limite é de 2200 caracteres.')
-    return { postId: id, videoUrl: url, caption, localAssetId: post.assetId }
+    return { postId: id, localAssetId: post.assetId, caption: input.captions?.[id] ?? input.caption ?? post.caption ?? '' }
   })
-  const batchId = randomUUID()
-  return ctx.db.transaction(() => {
-    const repeated = posts.map((post, i) => ctx.db.select().from(jobs).where(and(eq(jobs.workspaceId, ws), eq(jobs.idempotencyKey, `publish:${ws}:${account.id}:${post.postId}:${new Date(first.getTime() + i * input.intervalMin * 60000).toISOString()}`))).get())
-    if (repeated.every(Boolean)) return repeated.map(r => ({ ...r!, type: 'publish_instagram' as const }))
-    if (!input.allowRepost && repostWarnings(ctx, ws, account.id, { postIds: input.postIds }).length) throw new AppError('duplicate', 'Possível repostagem nesta conta. Revise o aviso e confirme antes de agendar novamente.')
-    return posts.map((post, i) => {
-    const runAt = new Date(first.getTime() + i * input.intervalMin * 60_000)
-    return enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', label: `Publicar reel em @${account.username}`, payload: { ...post, username: account.username, accountId: account.id, accountRevision: account.revision, cleanupAfterPublish: input.cleanupAfterPublish ?? false, versionId: input.versionIds?.[post.localAssetId], allowRepost: input.allowRepost ?? false, batchId }, runAt, maxAttempts: 24, idempotencyKey: `publish:${ws}:${account.id}:${post.postId}:${runAt.toISOString()}` }, ctx.clock())
-  }) })
+  return enqueuePublications(ctx, ws, account, posts, input)
 }
 export function scheduleComposition(ctx: Ctx, ws: string, input: { assetIds: string[]; accountId: string; accountRevision: string; firstAt: string; intervalMin: number; captions: Record<string,string>; cleanupAfterPublish: boolean; versionIds?: Record<string,string>; allowRepost?: boolean }) {
  for (const [assetId, versionId] of Object.entries(input.versionIds ?? {})) { if (!listVersions(ctx.db, ws, assetId).some(v => v.id === versionId && v.kind === 'banner') && !ctx.db.select().from(jobs).where(and(eq(jobs.workspaceId, ws), eq(jobs.type, 'apply_banner'), inArray(jobs.state, ['queued', 'running']))).all().some(j => {const p = JSON.parse(j.payloadJson);return p.versionId === versionId && p.assetId === assetId})) throw new AppError('invalid_input', 'Versão editada inválida neste workspace.') }
@@ -105,10 +107,9 @@ export function scheduleComposition(ctx: Ctx, ws: string, input: { assetIds: str
  const mapped=[...new Set(input.assetIds)].map(assetId=>{
   if(!getAsset(ctx.db,ws,assetId)) throw new AppError('not_found','Vídeo não encontrado neste workspace.')
   const post=ctx.db.select().from(remotePosts).where(and(eq(remotePosts.workspaceId,ws),eq(remotePosts.assetId,assetId))).orderBy(desc(remotePosts.metricsUpdatedAt)).get()
-  if(!post) throw new AppError('invalid_input','Este vídeo local não possui URL pública de origem para o Instagram. Importe um reel pela grade de Perfis.')
-  return {postId:post.id,caption:input.captions[assetId] ?? ''}
+  return {postId:post?.id ?? null,localAssetId:assetId,caption:input.captions[assetId] ?? ''}
  })
- return scheduleInstagram(ctx,ws,{postIds:mapped.map(p=>p.postId),captions:Object.fromEntries(mapped.map(p=>[p.postId,p.caption])),firstAt:input.firstAt,intervalMin:input.intervalMin,cleanupAfterPublish:input.cleanupAfterPublish,allowRepost:input.allowRepost,versionIds:input.versionIds})
+ return enqueuePublications(ctx,ws,account,mapped,input)
 }
 export class InstagramPending extends AppError { constructor(public retryAfterMs = 60_000) { super('internal', 'O Instagram ainda está preparando o vídeo. Nova consulta em instantes.') } }
 export type PublishDeps = { host: MediaHost; prepare: (input: string, tmpDir: string) => Promise<PreparedCopy> }
@@ -117,7 +118,7 @@ const PUBLISH_FAILED = 'O Instagram não conseguiu processar o vídeo enviado pe
 const quietly = (p: Promise<void>) => p.catch(() => {})
 
 export async function publishInstagram(ctx: Ctx, job: LeasedJob, requestApi = instagramJson, deps: PublishDeps = defaultPublishDeps()) {
-  const payload = z.object({ postId: z.string(), localAssetId: z.string().nullish(), versionId: z.string().optional(), allowRepost: z.boolean().default(false), caption: z.string().max(2200), accountId: numericId, accountRevision: z.string(), cleanupAfterPublish: z.boolean().default(false) }).parse(job.payload)
+  const payload = z.object({ postId: z.string().nullish(), localAssetId: z.string().nullish(), versionId: z.string().optional(), allowRepost: z.boolean().default(false), caption: z.string().max(2200), accountId: numericId, accountRevision: z.string(), cleanupAfterPublish: z.boolean().default(false) }).parse(job.payload)
   // Cleanup of stale exposures (any job) must never fail this publication.
   await quietly(releaseExpired())
   const recorded = history(ctx, job.workspaceId).find(r => r.jobId === job.id)
@@ -133,7 +134,7 @@ export async function publishInstagram(ctx: Ctx, job: LeasedJob, requestApi = in
   const save = () => ctx.db.update(jobs).set({ resultJson: JSON.stringify(checkpoint) }).where(where).run()
   const confirmed = async () => {
     await quietly(releaseExposure(job.id))
-    const row = await recordPublication(ctx, { workspaceId: ws, jobId: job.id, accountId: account.id, username: account.username, postId: payload.postId, mediaId: checkpoint.mediaId, cleanup: payload.cleanupAfterPublish, cleanupAssetId: asset?.id ?? null })
+    const row = await recordPublication(ctx, { workspaceId: ws, jobId: job.id, accountId: account.id, username: account.username, postId: payload.postId ?? null, assetId: asset?.id ?? null, mediaId: checkpoint.mediaId, cleanup: payload.cleanupAfterPublish, cleanupAssetId: asset?.id ?? null })
     return { ...checkpoint, confirmedPublished: true, cleanupState: row.cleanupState }
   }
   // Retry after ERROR must create a fresh container; the failed one stays ERROR forever.
@@ -147,7 +148,7 @@ export async function publishInstagram(ctx: Ctx, job: LeasedJob, requestApi = in
   }
   if (checkpoint.mediaId) return confirmed()
   if (!checkpoint.containerId) {
-    if (!payload.allowRepost && repostWarnings(ctx, ws, account.id, { postIds: [payload.postId] }).some(r => r.reason.includes('já foi publicado'))) throw new AppError('duplicate', 'Este vídeo foi publicado nesta conta depois do agendamento. Reagende pela Biblioteca e confirme a repostagem intencional.')
+    if (!payload.allowRepost && repostWarnings(ctx, ws, account.id, { assetIds: assetId ? [assetId] : [], postIds: !assetId && payload.postId ? [payload.postId] : [] }).some(r => r.reason.includes('já foi publicado'))) throw new AppError('duplicate', 'Este vídeo foi publicado nesta conta depois do agendamento. Reagende pela Biblioteca e confirme a repostagem intencional.')
     if (checkpoint.creating) throw new AppError('invalid_input', 'Criação do vídeo sem confirmação. Confira o Instagram antes de recriar a tarefa.')
     if (!asset || !existsSync(asset.filePath)) throw new AppError('invalid_input', 'Baixe ou importe o vídeo antes de publicar. O Instagram publica a cópia local.')
     const tmpDir = publishTmpDir(ctx, ws)

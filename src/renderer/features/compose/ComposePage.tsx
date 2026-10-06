@@ -162,9 +162,7 @@ export function ComposePage({ navigate }: PageProps) {
           ? 'Selecione um destino.'
           : instagram && !account.data
             ? 'Conecte uma conta Instagram.'
-            : instagram && items.some((i) => !i.postId)
-              ? 'Instagram exige uma URL pública de origem. Use vídeos baixados pela grade de Perfis.'
-                : instagram && captions.some((c) => c.length > 2200)
+            : instagram && captions.some((c) => c.length > 2200)
                   ? 'Instagram permite legendas de até 2200 caracteres.'
                   : bannerActive &&
                       !(banner.startS >= 0 && banner.endS > banner.startS)

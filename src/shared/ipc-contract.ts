@@ -129,11 +129,11 @@ export interface Outputs {
   'profiles.importProgress': { jobId: string; state: string; error: string | null; progress: ImportProgress | null } | null
   'publications.feedback': { jobId: string; username: string }[]
   'publications.acknowledge': null
-  'app.bootstrap': { workspaces: WorkspaceDto[]; version: string; workerAlive: boolean; dataDir: string }
+  'app.bootstrap': { workspaces: WorkspaceDto[]; version: string; buildCommit?: string; buildTime?: string; workerAlive: boolean; dataDir: string }
   'dashboard.get': DashboardSummary
   'achievements.get': AchievementSummary & { acknowledged: string[] }
   'achievements.acknowledge': null
-  'publications.history': { jobId: string; accountId: string; username: string; postId: string; assetSha: string | null; mediaId: string | null; provenanceJson: string; publishedAt: string; cleanupState: string }[]
+  'publications.history': { jobId: string; accountId: string; username: string; postId: string | null; assetSha: string | null; mediaId: string | null; provenanceJson: string; publishedAt: string; cleanupState: string }[]
   'captions.top': { items: { id: string; username: string; text: string | null; permalink: string; value: number | null; updatedAt: string | null; source: 'api' | 'csv' | null }[]; total: number; sortBy: 'views' | 'likes' | 'comments'; note: string }
   'tutorial.planGet': { username: string; niche: string; audience: string; bio: string; cadence: string } | null
   'tutorial.planSave': null

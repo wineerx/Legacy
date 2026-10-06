@@ -159,7 +159,7 @@ export function queryJobs(db: Db, input: { workspaceId: string; page: number; pa
       const payload = JSON.parse(r.payloadJson)
       const publication = db.select().from(publicationHistory).where(and(eq(publicationHistory.workspaceId, input.workspaceId), eq(publicationHistory.jobId, r.id))).get()
       const origin = publication ? JSON.parse(publication.provenanceJson) : null
-      const post = publication ? db.select().from(remotePosts).where(and(eq(remotePosts.workspaceId, input.workspaceId), eq(remotePosts.id, publication.postId))).get() : null
+      const post = publication?.postId ? db.select().from(remotePosts).where(and(eq(remotePosts.workspaceId, input.workspaceId), eq(remotePosts.id, publication.postId))).get() : null
       const assetId = post?.assetId ?? origin?.assetId ?? payload.localAssetId
       const asset = assetId ? db.select().from(mediaAssets).where(and(eq(mediaAssets.workspaceId, input.workspaceId), eq(mediaAssets.id, assetId))).get() : null
       return { publishedVideo: publication ? { assetId: asset?.id ?? null, name: post?.caption ?? asset?.sourceName ?? origin?.caption ?? origin?.sourceName ?? 'Vídeo publicado' } : null, ...toView(r), batchId: typeof payload.batchId === 'string' ? payload.batchId : null, account: typeof payload.username === 'string' ? payload.username : null }

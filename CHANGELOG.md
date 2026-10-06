@@ -1,3 +1,13 @@
+# 0.7.2 — compilação consolidada de revisão
+
+- Reúne entrada visitante, pausa da fila, UI shadcn, importação incremental Instagram/TikTok, notificações e revisão de publicação.
+- Instagram também aceita vídeos importados do computador sem post de origem, mantendo a entrega HTTPS da cópia local e versões editadas.
+- Migração 0004 permite origem remota opcional no histórico e conserva os registros existentes; cópias usadas por outra publicação permanecem protegidas.
+- Versão e commit real aparecem no título e em Configurações; build-info.json acompanha a compilação.
+- Corrige a versão fixa do preload e estabiliza a verificação do badge durante a transição da Sidebar.
+- Inclui o checkbox compacto de Selecionar todas e a remoção da frase de ajuda solicitada.
+- TikTok continua com exportação manual. Esta revisão não publica uma release no GitHub.
+
 # 0.7.1
 
 - Publicação Instagram usa MP4 local preparado e link HTTPS temporário, evitando os contêineres ERROR do CDN de origem.

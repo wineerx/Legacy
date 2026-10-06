@@ -84,7 +84,7 @@ export function repostWarnings(
     const wasPublished = published.some((h) => {
       const origin = JSON.parse(h.provenanceJson)
       return (
-        keys.has(h.postId) ||
+        (h.postId !== null && keys.has(h.postId)) ||
         (asset && h.assetSha === asset.sha256) ||
         related.some((p) => p.permalink === origin.permalink || (origin.remoteId && sourceKey(p) === `${origin.platform}:${origin.remoteId}`))
       )

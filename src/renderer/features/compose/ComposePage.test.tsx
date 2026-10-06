@@ -9,9 +9,9 @@ const item = { id: 'a1', kind: 'asset', thumbnailPath: null, permalink: null, ca
 const base = { 'covers.list': () => [], 'settings.get': () => 'true', 'grid.query': () => ({ items: [item], total: 1, loadedNote: '' }) }
 
 describe('ComposePage', () => {
-  it('conta Instagram conectada cria tarefa real pelo backend de composição', async()=>{
+  it('vídeo do PC sem post remoto cria tarefa pelo backend de composição', async()=>{
     setComposeSelection(['a1'])
-    const invoke=mockBridge({...base,'accounts.instagram':()=>({id:'123',revision:'rev',username:'destino',validatedAt:new Date().toISOString()}),'grid.query':()=>({items:[{...item,postId:'post-1'}],total:1,loadedNote:''}),'compose.scheduleInstagram':()=>[]})
+    const invoke=mockBridge({...base,'accounts.instagram':()=>({id:'123',revision:'rev',username:'destino',validatedAt:new Date().toISOString()}),'grid.query':()=>({items:[item],total:1,loadedNote:''}),'compose.scheduleInstagram':()=>[]})
     const navigate=vi.fn();renderWithApp(<ComposePage navigate={navigate}/>)
     await userEvent.click(await screen.findByRole('checkbox',{name:'Instagram — @destino'}))
     expect(screen.getByRole('checkbox',{name:'TikTok — exportação manual'})).not.toBeChecked()

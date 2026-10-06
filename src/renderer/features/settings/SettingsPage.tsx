@@ -17,7 +17,7 @@ function useBoolSetting(workspaceId: string, key: Key) {
 }
 
 export function SettingsPage(_: PageProps) {
-  const { workspace, dataDir } = useWorkspace()
+  const { workspace, dataDir, buildCommit, buildTime } = useWorkspace()
   const tray = useBoolSetting(workspace.id, 'minimizeToTray')
   const strip = useBoolSetting(workspace.id, 'stripMetadataDefault')
   const qc = useQueryClient()
@@ -49,6 +49,8 @@ export function SettingsPage(_: PageProps) {
         <h2 className="font-semibold">Sobre esta versão</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-dim">
           <li>Versão: {window.legacy.version}.</li>
+          {buildCommit && <li className="break-all">Commit: <code>{buildCommit}</code></li>}
+          {buildTime && <li>Compilação: {new Date(buildTime).toLocaleString('pt-BR')}.</li>}
           <li>Atualizações pelas releases oficiais no GitHub.</li>
           <li>Pasta de dados: {dataDir}</li>
           <li>Fuso do workspace: {workspace.timeZone}.</li>

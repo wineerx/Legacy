@@ -39,7 +39,7 @@ import { createGuestSession } from '../services/guest-session'
 import { profileImportProgress } from '../services/profile-download'
 
 export interface Dialogs { pickVideos(): Promise<string[]>; pickImage(): Promise<string | null>; pickMetricsFile(): Promise<string | null>; saveVideo?(name: string): Promise<string | null>; pickStorageFolder?(): Promise<string | null> }
-export interface HandlerDeps { session?: ReturnType<typeof createGuestSession>; ctx: Ctx; dialogs: Dialogs; shell: { openPath(p: string): Promise<string> }; workerAlive(): boolean; version: string; onJobsChanged(workspaceId: string): void; vault?: SecretVault; onSecretsChanged?(): void; updates?: { status(): UpdateStatus; check(): Promise<UpdateStatus>; download(): Promise<UpdateStatus>; install(): void } }
+export interface HandlerDeps { session?: ReturnType<typeof createGuestSession>; ctx: Ctx; dialogs: Dialogs; shell: { openPath(p: string): Promise<string> }; workerAlive(): boolean; version: string; buildCommit?: string; buildTime?: string; onJobsChanged(workspaceId: string): void; vault?: SecretVault; onSecretsChanged?(): void; updates?: { status(): UpdateStatus; check(): Promise<UpdateStatus>; download(): Promise<UpdateStatus>; install(): void } }
 
 const profileDto = (p: Profile, avatarPath: string | null = null) => ({ avatarPath, platform: p.platform, id: p.id, username: p.username, url: p.url, connected: p.connectedAccountId !== null, lastSyncedAt: p.lastSyncedAt })
 const coverDto = (c: CoverTemplate) => ({ id: c.id, name: c.name, kind: c.kind, imagePath: c.imagePath, frameMs: c.frameMs, textJson: c.textJson })
@@ -59,7 +59,7 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
     'profiles.importProgress': i => { requireWorkspace(ctx, i.workspaceId); return profileImportProgress(ctx, i.workspaceId, i.profileId) },
     'publications.feedback': i => { requireWorkspace(ctx, i.workspaceId); return publicationFeedback(ctx, i.workspaceId) },
     'publications.acknowledge': i => { requireWorkspace(ctx, i.workspaceId); acknowledgePublications(ctx, i.workspaceId, i.ids); return null },
-    'app.bootstrap': () => ({ workspaces: listWorkspaces(ctx.db).map(({ id, name, timeZone }) => ({ id, name, timeZone })), version: deps.version, workerAlive: deps.workerAlive(), dataDir: ctx.dataRoot }),
+    'app.bootstrap': () => ({ workspaces: listWorkspaces(ctx.db).map(({ id, name, timeZone }) => ({ id, name, timeZone })), version: deps.version, buildCommit: deps.buildCommit, buildTime: deps.buildTime, workerAlive: deps.workerAlive(), dataDir: ctx.dataRoot }),
     'dashboard.get': (i) => dashboard(ctx, i.workspaceId),
     'achievements.get': (i) => ({ ...achievements(ctx, i.workspaceId), acknowledged: JSON.parse(getSetting(ctx.db, i.workspaceId, 'acknowledgedAchievements') ?? '[]') }),
     'achievements.acknowledge': (i) => { const unlocked = achievements(ctx, i.workspaceId).challenges.filter(c => c.unlocked).map(c => c.id); const old = JSON.parse(getSetting(ctx.db, i.workspaceId, 'acknowledgedAchievements') ?? '[]') as string[]; setSetting(ctx.db, i.workspaceId, 'acknowledgedAchievements', JSON.stringify([...new Set([...old, ...i.ids.filter(id => unlocked.includes(id))])])); return null },

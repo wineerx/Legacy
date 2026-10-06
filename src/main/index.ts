@@ -48,6 +48,7 @@ function showWindow(): void {
 
 function createWindow(): BrowserWindow {
   const w = new BrowserWindow({
+    title: `Legacy ${process.env.LEGACY_APP_VERSION} · ${process.env.LEGACY_BUILD_COMMIT?.slice(0, 7)}`,
     icon: appIconPath,
     width: 1440, height: 900, minWidth: 960, minHeight: 600, backgroundColor: '#0B0B0B', show: false, autoHideMenuBar: true,
     webPreferences: { preload: join(import.meta.dirname, '../preload/index.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false }
@@ -55,6 +56,7 @@ function createWindow(): BrowserWindow {
   if (process.platform === 'win32') {
     w.setAppDetails({ appId: 'app.legacy.desktop', appIconPath, appIconIndex: 0 })
   }
+  w.on('page-title-updated', e => e.preventDefault())
   w.once('ready-to-show', () => w.show())
   w.on('session-end', () => { quitting = true })
   w.on('closed', () => { if (win === w) win = null })
@@ -103,7 +105,8 @@ if (gotLock) {
   const updates = setupUpdates(electronUpdater.autoUpdater, app.isPackaged, () => listWorkspaces(db).some(w => listJobs(db, w.id, ['running']).length > 0), () => { quitting = true })
   const dispatch = createDispatcher(buildHandlers({
     updates, session,
-    ctx, vault, onSecretsChanged: () => worker.updateSecrets(), version: app.getVersion(), workerAlive: () => worker.isAlive(),
+    buildCommit: process.env.LEGACY_BUILD_COMMIT, buildTime: process.env.LEGACY_BUILD_TIME,
+    ctx, vault, onSecretsChanged: () => worker.updateSecrets(), version: process.env.LEGACY_APP_VERSION ?? app.getVersion(), workerAlive: () => worker.isAlive(),
     onJobsChanged: (workspaceId) => send(EVENTS.jobsChanged, { workspaceId }),
     shell: { openPath: (p) => shell.openPath(p) },
     dialogs: {

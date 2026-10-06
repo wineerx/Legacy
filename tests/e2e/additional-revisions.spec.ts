@@ -1,3 +1,5 @@
+import { execFileSync } from 'node:child_process'
+import { readFileSync } from 'node:fs'
 import type { IpcResult, Outputs } from '../../src/shared/ipc-contract'
 import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync, mkdirSync } from 'node:fs'
@@ -24,6 +26,9 @@ test('publicação identificada, Biblioteca exata, balão, badges e exclusão co
     await page
       .getByRole('button', { name: 'Entrar como visitante', exact: true })
       .click()
+    expect(await page.evaluate(() => window.legacy.version)).toBe(JSON.parse(readFileSync('package.json', 'utf8')).version)
+    const identity = await page.evaluate(() => window.legacy.invoke('app.bootstrap', {})) as IpcResult<Outputs['app.bootstrap']>
+    expect(identity.ok && identity.data.buildCommit).toBe(execFileSync('git', ['rev-parse', 'HEAD'], { encoding: 'utf8' }).trim())
     const ws = await page.evaluate(async () => {
       const r = (await window.legacy.invoke('app.bootstrap', {})) as IpcResult<
         Outputs['app.bootstrap']
@@ -135,12 +140,11 @@ test('publicação identificada, Biblioteca exata, balão, badges e exclusão co
       name: /Notificações, 120 não lidas/
     })
     await expect(notices).toContainText('99+')
-    const bounds = await notices.boundingBox(),
-      icon = await notices.locator('svg').boundingBox(),
-      badge = await notices.locator('span').boundingBox(),
-      nav = await page
-        .getByRole('navigation', { name: 'Principal' })
-        .boundingBox()
+    await expect.poll(async () => Math.round((await page.getByRole('navigation', { name: 'Principal' }).boundingBox())!.width)).toBe(56)
+    const { bounds, icon, badge, nav } = await notices.evaluate(element => {
+      const rect = (e: Element) => { const r = e.getBoundingClientRect(); return { x: r.x, width: r.width, height: r.height } }
+      return { bounds: rect(element), icon: rect(element.querySelector('svg')!), badge: rect(element.querySelector('span')!), nav: rect(element.closest('nav')!) }
+    })
     expect(icon!.width).toBe(16)
     expect(badge!.x + badge!.width).toBeLessThanOrEqual(nav!.x + nav!.width)
     expect(bounds!.height).toBeGreaterThanOrEqual(32)

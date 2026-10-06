@@ -149,7 +149,7 @@ export const publicationHistory = sqliteTable('publication_history', {
   jobId: text('job_id').primaryKey(),
   workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
   accountId: text('account_id').notNull(), username: text('username').notNull(),
-  postId: text('post_id').notNull(), assetSha: text('asset_sha'), mediaId: text('media_id'),
+  postId: text('post_id'), assetSha: text('asset_sha'), mediaId: text('media_id'),
   provenanceJson: text('provenance_json').notNull(), publishedAt: text('published_at').notNull(),
   cleanupState: text('cleanup_state').notNull().default('kept')
 }, t => [index('publication_history_ws_account').on(t.workspaceId, t.accountId), index('publication_history_ws_sha').on(t.workspaceId, t.assetSha, t.publishedAt)])

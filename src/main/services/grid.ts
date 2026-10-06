@@ -94,7 +94,7 @@ function libraryGrid(db: Db, q: GridQuery): GridPage {
   for (const post of posts) if (!postMap.has(post.post.assetId!)) postMap.set(post.post.assetId!, post)
   const accountMap = new Map<string, string[]>()
   const shaById = new Map(rows.map(r => [r.asset.id, r.asset.sha256]))
-  for (const h of published) { const key = h.sha ?? shaById.get(sourceAsset.get(h.postId) ?? ''); if (key) accountMap.set(key, [...new Set([...(accountMap.get(key) ?? []), h.username])]) }
+  for (const h of published) { const key = h.sha ?? shaById.get((h.postId ? sourceAsset.get(h.postId) : undefined) ?? ''); if (key) accountMap.set(key, [...new Set([...(accountMap.get(key) ?? []), h.username])]) }
   const items: GridItem[] = rows.map(({ asset: r, state: st, exported }) => {
     const badges: Badge[] = []
     if (r.origin === 'ig_own' || r.origin === 'ig_third_party' || r.origin === 'tiktok_third_party') badges.push('baixado')
@@ -116,11 +116,11 @@ export function queryGrid(db: Db, q: GridQuery): GridPage {
   if (q.source === 'library' && q.publicationJobId) {
     const record = db.select().from(publicationHistory).where(and(eq(publicationHistory.workspaceId, q.workspaceId), eq(publicationHistory.jobId, q.publicationJobId))).get()
     if (!record) throw new AppError('not_found', 'Publicação não encontrada neste workspace.')
-    const post = db.select().from(remotePosts).where(and(eq(remotePosts.workspaceId, q.workspaceId), eq(remotePosts.id, record.postId))).get()
+    const post = record.postId ? db.select().from(remotePosts).where(and(eq(remotePosts.workspaceId, q.workspaceId), eq(remotePosts.id, record.postId))).get() : undefined
     const info = JSON.parse(record.provenanceJson)
     const asset = db.select().from(mediaAssets).where(and(eq(mediaAssets.workspaceId, q.workspaceId), or(eq(mediaAssets.id, post?.assetId ?? info.assetId ?? ''), eq(mediaAssets.sha256, record.assetSha ?? '')))).get()
     if (asset) return libraryGrid(db, { ...q, publicationJobId: undefined, assetId: asset.id })
-    return { total: 1, loadedNote: 'A cópia local foi removida. O histórico da publicação permanece.', items: [{ id: record.postId, kind: 'remote', thumbnailPath: post?.thumbnailPath ?? null, permalink: post?.permalink ?? info.permalink ?? null, caption: post?.caption ?? info.caption ?? info.sourceName ?? 'Vídeo publicado', postedAt: record.publishedAt, durationMs: post?.durationMs ?? null, metrics: { views: post?.views ?? null, likes: post?.likes ?? null, comments: post?.comments ?? null }, badges: ['publicado'], publishedAccounts: [record.username] }] }
+    return { total: 1, loadedNote: 'A cópia local foi removida. O histórico da publicação permanece.', items: [{ id: record.postId ?? record.jobId, kind: 'remote', thumbnailPath: post?.thumbnailPath ?? null, permalink: post?.permalink ?? info.permalink ?? null, caption: post?.caption ?? info.caption ?? info.sourceName ?? 'Vídeo publicado', postedAt: record.publishedAt, durationMs: post?.durationMs ?? null, metrics: { views: post?.views ?? null, likes: post?.likes ?? null, comments: post?.comments ?? null }, badges: ['publicado'], publishedAccounts: [record.username] }] }
   }
   return q.source === 'remote' ? remoteGrid(db, q) : libraryGrid(db, q)
 }
