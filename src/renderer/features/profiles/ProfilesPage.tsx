@@ -556,8 +556,7 @@ export function ProfilesPage({ navigate }: PageProps) {
             onChange={(e) => setDiscoveryLimit(e.target.value)}
           />
           <p className="text-[11px] text-dim">
-            A Apify buscará posts até o limite configurado. Aumente até 1000
-            para ampliar a análise; o provedor pode retornar menos.
+            A Apify buscará posts até o limite configurado.
           </p>
         </form>
         {[...new Set(profiles.data?.map((p) => p.platform) ?? [])].map(
