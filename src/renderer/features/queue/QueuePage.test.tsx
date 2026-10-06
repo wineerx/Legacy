@@ -55,11 +55,12 @@ describe('QueuePage', () => {
   })
 
   it('realoca falha somente após revisar data, destino e confirmar', async()=>{
-    const runAt=new Date(Date.now()+86400000).toISOString()
+    const runAt=new Date(Date.now()+32*86400000).toISOString()
     const invoke=mockBridge({'jobs.query':()=>paged([job({state:'failed'})]),'jobs.tail':()=>({runAt,ahead:3}),'jobs.reschedule':()=>true})
     renderWithApp(<QueuePage navigate={vi.fn()}/> )
     await userEvent.click(await screen.findByRole('button',{name:'Passar a vez'}))
     await screen.findByText('3 tarefas pendentes antes do horário sugerido.')
+    expect(await screen.findByText(new Date(runAt).toLocaleDateString('pt-BR',{month:'long',year:'numeric',timeZone:'America/Sao_Paulo'}))).toBeInTheDocument()
     expect(invoke.mock.calls.some(([channel])=>channel==='jobs.reschedule')).toBe(false)
     await userEvent.click(screen.getByRole('button',{name:'Confirmar novo horário'}))
     await waitFor(()=>expect(invoke).toHaveBeenCalledWith('jobs.reschedule',expect.objectContaining({workspaceId:WS_ID,id:'j1',expectedUpdatedAt:'2026-10-05T12:00:00.000Z'})))
