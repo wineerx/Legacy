@@ -15,7 +15,7 @@ import { addProfileFromUrl, listProfiles, type Profile } from '../repos/profiles
 import { addReelLink, setRemoteFavorite } from '../repos/remote-posts'
 import { importMetrics } from '../services/metrics-import'
 import { createImageCover, createFrameTextCover, listCoverTemplates, type CoverTemplate } from '../repos/covers'
-import { saveRenderedCover, requestBanner } from '../services/versions'
+import { saveRenderedCover, requestBanner, requestVideoVersion } from '../services/versions'
 import { requestTiktokExport } from '../services/export-tiktok'
 import { workspaceDir, resolveInside } from '../paths'
 import { listJobs, cancel, retryNow } from '../queue/queue'
@@ -119,6 +119,7 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
     'covers.createFrameText': (i) => coverDto(createFrameTextCover(ctx, i.workspaceId, i)),
     'versions.saveCover': async (i) => ({ versionId: (await saveRenderedCover(ctx, i.workspaceId, i.assetId, i.templateId, i.png)).id }),
     'versions.requestBanner': async (i) => changed(i.workspaceId, await requestBanner(ctx, i.workspaceId, i.assetId, i.png, { startMs: i.startMs, endMs: i.endMs })),
+    'versions.prepareVideo': async (i) => { const r = await requestVideoVersion(ctx, i.workspaceId, i.assetId, { banner: i.banner, coverVersionId: i.coverVersionId }); changed(i.workspaceId, r.job); return r },
     'export.tiktok': ({ workspaceId, ...payload }) => changed(workspaceId, requestTiktokExport(ctx, workspaceId, payload)),
     'export.openFolder': async (i) => {
       const safe = resolveInside(resolveInside(workspaceDir(ctx.dataRoot, i.workspaceId), 'exports'), i.path)

@@ -18,7 +18,7 @@ describe('MediaCard916', () => {
     expect(screen.getByLabelText('Curtidas: 84 mil')).toBeInTheDocument()
     expect(screen.getByLabelText('Comentários: indisponível')).toHaveTextContent('—')
     expect(screen.getByText('0:42')).toBeInTheDocument()
-    expect(screen.getByText('link')).toBeInTheDocument()
+    expect(screen.getByRole('img', { name: 'Somente link' })).toBeInTheDocument()
   })
   it('checkbox acessível alterna seleção', async () => {
     const onToggle = vi.fn()

@@ -1,5 +1,8 @@
 # 0.6.0
 
+- Prévias de capa, banner e grade; exportação manual com capa no primeiro frame, preservando o original.
+- TikTok desmarcado por padrão; menu de mídia ancorado e seleção sem sobreposição de selos.
+
 - Criar postagem oferece Instagram conectado e TikTok manual, com revisão de destinos e fila real.
 - Backend valida mídia online, destino/revisão, legendas individuais e horizonte de todo o lote.
 - Modal de contas informa plataforma, permissões, status, erros e reconexão.

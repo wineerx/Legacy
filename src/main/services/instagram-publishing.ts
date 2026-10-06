@@ -88,7 +88,8 @@ export function scheduleInstagram(ctx: Ctx, ws: string, input: { postIds: string
     return enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', label: `Publicar reel em @${account.username}`, payload: { ...post, username: account.username, accountId: account.id, accountRevision: account.revision, cleanupAfterPublish: input.cleanupAfterPublish ?? false, batchId }, runAt, maxAttempts: 24, idempotencyKey: `publish:${ws}:${account.id}:${post.postId}:${runAt.toISOString()}` }, ctx.clock())
   }))
 }
-export function scheduleComposition(ctx: Ctx, ws: string, input: { assetIds: string[]; accountId: string; accountRevision: string; firstAt: string; intervalMin: number; captions: Record<string,string>; cleanupAfterPublish: boolean }) {
+export function scheduleComposition(ctx: Ctx, ws: string, input: { assetIds: string[]; accountId: string; accountRevision: string; firstAt: string; intervalMin: number; captions: Record<string,string>; cleanupAfterPublish: boolean; versionIds?: Record<string,string> }) {
+ if(Object.values(input.versionIds ?? {}).some(Boolean)) throw new AppError('invalid_input','Capas e banners locais ainda não podem ser publicados com Instagram Login. Use o original online ou exporte para postagem manual.')
  const account=instagramAccount(ctx,ws)
  if (!account || account.id!==input.accountId || account.revision!==input.accountRevision) throw new AppError('invalid_input','O destino mudou. Atualize e revise a conta antes de confirmar.')
  const mapped=[...new Set(input.assetIds)].map(assetId=>{

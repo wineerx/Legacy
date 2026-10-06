@@ -99,3 +99,9 @@ it('compõe publicação com destino fixo e legenda por vídeo, rejeitando locai
  expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id,result[0].id)).get()!.payloadJson)).toMatchObject({caption:'Legenda própria',accountId:account.id,postId})
  expect(()=>scheduleComposition(ctx,ws,{...input,captions:{[asset.id]:'x'.repeat(2201)}})).toThrow(/2200/)
 })
+
+it('bloqueia upload editado não suportado antes de criar tarefas Instagram', () => {
+ const account=instagramAccount(ctx,ws)!
+ expect(()=>scheduleComposition(ctx,ws,{assetIds:['asset-local'],accountId:account.id,accountRevision:account.revision,firstAt:'2026-10-05T12:02:00Z',intervalMin:60,captions:{},cleanupAfterPublish:false,versionIds:{'asset-local':'edited-version'}})).toThrow(/Instagram Login/)
+ expect(ctx.db.select().from(jobs).all()).toHaveLength(0)
+})

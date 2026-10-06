@@ -39,7 +39,7 @@ O Instagram profissional pode ser conectado por token em **Contas** para agendar
 2. Em **Configurações**, escolha onde guardar os novos vídeos.
 3. Importe vídeos na **Biblioteca**, ou configure Apify e adicione uma URL em **Perfis**.
 4. Selecione um lote e abra **Criar postagem** para ajustar capa, banner e legendas.
-5. Acompanhe a **Fila**, revise a exportação e publique pela plataforma oficial.
+5. Escolha Instagram conectado para agendar o original online, ou TikTok manual para preparar a pasta. Acompanhe a **Fila**.
 6. Use **Tutoriais** para salvar seu plano de perfil e explorar os modelos de legenda.
 
 [Downloads por perfil](#downloads-por-url-de-perfil-instagram) · [Integrações](#visão-geral-e-integrações) · [Webhooks](#notificações-e-webhooks) · [Tutoriais](#tutoriais-e-legendas) · [Instalação](#instalação-e-atualizações)

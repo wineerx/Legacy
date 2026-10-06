@@ -13,7 +13,7 @@ import type { PageProps } from '../../routes'
 import { CoverEditor, DEFAULT_TEXT } from './CoverEditor'
 import { BannerEditor, type BannerState } from './BannerEditor'
 import { BatchReviewModal } from './BatchReviewModal'
-import { SafeAreaPreview } from './SafeAreaPreview'
+import { ComposePreview } from './ComposePreview'
 import { captionFor, buildReminders } from './batch'
 import { CaptionRibbon } from './CaptionRibbon'
 
@@ -34,7 +34,8 @@ export function ComposePage({ navigate }: PageProps) {
   const toast = useToast()
   const account = useQuery({queryKey:['instagram-account',workspace.id],queryFn:()=>call('accounts.instagram',{workspaceId:workspace.id})})
   const [instagram,setInstagram]=useState(false)
-  const [tiktok,setTiktok]=useState(true)
+  // TikTok não tem conta conectada: só entra no lote quando marcado.
+  const [tiktok,setTiktok]=useState(false)
   const [delivery,setDelivery]=useState('')
   const [interval,setInterval]=useState(60)
   const [cleanup,setCleanup]=useState(false)
@@ -67,16 +68,12 @@ export function ComposePage({ navigate }: PageProps) {
   const cover = covers.data?.find((c) => c.id === coverId) ?? null
 
   const bannerActive = banner.enabled && banner.spec.text.trim() !== ''
-  const blockReason = assets.isLoading ? 'Carregando vídeos…' : assets.isError ? 'Não foi possível carregar os vídeos. Volte à Biblioteca.' : !items.length ? 'Nenhum vídeo disponível neste lote.' : !instagram && !tiktok ? 'Selecione um destino.' : instagram && !account.data ? 'Conecte uma conta Instagram.' : instagram && items.some(i=>!i.postId) ? 'Instagram exige uma URL pública de origem. Use vídeos baixados pela grade de Perfis.' : instagram && (cover || bannerActive) ? 'Instagram publica o vídeo original da origem. Desative capa e banner para esse destino.' : instagram && captions.some(c=>c.length>2200) ? 'Instagram permite legendas de até 2200 caracteres.' : instagram ? deliveryError(delivery,workspace.timeZone,new Date(),items.length,interval) : bannerActive && !(banner.startS >= 0 && banner.endS > banner.startS) ? 'O fim do banner precisa ser depois do início.' : undefined
+  const blockReason = assets.isLoading ? 'Carregando vídeos…' : assets.isError ? 'Não foi possível carregar os vídeos. Volte à Biblioteca.' : !items.length ? 'Nenhum vídeo disponível neste lote.' : !instagram && !tiktok ? 'Selecione um destino.' : instagram && !account.data ? 'Conecte uma conta Instagram.' : instagram && items.some(i=>!i.postId) ? 'Instagram exige uma URL pública de origem. Use vídeos baixados pela grade de Perfis.' : instagram && (cover || bannerActive) ? 'Capas e banners locais ainda não podem ser publicados com Instagram Login. Use o original online ou exporte para postagem manual.' : instagram && captions.some(c=>c.length>2200) ? 'Instagram permite legendas de até 2200 caracteres.' : bannerActive && !(banner.startS >= 0 && banner.endS > banner.startS) ? 'O fim do banner precisa ser depois do início.' : instagram ? deliveryError(delivery,workspace.timeZone,new Date(),items.length,interval) : undefined
 
+  const edited = Boolean(cover) || bannerActive
   const run = useMutation({
     mutationFn: async () => {
       if(blockReason) throw new Error(blockReason)
-      if(instagram){
-        const [date,time]=delivery.split('T')
-        await call('compose.scheduleInstagram',{workspaceId:workspace.id,assetIds:items.map(i=>i.id),accountId:account.data!.id,accountRevision:account.data!.revision,firstAt:zonedToUtc(date,time,workspace.timeZone).toISOString(),intervalMin:interval,captions:Object.fromEntries(items.map((i,k)=>[i.id,captions[k]])),cleanupAfterPublish:cleanup})
-      }
-      if(!tiktok) return
       const prepared: { cover?: Uint8Array<ArrayBuffer>; banner?: Uint8Array<ArrayBuffer> }[] = []
       for (const [k, it] of items.entries()) {
         try {
@@ -93,17 +90,31 @@ export function ComposePage({ navigate }: PageProps) {
           prepared.push(p)
         } catch (e) { throw itemError(e, k, items.length, it.caption ?? it.id) }
       }
+      // Capa vira o primeiro frame do vídeo; o Instagram usa esse frame como miniatura do Reel.
+      const versionIds: Record<string, string> = {}
       for (const [k, it] of items.entries()) {
         try {
           const p = prepared[k]
-          if (cover && p.cover) await call('versions.saveCover', { workspaceId: workspace.id, assetId: it.id, templateId: cover.id, png: p.cover })
-          if (p.banner) await call('versions.requestBanner', { workspaceId: workspace.id, assetId: it.id, png: p.banner, startMs: Math.round(banner.startS * 1000), endMs: Math.round(banner.endS * 1000) })
+          const coverVersionId = cover && p.cover ? (await call('versions.saveCover', { workspaceId: workspace.id, assetId: it.id, templateId: cover.id, png: p.cover })).versionId : undefined
+          if (coverVersionId || p.banner) {
+            const bannerInput = p.banner ? { png: p.banner, startMs: Math.round(banner.startS * 1000), endMs: Math.round(banner.endS * 1000) } : undefined
+            versionIds[it.id] = (await call('versions.prepareVideo', { workspaceId: workspace.id, assetId: it.id, banner: bannerInput, coverVersionId })).versionId
+          }
         } catch (e) { throw itemError(e, k, items.length, it.caption ?? it.id) }
       }
+      if(instagram){
+        const [date,time]=delivery.split('T')
+        await call('compose.scheduleInstagram',{workspaceId:workspace.id,assetIds:items.map(i=>i.id),accountId:account.data!.id,accountRevision:account.data!.revision,firstAt:zonedToUtc(date,time,workspace.timeZone).toISOString(),intervalMin:interval,captions:Object.fromEntries(items.map((i,k)=>[i.id,captions[k]])),cleanupAfterPublish:cleanup,versionIds:edited ? versionIds : undefined})
+      }
+      if(!tiktok) return
       try { return await call('export.tiktok', { workspaceId: workspace.id, assetIds: items.map((i) => i.id), captions: Object.fromEntries(items.map((i, k) => [i.id, captions[k]])), stripMetadata, remindAt: reminders }) }
       catch(e) { if(instagram) throw new Error(`Instagram já foi enfileirado. A exportação TikTok falhou: ${e instanceof Error ? e.message : 'verifique a Fila'}`);throw e }
     },
-    onSuccess: () => { clearComposeSelection(); setReviewOpen(false); toast.show({ title: 'Lote na fila', body: 'Acompanhe em Fila. As pastas abrem pelas notificações.' }); navigate('queue') },
+    onSuccess: () => {
+      clearComposeSelection(); setReviewOpen(false)
+      const body = instagram && tiktok ? 'Instagram agendado e pasta TikTok em preparo. Acompanhe em Fila.' : instagram ? `Publicação agendada em @${account.data?.username}. Acompanhe em Fila.` : 'Pasta para postagem manual no TikTok em preparo. Ela abre pelas notificações.'
+      toast.show({ title: 'Lote na fila', body }); navigate('queue')
+    },
     onError: (e) => { setReviewOpen(false); toast.show({ title: 'Não foi possível preparar o lote', body: e instanceof Error ? e.message : undefined, tone: 'error' }) }
   })
 
@@ -122,7 +133,7 @@ export function ComposePage({ navigate }: PageProps) {
     <div data-tour="compose" className="grid gap-6 p-6 lg:grid-cols-[minmax(0,1fr)_300px]">
       <div className="flex min-w-0 flex-col gap-4">
         <h1 className="text-lg font-semibold">Criar postagem · {items.length} vídeo(s)</h1>
-        <section className="grid gap-3 rounded-card border border-line bg-panel p-4"><h2 className="text-sm font-semibold">Publicar em</h2><Checkbox label={account.data ? `Instagram — @${account.data.username}` : 'Instagram — conectar conta'} description={account.isLoading ? 'Consultando conexão…' : account.isError ? 'Falha ao consultar conta. Abra Contas para tentar novamente.' : account.data ? 'Publicação de Reels pela API, com vídeo original online.' : 'Conecte uma conta Business ou Creator em Contas.'} checked={instagram} disabled={!account.data} onChange={e=>setInstagram(e.target.checked)} />{!account.data && <Button size="sm" onClick={()=>navigate('accounts')}>Conectar uma conta</Button>}<Checkbox label="TikTok — exportação manual" description="Prepare vídeo, capa e legenda; poste pelo aplicativo oficial." checked={tiktok} onChange={e=>setTiktok(e.target.checked)} />{instagram && <><DeliveryTime value={delivery} onChange={setDelivery} timeZone={workspace.timeZone} count={items.length} intervalMin={interval} /><Input label="Intervalo entre publicações (min)" type="number" min={15} max={10080} value={interval} onChange={e=>setInterval(Number(e.target.value))}/><Checkbox label="Apagar a cópia após publicação confirmada" description="O histórico permanece; arquivos em uso são mantidos." checked={cleanup} onChange={e=>setCleanup(e.target.checked)} /></>}<p className="text-xs text-dim">Uma conta Instagram por workspace. Troque o workspace para usar outra conta.</p></section>
+        <section className="grid gap-3 rounded-card border border-line bg-panel p-4"><h2 className="text-sm font-semibold">Publicar em</h2><Checkbox label={account.data ? `Instagram — @${account.data.username}` : 'Instagram — conectar conta'} description={account.isLoading ? 'Consultando conexão…' : account.isError ? 'Falha ao consultar conta. Abra Contas para tentar novamente.' : account.data ? 'Publicação de Reels pela API, com vídeo original online.' : 'Conecte uma conta Business ou Creator em Contas.'} checked={instagram} disabled={!account.data} onChange={e=>setInstagram(e.target.checked)} />{!account.data && <Button size="sm" onClick={()=>navigate('accounts')}>Conectar uma conta</Button>}<Checkbox label="TikTok — exportação manual" description="Sem conta conectada: o Legacy prepara vídeo, capa e legenda numa pasta; a postagem é feita por você no app oficial." checked={tiktok} onChange={e=>setTiktok(e.target.checked)} />{instagram && <><DeliveryTime value={delivery} onChange={setDelivery} timeZone={workspace.timeZone} count={items.length} intervalMin={interval} /><Input label="Intervalo entre publicações (min)" type="number" min={15} max={10080} value={interval} onChange={e=>setInterval(Number(e.target.value))}/><Checkbox label="Apagar a cópia após publicação confirmada" description="O histórico permanece; arquivos em uso são mantidos." checked={cleanup} onChange={e=>setCleanup(e.target.checked)} /></>}<p className="text-xs text-dim">Uma conta Instagram por workspace. Troque o workspace para usar outra conta.</p></section>
         <Textarea label="Legenda base" value={base} onChange={(e) => setBase(e.target.value)} placeholder="Legenda aplicada a todos os vídeos" />
         <CaptionRibbon onUse={setBase} navigate={navigate} />
         <ul className="flex flex-col gap-2">
@@ -151,15 +162,13 @@ export function ComposePage({ navigate }: PageProps) {
           )}
         </section>
       </div>
-      <aside className="flex flex-col gap-4">
-        <SafeAreaPreview>
-          {items[0]?.thumbnailPath && <img src={mediaUrl(items[0].thumbnailPath)} alt="Prévia do primeiro vídeo" className="h-full w-full object-cover" />}
-        </SafeAreaPreview>
+      <aside className="flex min-w-0 flex-col gap-4 lg:sticky lg:top-6 lg:self-start">
+        <ComposePreview workspaceId={workspace.id} items={items} cover={cover} banner={banner} />
         <Button variant="primary" loading={run.isPending} disabledReason={blockReason} onClick={() => setReviewOpen(true)}>Revisar lote</Button>
         {blockReason && <p role="status" className="text-xs text-danger-fg">{blockReason}</p>}
       </aside>
       <BatchReviewModal open={reviewOpen} onOpenChange={setReviewOpen} items={items} captions={captions} reminders={reminders} timeZone={workspace.timeZone}
-        coverName={cover?.name ?? null} bannerOn={banner.enabled} stripMetadata={stripMetadata} busy={run.isPending} blockReason={blockReason} instagram={instagram ? account.data?.username : undefined} delivery={delivery} intervalMin={interval} tiktok={tiktok} onConfirm={() => run.mutate()} />
+        coverName={cover?.name ?? null} bannerOn={bannerActive} stripMetadata={stripMetadata} busy={run.isPending} blockReason={blockReason} instagram={instagram ? account.data?.username : undefined} delivery={delivery} intervalMin={interval} tiktok={tiktok} onConfirm={() => run.mutate()} />
     </div>
   )
 }

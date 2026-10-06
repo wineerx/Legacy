@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeAll } from 'vitest'
-import { mkdtempSync, existsSync, statSync } from 'node:fs'
+import { mkdtempSync, existsSync, statSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
 import { makeTestVideo } from './test-fixtures'
-import { extractFrame, makeThumbnail, stripMetadata, overlayBanner, detectH264Encoder } from './ops'
+import { extractFrame, makeThumbnail, stripMetadata, overlayBanner, renderVideoVersion, detectH264Encoder } from './ops'
 import { AppError } from '@shared/errors'
 import { probe } from './probe'
 import { ffmpegPaths } from './ffmpeg-bin'
@@ -56,6 +56,23 @@ describe('ops', () => {
     expect(p.width).toBe(360)
     expect(p.videoCodec).toBe('h264')
     expect(Math.abs(p.durationMs - 4000)).toBeLessThan(300)
+  })
+
+  it('renderVideoVersion insere a capa como primeiro frame e mantém o áudio', async (ctx) => {
+    const encoder = await detectH264Encoder().catch(() => null)
+    if (!encoder) ctx.skip()
+    const cover = join(dir, 'capa.png')
+    await runTool(ffmpegPaths().ffmpeg, ['-y', '-f', 'lavfi', '-i', 'color=c=red:s=540x960', '-frames:v', '1', cover])
+    const out = join(dir, 'c.mp4')
+    await renderVideoVersion(video, out, { coverPng: cover })
+    const p = await probe(out)
+    expect(p).toMatchObject({ width: 360, height: 640, videoCodec: 'h264', audioCodec: 'aac' })
+    expect(Math.abs(p.durationMs - 4033)).toBeLessThan(300)
+    const pixel = join(dir, 'pixel.rgb')
+    await runTool(ffmpegPaths().ffmpeg, ['-y', '-i', out, '-frames:v', '1', '-vf', 'scale=1:1', '-f', 'rawvideo', '-pix_fmt', 'rgb24', pixel])
+    const [r, g, b] = readFileSync(pixel)
+    expect(r).toBeGreaterThan(180)
+    expect(g + b).toBeLessThan(120)
   })
 
   it('detectH264Encoder valida com encode de teste', async () => {
