@@ -1,4 +1,5 @@
 import { request } from 'node:https'
+import { existsSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import { and, eq, desc } from 'drizzle-orm'
 import { z } from 'zod'
@@ -9,9 +10,13 @@ import { getAsset } from '../repos/assets'
 import { getRemotePost } from '../repos/remote-posts'
 import { getSetting, setSetting } from '../repos/settings'
 import { getSecret, requireWorkspace, saveSecret, type SecretVault } from './integrations'
-import { allowedUrl } from './download-http'
 import { enqueue, type LeasedJob } from '../queue/queue'
 import { history, recordPublication } from './publication-history'
+
+import { preparePublishCopy, type PreparedCopy } from '../media/publish-prep'
+import { publishTmpDir } from './publish-tmp'
+import { defaultMediaHost, exposeForJob, releaseExpired, releaseExposure, SHARE_TTL_MS } from './media-host/registry'
+import type { MediaHost } from './media-host/types'
 
 const numericId = z.string().regex(/^\d+$/)
 const accountSchema = z.object({ id: numericId, username: z.string().min(1), revision: z.string(), validatedAt: z.string() })
@@ -75,9 +80,8 @@ export function scheduleInstagram(ctx: Ctx, ws: string, input: { postIds: string
   const posts = [...new Set(input.postIds)].map(id => {
     const post = getRemotePost(ctx.db, ws, id)
     if (!post) throw new AppError('not_found', 'Post não encontrado neste workspace.')
+    if (!post.assetId) throw new AppError('invalid_input', 'Baixe o vídeo antes de agendar. O Instagram publica a cópia local.')
     const url = JSON.parse(getSetting(ctx.db, ws, `remoteMedia.${id}`) ?? '{}').videoUrl
-    if (!url) throw new AppError('invalid_input', 'Este post não possui URL de vídeo. Carregue a grade novamente.')
-    allowedUrl(url)
     const caption = input.captions?.[id] ?? input.caption ?? post.caption ?? ''
     if (caption.length > 2200) throw new AppError('invalid_input', 'Edite a legenda: o limite é de 2200 caracteres.')
     return { postId: id, videoUrl: url, caption, localAssetId: post.assetId }
@@ -89,7 +93,7 @@ export function scheduleInstagram(ctx: Ctx, ws: string, input: { postIds: string
   }))
 }
 export function scheduleComposition(ctx: Ctx, ws: string, input: { assetIds: string[]; accountId: string; accountRevision: string; firstAt: string; intervalMin: number; captions: Record<string,string>; cleanupAfterPublish: boolean; versionIds?: Record<string,string> }) {
- if(Object.values(input.versionIds ?? {}).some(Boolean)) throw new AppError('invalid_input','Capas e banners locais ainda não podem ser publicados com Instagram Login. Use o original online ou exporte para postagem manual.')
+ if(Object.values(input.versionIds ?? {}).some(Boolean)) throw new AppError('invalid_input','Capas e banners locais ainda não podem ser publicados com Instagram Login. Use o vídeo original da Biblioteca ou exporte para postagem manual.')
  const account=instagramAccount(ctx,ws)
  if (!account || account.id!==input.accountId || account.revision!==input.accountRevision) throw new AppError('invalid_input','O destino mudou. Atualize e revise a conta antes de confirmar.')
  const mapped=[...new Set(input.assetIds)].map(assetId=>{
@@ -100,42 +104,68 @@ export function scheduleComposition(ctx: Ctx, ws: string, input: { assetIds: str
  })
  return scheduleInstagram(ctx,ws,{postIds:mapped.map(p=>p.postId),captions:Object.fromEntries(mapped.map(p=>[p.postId,p.caption])),firstAt:input.firstAt,intervalMin:input.intervalMin,cleanupAfterPublish:input.cleanupAfterPublish})
 }
-export class InstagramPending extends AppError { retryAfterMs = 60_000; constructor() { super('internal', 'O Instagram ainda está preparando o vídeo. Nova consulta em um minuto.') } }
-export async function publishInstagram(ctx: Ctx, job: LeasedJob, requestApi = instagramJson) {
-  const payload = z.object({ postId: z.string(), videoUrl: z.string(), caption: z.string().max(2200), accountId: numericId, accountRevision: z.string(), cleanupAfterPublish: z.boolean().default(false), localAssetId: z.string().nullable().optional() }).parse(job.payload)
+export class InstagramPending extends AppError { constructor(public retryAfterMs = 60_000) { super('internal', 'O Instagram ainda está preparando o vídeo. Nova consulta em instantes.') } }
+export type PublishDeps = { host: MediaHost; prepare: (input: string, tmpDir: string) => Promise<PreparedCopy> }
+export const defaultPublishDeps = (): PublishDeps => ({ host: defaultMediaHost(), prepare: preparePublishCopy })
+const PUBLISH_FAILED = 'O Instagram não conseguiu processar o vídeo enviado pelo link temporário.'
+const quietly = (p: Promise<void>) => p.catch(() => {})
+
+export async function publishInstagram(ctx: Ctx, job: LeasedJob, requestApi = instagramJson, deps: PublishDeps = defaultPublishDeps()) {
+  const payload = z.object({ postId: z.string(), localAssetId: z.string().nullish(), caption: z.string().max(2200), accountId: numericId, accountRevision: z.string(), cleanupAfterPublish: z.boolean().default(false) }).parse(job.payload)
+  // Cleanup of stale exposures (any job) must never fail this publication.
+  await quietly(releaseExpired())
   const recorded = history(ctx, job.workspaceId).find(r => r.jobId === job.id)
   if (recorded) return { mediaId: recorded.mediaId, confirmedPublished: true, cleanupState: recorded.cleanupState }
   const account = instagramAccount(ctx, job.workspaceId)
   if (!account || account.id !== payload.accountId || account.revision !== payload.accountRevision) throw new AppError('invalid_input', 'A conta conectada mudou. Recrie o agendamento após revisar o destino.')
-  if (!getRemotePost(ctx.db, job.workspaceId, payload.postId)) throw new AppError('not_found', 'Post de origem removido.')
-  allowedUrl(payload.videoUrl)
-  const token = getSecret(ctx, job.workspaceId, 'instagramToken')!
-  const where = and(eq(jobs.workspaceId, job.workspaceId), eq(jobs.id, job.id))
-  const checkpoint = JSON.parse(ctx.db.select().from(jobs).where(where).get()?.resultJson ?? '{}') as { creating?: boolean; containerId?: string; publishing?: boolean; mediaId?: string }
+  const ws = job.workspaceId
+  const assetId = payload.localAssetId ?? (payload.postId ? getRemotePost(ctx.db, ws, payload.postId)?.assetId : null)
+  const asset = assetId ? getAsset(ctx.db, ws, assetId) : null
+  const token = getSecret(ctx, ws, 'instagramToken')!
+  const where = and(eq(jobs.workspaceId, ws), eq(jobs.id, job.id))
+  const checkpoint = JSON.parse(ctx.db.select().from(jobs).where(where).get()?.resultJson ?? '{}') as { creating?: boolean; containerId?: string; publishing?: boolean; mediaId?: string; hostId?: string; exposedAt?: string; failedContainers?: { id: string; status: string; at: string }[] }
   const save = () => ctx.db.update(jobs).set({ resultJson: JSON.stringify(checkpoint) }).where(where).run()
   const confirmed = async () => {
-    const recorded = await recordPublication(ctx, { workspaceId: job.workspaceId, jobId: job.id, accountId: account.id, username: account.username, postId: payload.postId, mediaId: checkpoint.mediaId, cleanup: payload.cleanupAfterPublish, cleanupAssetId: payload.localAssetId ?? null })
-    return { ...checkpoint, confirmedPublished: true, cleanupState: recorded.cleanupState }
+    await quietly(releaseExposure(job.id))
+    const row = await recordPublication(ctx, { workspaceId: ws, jobId: job.id, accountId: account.id, username: account.username, postId: payload.postId, mediaId: checkpoint.mediaId, cleanup: payload.cleanupAfterPublish, cleanupAssetId: asset?.id ?? null })
+    return { ...checkpoint, confirmedPublished: true, cleanupState: row.cleanupState }
+  }
+  // Retry after ERROR must create a fresh container; the failed one stays ERROR forever.
+  const failContainer = async (code?: string, terminal = 'ERROR'): Promise<never> => {
+    const legacy = !checkpoint.hostId
+    if (checkpoint.containerId) checkpoint.failedContainers = [...(checkpoint.failedContainers ?? []), { id: checkpoint.containerId, status: terminal, at: ctx.clock().toISOString() }].slice(-24)
+    await quietly(releaseExposure(job.id))
+    delete checkpoint.containerId; delete checkpoint.exposedAt; checkpoint.creating = false; save()
+    if (legacy && (terminal === 'ERROR' || terminal === 'EXPIRED')) throw new InstagramPending(15_000)
+    throw new AppError('invalid_input', `${PUBLISH_FAILED}${code ? ` (código Meta ${code})` : ''}`)
   }
   if (checkpoint.mediaId) return confirmed()
   if (!checkpoint.containerId) {
     if (checkpoint.creating) throw new AppError('invalid_input', 'Criação do vídeo sem confirmação. Confira o Instagram antes de recriar a tarefa.')
-    checkpoint.creating = true; save()
+    if (!asset || !existsSync(asset.filePath)) throw new AppError('invalid_input', 'Baixe ou importe o vídeo antes de publicar. O Instagram publica a cópia local.')
+    const tmpDir = publishTmpDir(ctx, ws)
+    const videoUrl = await exposeForJob(job.id, () => deps.prepare(asset.filePath, tmpDir), deps.host)
+    checkpoint.creating = true; checkpoint.hostId = deps.host.id; checkpoint.exposedAt = ctx.clock().toISOString(); save()
     let response: unknown
-    try { response = await requestApi(`${account.id}/media`, token, { media_type: 'REELS', video_url: payload.videoUrl, caption: payload.caption, share_to_feed: 'true' }) }
-    catch (e) { if (e instanceof InstagramApiError && e.status < 500) { checkpoint.creating = false; save() } throw e }
-    const container = z.object({ id: numericId }).parse(response)
-    checkpoint.containerId = container.id; save()
+    try { response = await requestApi(`${account.id}/media`, token, { media_type: 'REELS', video_url: videoUrl, caption: payload.caption, share_to_feed: 'true' }) }
+    catch (e) { if (e instanceof InstagramApiError && e.status < 500) { checkpoint.creating = false; save(); await quietly(releaseExposure(job.id)) } throw e }
+    checkpoint.containerId = z.object({ id: numericId }).parse(response).id; save()
   }
-  const status = z.object({ status_code: z.string() }).parse(await requestApi(`${numericId.parse(checkpoint.containerId)}?fields=status_code`, token))
+  const status = z.object({ status_code: z.string(), status: z.string().optional() }).parse(await requestApi(`${numericId.parse(checkpoint.containerId)}?fields=status_code,status`, token))
   if (status.status_code === 'PUBLISHED') return confirmed()
   if (checkpoint.publishing) throw new AppError('invalid_input', 'Publicação sem confirmação. Confira a conta; esta tarefa não enviará o vídeo novamente.')
-  if (status.status_code === 'IN_PROGRESS') throw new InstagramPending()
-  if (status.status_code !== 'FINISHED') throw new AppError('invalid_input', `O Instagram encerrou a preparação em ${status.status_code}. O link pode ter expirado ou o vídeo ser incompatível.`)
+  if (status.status_code === 'IN_PROGRESS') {
+    const started = checkpoint.exposedAt ? new Date(checkpoint.exposedAt).getTime() : ctx.clock().getTime()
+    if (ctx.clock().getTime() - started > SHARE_TTL_MS) return failContainer()
+    throw new InstagramPending(15_000)
+  }
+  // `status` carries Meta's subcode (e.g. "Error: 2207026"); it identifies the cause in the error reference.
+  if (status.status_code === 'ERROR' || status.status_code === 'EXPIRED') return failContainer(status.status?.match(/\d{4,}/)?.[0], status.status_code)
+  if (status.status_code !== 'FINISHED') throw new AppError('invalid_input', 'Estado de preparação desconhecido. A tarefa preservou o contêiner para revisão.')
+  await quietly(releaseExposure(job.id))
   checkpoint.publishing = true; save()
   let response: unknown
   try { response = await requestApi(`${account.id}/media_publish`, token, { creation_id: checkpoint.containerId }) }
   catch (e) { if (e instanceof InstagramApiError && e.status < 500) { checkpoint.publishing = false; save() } throw e }
-  const published = z.object({ id: numericId }).parse(response)
-  checkpoint.mediaId = published.id; save(); return confirmed()
+  checkpoint.mediaId = z.object({ id: numericId }).parse(response).id; save(); return confirmed()
 }

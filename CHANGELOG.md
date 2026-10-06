@@ -1,3 +1,10 @@
+# 0.7.1
+
+- Publicação Instagram usa MP4 local preparado e link HTTPS temporário, evitando os contêineres ERROR do CDN de origem.
+- Retentativas recuperam contêineres antigos ERROR/EXPIRED sem repetir publicações ambíguas.
+- Link e cópia temporários liberados após processamento, falha, timeout ou fechamento.
+- Agendamento pede download prévio e ações dos cards permanecem clicáveis.
+
 # 0.6.1
 
 - Prévias de capa, banner e grade; exportação manual com capa no primeiro frame, preservando o original e o áudio.
