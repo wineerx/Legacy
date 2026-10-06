@@ -70,4 +70,18 @@ describe('ProfilesPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Adicionar' }))
     expect(await screen.findByText('Link de reel inválido.')).toBeInTheDocument()
   })
+
+  it('Programar selecionados exige vídeo baixado', async () => {
+    const mk = (id: string, assetId: string | null) => ({ id, kind: 'remote', assetId, thumbnailPath: null, permalink: `https://www.instagram.com/reel/${id}/`, caption: id, postedAt: null, durationMs: 10_000, metrics: { views: 1, likes: 1, comments: 1 }, badges: [] })
+    mockBridge({
+      'profiles.list': () => [profile], 'profiles.downloadStatus': () => ({ configured: true }),
+      'accounts.instagram': () => ({ id: '123', revision: 'rev', username: 'destino', validatedAt: new Date().toISOString() }),
+      'grid.query': () => ({ items: [mk('p1', 'a1'), mk('p2', null)], total: 2, loadedNote: '' })
+    })
+    renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Selecionar página' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Programar selecionados' }))
+    expect(await screen.findByText('Baixe os vídeos selecionados antes de programar. O Instagram publica a cópia local.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Confirmar agendamento' })).toBeDisabled()
+  })
 })

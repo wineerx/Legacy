@@ -13,9 +13,9 @@ export function BatchReviewModal({ open, onOpenChange, items, captions, reminder
   useMascotSignal(open && !busy, 'approval', 'O lote aguarda sua revisão de destinos e horários.')
   return (
     <Modal open={open} onOpenChange={onOpenChange} title="Revisar lote"
-      description={`${items.length} vídeo(s) · destinos: ${[instagram && 'Instagram', tiktok && 'TikTok (manual)'].filter(Boolean).join(' e ') || 'nenhum'} · capa: ${coverName ? `${coverName} (1º frame)` : 'nenhuma'} · banner: ${bannerOn ? 'sim' : 'não'}${tiktok ? ` · metadados opcionais na exportação: ${stripMetadata ? 'removidos' : 'mantidos'}` : ''}`}
-      footer={<><Button disabled={busy} onClick={() => onOpenChange(false)}>Voltar</Button><Button variant="primary" loading={busy} disabledReason={blockReason} onClick={onConfirm}>{instagram && tiktok ? 'Confirmar destinos' : instagram ? 'Agendar no Instagram' : 'Preparar para TikTok'}</Button></>}>
-      {instagram && <div className="ds-summary mb-3"><strong>Instagram — @{instagram}</strong><p className="mt-1 text-xs">Primeira publicação: {delivery?.replace('T',' às ')} · {timeZone}. O PC precisa estar ligado e o Legacy aberto. A API confirma cada publicação na Fila.{coverName || bannerOn ? ' O vídeo editado é enviado deste computador.' : ''}</p></div>}
+      description={`${items.length} vídeo(s) · capa: ${coverName ?? 'nenhuma'} · banner: ${bannerOn ? 'sim' : 'não'}${tiktok ? ` · metadados opcionais na exportação: ${stripMetadata ? 'removidos' : 'mantidos'}` : ' · Instagram usa a cópia local'}`}
+      footer={<><Button disabled={busy} onClick={() => onOpenChange(false)}>Voltar</Button><Button variant="primary" loading={busy} disabledReason={blockReason} onClick={onConfirm}>{instagram ? 'Confirmar destinos' : 'Preparar para TikTok'}</Button></>}>
+      {instagram && <div className="ds-summary mb-3"><strong>Instagram — @{instagram}</strong><p className="mt-1 text-xs">Primeira publicação: {delivery?.replace('T',' às ')} · {timeZone}. O PC precisa estar ligado e o Legacy aberto. A API confirma cada publicação na Fila.</p></div>}
       <div className="mb-3 flex items-center gap-2"><LegacyMascot state={busy ? 'working' : 'approval'} size={48} decorative /><p className="text-sm text-dim">Confira o lote antes de continuar.</p></div>
       <ol className="flex flex-col gap-2">
         {items.map((it, i) => (
