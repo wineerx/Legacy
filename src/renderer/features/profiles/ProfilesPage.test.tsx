@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { mockBridge, renderWithApp, WS_ID } from '../../test-utils'
 import { ProfilesPage } from './ProfilesPage'
 
-const profile = { id: 'p1', username: 'zanon.boss', url: 'https://www.instagram.com/zanon.boss/', connected: false, lastSyncedAt: null }
+const profile = { platform: 'instagram', id: 'p1', username: 'zanon.boss', url: 'https://www.instagram.com/zanon.boss/', connected: false, lastSyncedAt: null }
 
 describe('ProfilesPage', () => {
   it('enfileira download com limite e perfil selecionado', async () => {
@@ -36,8 +36,8 @@ describe('ProfilesPage', () => {
     })
     renderWithApp(<ProfilesPage navigate={vi.fn()} />)
     await userEvent.type(await screen.findByLabelText('Link do perfil'), 'https://evil.com/x')
-    await userEvent.click(screen.getByRole('button', { name: 'Adicionar perfil' }))
-    expect(await screen.findByText(/Link do Instagram inválido/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Importar perfil' }))
+    expect((await screen.findAllByText(/Link do Instagram inválido/))[0]).toBeInTheDocument()
   })
 
   it('perfil não conectado explica limite e ordena por mais vistos', async () => {
@@ -84,4 +84,19 @@ describe('ProfilesPage', () => {
     expect(await screen.findByText('Baixe os vídeos selecionados antes de programar. O Instagram publica a cópia local.')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Confirmar agendamento' })).toBeDisabled()
   })
+})
+
+it('mostra progresso indeterminado, reabre resultado real e mantém erro da tarefa', async () => {
+  let progress: any = { jobId: 'job-progress', state: 'running', error: null, progress: { phase: 'searching', processed: 0, imported: 0, skipped: 0, previewFailures: 0, total: null, percent: null } }
+  mockBridge({ 'profiles.list': () => [profile], 'profiles.importProgress': () => progress, 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
+  renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+  await userEvent.click(await screen.findByRole('button', { name: 'Importar perfil' }))
+  expect(await screen.findByText('Buscando posts na Apify…')).toBeVisible()
+  expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+  await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
+  progress = { ...progress, state: 'failed', error: 'O provedor encerrou a busca.', progress: { phase: 'importing', processed: 32, total: 80, imported: 30, skipped: 2, previewFailures: 1, percent: 40 } }
+  await userEvent.click(screen.getByRole('button', { name: 'Importar perfil' }))
+  await waitFor(() => expect(screen.getByText('32 de 80 posts processados · 40%')).toBeVisible(), { timeout: 3500 })
+  expect(screen.getByText('O provedor encerrou a busca.')).toBeVisible()
+  expect(screen.getByRole('progressbar')).toHaveAttribute('value', '40')
 })

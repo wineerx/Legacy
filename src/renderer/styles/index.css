@@ -21,3 +21,24 @@ body { margin: 0; background: var(--color-app); color: var(--color-fg); font-fam
 .legacy-first-progress::-webkit-progress-bar { background: var(--color-raised); }
 .legacy-first-progress::-webkit-progress-value { background: var(--color-fg); }
 .legacy-first-progress::-moz-progress-bar { background: var(--color-fg); }
+
+.guest-entry { position: relative; display: flex; height: 100%; min-height: 480px; align-items: center; justify-content: center; overflow: hidden; background: #0a0a0a; }
+.guest-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 42% 60% at var(--glow-x, 50%) var(--glow-y, 0%), #1b3e714d, transparent 90%); transition: background-position .4s ease; }
+.number-field { display: flex; align-items: center; padding: 0; }
+.number-field:focus-within { outline: 2px solid #8ab4ff; outline-offset: 2px; }
+.number-field input { appearance: textfield; width: 100%; min-width: 0; height: 100%; padding: 0 .5rem; background: transparent; text-align: center; outline: none; }
+.number-field input::-webkit-inner-spin-button, .number-field input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+.number-field button { height: 100%; width: 2rem; flex-shrink: 0; display: grid; place-items: center; border-radius: inherit; }
+.number-field button:hover { background: var(--color-raised); }
+.number-field button:disabled { opacity: .35; cursor: not-allowed; }
+.publication-confetti { position: fixed; inset: 0; z-index: 60; pointer-events: none; overflow: hidden; }
+.publication-confetti i { position: absolute; top: -1rem; width: 6px; height: 10px; background: #a4c8ef; animation: confetti-drop 1.4s ease-out both; }
+@keyframes confetti-drop { to { transform: translateY(70vh) rotate(360deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .guest-glow { transition: none; background: radial-gradient(ellipse 42% 60% at 50% 0%, #1b3e714d, transparent 90%); } .publication-confetti { display: none; } }
+
+.date-picker { width: auto; --rdp-accent-color: var(--color-fg); --rdp-accent-background-color: var(--color-raised); --rdp-day-height: 34px; --rdp-day-width: 34px; --rdp-selected-border: 0; }
+.date-picker .rdp-selected .rdp-day_button { background: var(--color-fg); color: var(--color-app); border-radius: 8px; }
+
+.guest-entry .mascot-float { animation: none !important; }
+
+.number-field[data-invalid="true"] { border-color: var(--color-danger); }

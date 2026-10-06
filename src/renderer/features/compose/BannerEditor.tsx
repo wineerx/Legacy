@@ -17,8 +17,8 @@ export function BannerEditor({ value, onChange }: { value: BannerState; onChange
           <Input label="Texto do banner" value={value.spec.text} onChange={(e) => set({ spec: { ...value.spec, text: e.target.value } })} />
           <Pills label="Posição do banner" value={value.spec.position} onChange={(position) => set({ spec: { ...value.spec, position } })} options={[{ value: 'top', label: 'Topo' }, { value: 'center', label: 'Centro' }, { value: 'bottom', label: 'Base' }]} />
           <div className="flex gap-2">
-            <Input label="Início (s)" type="number" min={0} step={0.5} value={value.startS} onChange={(e) => set({ startS: Number(e.target.value) })} />
-            <Input label="Fim (s)" type="number" min={0.5} step={0.5} value={value.endS} onChange={(e) => set({ endS: Number(e.target.value) })} />
+            <Input label="Início (s)" type="number" min={0} step={0.5} value={value.startS} onChange={(e) => set({ startS: (e.target.value === '' ? NaN : Number(e.target.value)) })} />
+            <Input label="Fim (s)" type="number" min={0.5} step={0.5} value={value.endS} onChange={(e) => set({ endS: (e.target.value === '' ? NaN : Number(e.target.value)) })} />
           </div>
         </>
       )}

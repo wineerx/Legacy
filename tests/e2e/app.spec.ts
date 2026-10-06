@@ -18,6 +18,8 @@ test.beforeAll(async () => {
     env: { ...process.env, APIFY_TOKEN: '', LEGACY_DISABLE_DESKTOP_NOTIFICATIONS: '1', LEGACY_DATA_DIR: join(dataDir, 'data') }
   })
   page = await app.firstWindow()
+  await page.getByRole('button',{name:'Entrar como visitante',exact:true}).click()
+
 })
 test.afterAll(async () => { await app.close() })
 
@@ -43,7 +45,7 @@ test('importa vídeo e mostra card 9:16 com miniatura', async () => {
 test('perfil por link e reel guardado como referência', async () => {
   await page.getByRole('link', { name: 'Perfis' }).click()
   await page.getByLabel('Link do perfil').fill('instagram.com/perfil.teste')
-  await page.getByRole('button', { name: 'Adicionar perfil' }).click()
+  await page.getByRole('button', { name: 'Importar perfil' }).click()
   await expect(page.getByRole('heading', { name: '@perfil.teste' })).toBeVisible()
   await expect(page.getByText(/Busca e download de reels públicos via Apify/)).toBeVisible()
   await page.getByRole('button', { name: 'Adicionar link de reel' }).click()
@@ -178,6 +180,7 @@ test('modelos horizontais preenchem legenda base do editor', async () => {
   await page.getByRole('link', { name: 'Biblioteca' }).click()
   await page.getByRole('checkbox', { name: 'Selecionar clip.mp4' }).check()
   await page.getByRole('button', { name: 'Preparar lote', exact: true }).click()
+  await page.getByText('Modelos de legenda', { exact: true }).click()
   await page.getByRole('button', { name: 'Usar modelo', exact: true }).first().click()
   await expect(page.getByLabel('Legenda base')).toHaveValue(/Qual parte mais te representa/)
 })
@@ -207,9 +210,9 @@ test('desafios têm progresso real e filtros avançados recolhem', async () => {
   await page.screenshot({ path: 'docs/screens/qa-0.4/desafios-0.4.png' })
   await page.evaluate(async () => { const boot = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }; await window.legacy.invoke('profiles.add', { workspaceId: boot.data.workspaces[0].id, url: 'instagram.com/qa.filters' }) })
   await page.getByRole('link', { name: 'Perfis', exact: true }).click()
-  await expect(page.getByLabel('Mínimo de views')).toBeHidden()
+  await expect(page.getByLabel('Mínimo de views', { exact: true })).toBeHidden()
   await page.getByText('Filtros avançados', { exact: true }).click()
-  await expect(page.getByLabel('Mínimo de views')).toBeVisible()
+  await expect(page.getByLabel('Mínimo de views', { exact: true })).toBeVisible()
   await page.getByText('Filtros avançados', { exact: true }).click()
 })
 
@@ -248,7 +251,8 @@ test('Biblioteca mantém áudio AAC, detalhes e preferência de lista/banner', a
   await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
   await expect(page.getByRole('table')).toBeVisible()
   await expect(page.getByLabel('Exibir banner')).not.toBeChecked()
-  await page.screenshot({ path: 'docs/screens/qa-media/media-list.png', animations: 'disabled' })
+  mkdirSync('docs/screens/qa-ui-guest', { recursive: true })
+  await page.screenshot({ path: 'docs/screens/qa-ui-guest/media-list.png', animations: 'disabled' })
   await page.getByRole('button', { name: 'Visualização em grade' }).click()
 })
 

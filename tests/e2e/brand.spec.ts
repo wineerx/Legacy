@@ -14,6 +14,8 @@ test('identidade Legacy, personalização persistente e redução de movimento',
   })
   try {
     const page = await app.firstWindow()
+  await page.getByRole('button',{name:'Entrar como visitante',exact:true}).click()
+
     await page.emulateMedia({ reducedMotion: 'no-preference' })
     await expect(page.getByRole('heading', { name: 'Grandes ideias começam aqui.' })).toBeVisible()
     const mascotButton = page.getByRole('button', { name: 'Interagir com o mascote Legacy' })

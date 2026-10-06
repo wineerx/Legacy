@@ -32,20 +32,29 @@ import { jobDetails } from '../services/job-details'
 import { instagramAccount, connectInstagram, disconnectInstagram, scheduleInstagram, scheduleComposition, verifyInstagram } from '../services/instagram-publishing'
 import type { UpdateStatus } from '@shared/ipc-contract'
 import { achievements } from '../services/achievements'
-import { history } from '../services/publication-history'
+import { history, publicationFeedback, acknowledgePublications } from '../services/publication-history'
+import { createGuestSession } from '../services/guest-session'
+import { profileImportProgress } from '../services/profile-download'
 
 export interface Dialogs { pickVideos(): Promise<string[]>; pickImage(): Promise<string | null>; pickMetricsFile(): Promise<string | null>; saveVideo?(name: string): Promise<string | null>; pickStorageFolder?(): Promise<string | null> }
-export interface HandlerDeps { ctx: Ctx; dialogs: Dialogs; shell: { openPath(p: string): Promise<string> }; workerAlive(): boolean; version: string; onJobsChanged(workspaceId: string): void; vault?: SecretVault; onSecretsChanged?(): void; updates?: { status(): UpdateStatus; check(): Promise<UpdateStatus>; download(): Promise<UpdateStatus>; install(): void } }
+export interface HandlerDeps { session?: ReturnType<typeof createGuestSession>; ctx: Ctx; dialogs: Dialogs; shell: { openPath(p: string): Promise<string> }; workerAlive(): boolean; version: string; onJobsChanged(workspaceId: string): void; vault?: SecretVault; onSecretsChanged?(): void; updates?: { status(): UpdateStatus; check(): Promise<UpdateStatus>; download(): Promise<UpdateStatus>; install(): void } }
 
-const profileDto = (p: Profile) => ({ id: p.id, username: p.username, url: p.url, connected: p.connectedAccountId !== null, lastSyncedAt: p.lastSyncedAt })
+const profileDto = (p: Profile) => ({ platform: p.platform, id: p.id, username: p.username, url: p.url, connected: p.connectedAccountId !== null, lastSyncedAt: p.lastSyncedAt })
 const coverDto = (c: CoverTemplate) => ({ id: c.id, name: c.name, kind: c.kind, imagePath: c.imagePath, frameMs: c.frameMs, textJson: c.textJson })
 
 export function buildHandlers(deps: HandlerDeps): Handlers {
   const { ctx } = deps
+  const session = deps.session ?? createGuestSession(() => {})
   const vault = deps.vault ?? { available: () => false, encrypt: () => { throw new Error('Unavailable') }, decrypt: () => { throw new Error('Unavailable') } }
   const now = () => ctx.clock()
   const changed = <T>(workspaceId: string, v: T): T => { deps.onJobsChanged(workspaceId); return v }
   return {
+    'session.get': () => session.get(),
+    'session.enterGuest': () => session.enter(),
+    'session.exit': () => session.exit(),
+    'profiles.importProgress': i => { requireWorkspace(ctx, i.workspaceId); return profileImportProgress(ctx, i.workspaceId, i.profileId) },
+    'publications.feedback': i => { requireWorkspace(ctx, i.workspaceId); return publicationFeedback(ctx, i.workspaceId) },
+    'publications.acknowledge': i => { requireWorkspace(ctx, i.workspaceId); acknowledgePublications(ctx, i.workspaceId, i.ids); return null },
     'app.bootstrap': () => ({ workspaces: listWorkspaces(ctx.db).map(({ id, name, timeZone }) => ({ id, name, timeZone })), version: deps.version, workerAlive: deps.workerAlive(), dataDir: ctx.dataRoot }),
     'dashboard.get': (i) => dashboard(ctx, i.workspaceId),
     'achievements.get': (i) => ({ ...achievements(ctx, i.workspaceId), acknowledged: JSON.parse(getSetting(ctx.db, i.workspaceId, 'acknowledgedAchievements') ?? '[]') }),
@@ -69,7 +78,7 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
     'notifications.preferences': ({ workspaceId, ...preferences }) => { requireWorkspace(ctx, workspaceId); setSetting(ctx.db, workspaceId, 'notificationPreferences', JSON.stringify(preferences)); return null },
     'notifications.test': (i) => { requireWorkspace(ctx, i.workspaceId); addNotification(ctx.db, { workspaceId: i.workspaceId, kind: 'info', title: 'Notificações do Legacy', body: 'Esta é uma notificação de teste. O alerta do Windows depende das permissões do sistema e pode levar até 30 segundos.' }, now()); return changed(i.workspaceId, null) },
     'notifications.markAllRead': (i) => { markAllRead(ctx.db, i.workspaceId, now()); return null },
-    'workspaces.create': (i) => { const w = createWorkspace(ctx.db, i); return { id: w.id, name: w.name, timeZone: w.timeZone } },
+    'workspaces.create': (i) => { const w = createWorkspace(ctx.db, i); publicationFeedback(ctx, w.id); return { id: w.id, name: w.name, timeZone: w.timeZone } },
     'library.pickAndImport': async (i) => {
       const paths = await deps.dialogs.pickVideos()
       return paths.length ? changed(i.workspaceId, await importFiles(ctx, i.workspaceId, paths)) : []

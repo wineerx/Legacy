@@ -15,6 +15,12 @@ const coverText = z.object({
 
 export const contract = {
   'app.bootstrap': z.object({}),
+  'session.get': z.object({}),
+  'session.enterGuest': z.object({}),
+  'session.exit': z.object({}),
+  'profiles.importProgress': z.object({ workspaceId: ws, profileId: id }),
+  'publications.feedback': z.object({ workspaceId: ws }),
+  'publications.acknowledge': z.object({ workspaceId: ws, ids: z.array(id).max(100) }),
   'dashboard.get': z.object({ workspaceId: ws }),
   'achievements.get': z.object({ workspaceId: ws }),
   'achievements.acknowledge': z.object({ workspaceId: ws, ids: z.array(z.string().max(40)).max(30) }),
@@ -105,12 +111,20 @@ export type Input<C extends Channel> = z.infer<(typeof contract)[C]>
 
 export interface WorkspaceDto { id: string; name: string; timeZone: string }
 export interface ImportResultDto { path: string; status: 'imported' | 'duplicate' | 'rejected'; assetId?: string; errors: string[]; warnings: string[] }
-export interface ProfileDto { id: string; username: string; url: string; connected: boolean; lastSyncedAt: string | null }
+export interface GuestSessionDto { entered: boolean; email: 'guest@legacy.com'; mode: 'development' }
+export interface ImportProgress { phase: 'searching' | 'importing' | 'done'; processed: number; total: number | null; imported: number; skipped: number; previewFailures: number; percent: number | null }
+export interface ProfileDto { platform: string; id: string; username: string; url: string; connected: boolean; lastSyncedAt: string | null }
 export interface CoverDto { id: string; name: string; kind: 'image' | 'frame_text'; imagePath: string | null; frameMs: number | null; textJson: string | null }
 export interface NotificationDto { id: string; kind: 'info' | 'error' | 'manual_task'; title: string; body: string; actionJson: string | null; dueAt: string | null; readAt: string | null; createdAt: string }
 export interface OnboardingStepDto { key: string; label: string; done: boolean; disabledReason?: string }
 
 export interface Outputs {
+  'session.get': GuestSessionDto
+  'session.enterGuest': GuestSessionDto
+  'session.exit': GuestSessionDto
+  'profiles.importProgress': { jobId: string; state: string; error: string | null; progress: ImportProgress | null } | null
+  'publications.feedback': { jobId: string; username: string }[]
+  'publications.acknowledge': null
   'app.bootstrap': { workspaces: WorkspaceDto[]; version: string; workerAlive: boolean; dataDir: string }
   'dashboard.get': DashboardSummary
   'achievements.get': AchievementSummary & { acknowledged: string[] }

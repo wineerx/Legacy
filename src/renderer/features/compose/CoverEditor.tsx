@@ -32,10 +32,10 @@ export function CoverEditor({ workspaceId, covers, selectedId, onSelect }: { wor
           <Input label="Nome" value={name} onChange={(e) => setName(e.target.value)} />
           <Button onClick={() => createImage.mutate()}>Usar uma imagem (PNG/JPG)</Button>
           <p className="text-xs text-dim">ou um frame de cada vídeo com texto por cima:</p>
-          <Input label="Segundo do frame" type="number" min={0} step={0.5} value={frameS} onChange={(e) => setFrameS(Number(e.target.value))} />
+          <Input label="Segundo do frame" type="number" min={0} step={0.5} value={frameS} onChange={(e) => setFrameS((e.target.value === '' ? NaN : Number(e.target.value)))} />
           <Input label="Texto da capa" value={text.text} onChange={(e) => setText({ ...text, text: e.target.value })} placeholder="EP 1 — Treino de perna" />
           <Pills label="Posição do texto" value={text.position} onChange={(position) => setText({ ...text, position })} options={[{ value: 'top', label: 'Topo' }, { value: 'center', label: 'Centro' }, { value: 'bottom', label: 'Base' }]} />
-          <Button variant="primary" onClick={() => createFrame.mutate()}>Criar capa com frame e texto</Button>
+          <Button variant="primary" disabledReason={!Number.isFinite(frameS) || frameS < 0 ? 'Escolha um segundo válido para o frame.' : undefined} onClick={() => createFrame.mutate()}>Criar capa com frame e texto</Button>
         </div>
       </details>
     </section>

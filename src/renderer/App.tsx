@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient, useJobsChangedInvalidation } from './lib/query'
 import { WorkspaceProvider, useWorkspace } from './lib/workspace'
+import { GuestSessionProvider, useSession } from './lib/session'
+import { PublicationCelebration } from './features/achievements/PublicationCelebration'
 import { onEvent } from './lib/api'
 import { Sidebar } from './components/Sidebar'
 import { StatusBar } from './components/StatusBar'
@@ -14,6 +16,7 @@ import { MascotProvider, useMascot } from './components/brand/MascotProvider'
 function Shell() {
   useJobsChangedInvalidation()
   const { workspace, workspaces, setWorkspaceId } = useWorkspace()
+  const { navigation } = useSession()
   const [page, setPage] = useState<PageKey>('overview')
   const [collapsed, setCollapsed] = useState(()=>{try{return localStorage.getItem('legacy.sidebarCollapsed')==='true'}catch{return false}})
   const { unread } = useMascot()
@@ -22,6 +25,11 @@ function Shell() {
     if (typeof workspaceId === 'string' && workspaces.some((w) => w.id === workspaceId)) setWorkspaceId(workspaceId)
     if (typeof next === 'string' && Object.hasOwn(PAGES, next)) setPage(next as PageKey)
   }), [workspaces])
+  useEffect(() => {
+    if (!navigation) return
+    if (navigation.workspaceId && workspaces.some(w => w.id === navigation.workspaceId)) setWorkspaceId(navigation.workspaceId)
+    if (navigation.page && Object.hasOwn(PAGES, navigation.page)) setPage(navigation.page as PageKey)
+  }, [navigation, workspaces])
   const Page = PAGES[page]
   return (
     <TutorialProvider page={page} navigate={setPage}><div className="grid h-full min-w-0 grid-cols-[minmax(0,1fr)] grid-rows-[1fr_auto]">
@@ -31,6 +39,7 @@ function Shell() {
       </div>
       <StatusBar />
       <Celebration />
+      <PublicationCelebration />
     </div></TutorialProvider>
   )
 }
@@ -44,7 +53,7 @@ export function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ToastProvider>
-        <WorkspaceProvider><WorkspaceShell /></WorkspaceProvider>
+        <GuestSessionProvider><WorkspaceProvider><WorkspaceShell /></WorkspaceProvider></GuestSessionProvider>
       </ToastProvider>
     </QueryClientProvider>
   )

@@ -7,6 +7,8 @@ import { ensureDefaultWorkspace, listWorkspaces } from './repos/workspaces'
 import { getSetting } from './repos/settings'
 import { listJobs } from './queue/queue'
 import { startWorker } from './supervisor'
+import { publicationFeedback } from './services/publication-history'
+import { createGuestSession } from './services/guest-session'
 import { createDispatcher } from './ipc/dispatcher'
 import { buildHandlers } from './ipc/handlers'
 import { parseMediaUrl } from './media-protocol'
@@ -94,11 +96,13 @@ if (gotLock) {
     }
   })
 
-  const worker = startWorker({ dbPath: join(dataRoot, 'legacy.sqlite'), dataRoot, migrationsDir, ffmpegDir, credentials: () => secretSnapshot(ctx, vault), onEvent: (e) => send(EVENTS.jobsChanged, e) })
+  for (const workspace of listWorkspaces(db)) publicationFeedback(ctx, workspace.id)
+  const worker = startWorker({ initiallyPaused: true, dbPath: join(dataRoot, 'legacy.sqlite'), dataRoot, migrationsDir, ffmpegDir, credentials: () => secretSnapshot(ctx, vault), onEvent: (e) => send(EVENTS.jobsChanged, e) })
 
+  const session = createGuestSession(paused => worker.setPaused(paused))
   const updates = setupUpdates(electronUpdater.autoUpdater, app.isPackaged, () => listWorkspaces(db).some(w => listJobs(db, w.id, ['running']).length > 0), () => { quitting = true })
   const dispatch = createDispatcher(buildHandlers({
-    updates,
+    updates, session,
     ctx, vault, onSecretsChanged: () => worker.updateSecrets(), version: app.getVersion(), workerAlive: () => worker.isAlive(),
     onJobsChanged: (workspaceId) => send(EVENTS.jobsChanged, { workspaceId }),
     shell: { openPath: (p) => shell.openPath(p) },
@@ -110,7 +114,10 @@ if (gotLock) {
       pickMetricsFile: async () => (await dialog.showOpenDialog(win!, { title: 'Importar métricas', properties: ['openFile'], filters: [{ name: 'CSV ou JSON', extensions: ['csv', 'json'] }] })).filePaths[0] ?? null
     }
   }))
-  ipcMain.handle('legacy:invoke', (_e, channel: string, input: unknown) => dispatch(channel, input))
+  ipcMain.handle('legacy:invoke', (_e, channel: string, input: unknown) => {
+    if (!session.get().entered && !['app.bootstrap', 'session.get', 'session.enterGuest', 'session.exit', 'updates.status'].includes(channel)) return { ok: false, error: { code: 'invalid_input', message: 'Entre como visitante para continuar.' } }
+    return dispatch(channel, input)
+  })
 
   win = createWindow()
   tray = createTray(iconPath, () => win, () => { quitting = true; app.quit() })

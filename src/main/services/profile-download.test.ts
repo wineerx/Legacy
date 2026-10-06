@@ -12,7 +12,7 @@ import { leaseNext, listJobs } from '../queue/queue'
 import type { Ctx } from '../context'
 import { makeTestVideo } from '../media/test-fixtures'
 import { apifyJson, downloadVideo, downloadPreview } from './download-http'
-import { fetchProfile, requestProfileDownload, runReelDownload, requestSelectedDownloads } from './profile-download'
+import { profileImportProgress, fetchProfile, requestProfileDownload, runReelDownload, requestSelectedDownloads } from './profile-download'
 import { setVideoStorage } from './storage'
 
 vi.mock('./download-http', async (original) => ({ ...await original<typeof import('./download-http')>(), apifyJson: vi.fn(), downloadVideo: vi.fn(), downloadPreview: vi.fn() }))
@@ -123,4 +123,22 @@ describe('downloads de perfil', () => {
     await expect(fetchProfile(ctx, job)).rejects.toThrow(/Nenhum post/)
     expect(ctx.db.select().from(jobs).where(eq(jobs.type, 'download_reel')).all()).toHaveLength(0)
   })
+})
+
+it('progresso real preserva runId, resultados ignorados e falhas de prévia', async () => {
+  requestProfileDownload(ctx, ws, profileId, 100, true)
+  const job = leaseNext(ctx.db, ctx.clock(), 60000)!
+  const sample = { ...reel, displayUrl: 'https://scontent.cdninstagram.com/thumb.jpg' }
+  vi.mocked(apifyJson).mockResolvedValueOnce({ data: { id: 'run1', status: 'READY' } })
+    .mockImplementationOnce(async () => {
+      expect(profileImportProgress(ctx, ws, profileId)?.progress).toMatchObject({ phase: 'searching', total: null, percent: null })
+      return { data: { id: 'run1', status: 'SUCCEEDED', defaultDatasetId: 'ds1' } }
+    }).mockResolvedValueOnce([sample, { invalid: true }])
+  vi.mocked(downloadPreview).mockRejectedValueOnce(new Error('expired preview'))
+  await fetchProfile(ctx, job)
+  const result = profileImportProgress(ctx, ws, profileId)!
+  expect(result.progress).toEqual({ phase: 'done', total: 2, processed: 2, imported: 1, skipped: 1, previewFailures: 1, percent: 100 })
+  expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id, job.id)).get()!.resultJson!).runId).toBe('run1')
+  const other = createWorkspace(ctx.db, { name: 'Other', timeZone: 'UTC' }).id
+  expect(() => profileImportProgress(ctx, other, profileId)).toThrow(/Perfil não encontrado/)
 })

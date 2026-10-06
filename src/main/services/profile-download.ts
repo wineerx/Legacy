@@ -1,8 +1,9 @@
 import { mkdir, rm, rename } from 'node:fs/promises'
 import { randomUUID } from 'node:crypto'
-import { and, eq, inArray } from 'drizzle-orm'
+import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { AppError } from '@shared/errors'
+import type { ImportProgress } from '@shared/ipc-contract'
 import { normalizeInstagramUrl } from '@shared/instagram-url'
 import type { Ctx } from '../context'
 import { jobs, remotePosts, trackedProfiles } from '../db/schema'
@@ -13,129 +14,502 @@ import { getAsset } from '../repos/assets'
 import { addNotification } from '../repos/notifications'
 import { resolveInside, workspaceDir } from '../paths'
 import { importFiles } from './library'
-import { allowedUrl, apifyJson, downloadVideo, downloadPreview } from './download-http'
+import {
+  allowedUrl,
+  apifyJson,
+  downloadVideo,
+  downloadPreview
+} from './download-http'
 import { getSetting, setSetting } from '../repos/settings'
 import { probe } from '../media/probe'
 import { mergeAudio } from '../media/ops'
 import { getSecret, notificationPreferences } from './integrations'
 
 const remoteId = z.string().regex(/^[a-zA-Z0-9]+$/)
-const runSchema = z.object({ data: z.object({ id: remoteId, status: z.string(), defaultDatasetId: remoteId.optional() }) })
-const count = (n: unknown) => typeof n === 'number' && Number.isSafeInteger(n) && n >= 0 ? n : null
+const runSchema = z.object({
+  data: z.object({
+    id: remoteId,
+    status: z.string(),
+    defaultDatasetId: remoteId.optional()
+  })
+})
+const count = (n: unknown) =>
+  typeof n === 'number' && Number.isSafeInteger(n) && n >= 0 ? n : null
 export const reelSchema = z.object({
-  url: z.string(), audioUrl: z.string().optional(), videoUrl: z.string().optional(), displayUrl: z.string().optional(), type: z.string().optional(), videoDuration: z.number().optional(), id: z.string().optional(), caption: z.string().max(10000).optional(),
-  timestamp: z.string().optional(), videoViewCount: z.unknown().optional(), likesCount: z.unknown().optional(), commentsCount: z.unknown().optional()
+  url: z.string(),
+  audioUrl: z.string().optional(),
+  videoUrl: z.string().optional(),
+  displayUrl: z.string().optional(),
+  type: z.string().optional(),
+  videoDuration: z.number().optional(),
+  id: z.string().optional(),
+  caption: z.string().max(10000).optional(),
+  timestamp: z.string().optional(),
+  videoViewCount: z.unknown().optional(),
+  likesCount: z.unknown().optional(),
+  commentsCount: z.unknown().optional()
 })
 
-export function downloadConfigured(ctx: Ctx, ws: string): boolean { return Boolean(getSecret(ctx, ws, 'apifyToken')) }
+export function downloadConfigured(ctx: Ctx, ws: string): boolean {
+  return Boolean(getSecret(ctx, ws, 'apifyToken'))
+}
 function token(ctx: Ctx, ws: string): string {
   const value = getSecret(ctx, ws, 'apifyToken')
-  if (!value) throw new AppError('invalid_input', 'Cadastre a chave Apify na Visão geral ou configure APIFY_TOKEN no ambiente.')
+  if (!value)
+    throw new AppError(
+      'invalid_input',
+      'Cadastre a chave Apify na Visão geral ou configure APIFY_TOKEN no ambiente.'
+    )
   return value
 }
 
-export function requestProfileDownload(ctx: Ctx, workspaceId: string, profileId: string, limit: number, discovery = false) {
+export function requestProfileDownload(
+  ctx: Ctx,
+  workspaceId: string,
+  profileId: string,
+  limit: number,
+  discovery = false
+) {
   const profile = getProfile(ctx.db, workspaceId, profileId)
   if (!profile) throw new AppError('not_found', 'Perfil não encontrado.')
   token(ctx, workspaceId)
-  if (!Number.isInteger(limit) || limit < 1 || limit > (discovery ? 1000 : 100)) throw new AppError('invalid_input', discovery ? 'Escolha de 1 a 1000 posts.' : 'Escolha de 1 a 100 vídeos.')
-  const pending = ctx.db.select().from(jobs).where(and(eq(jobs.workspaceId, workspaceId), eq(jobs.type, 'fetch_profile'), inArray(jobs.state, ['queued', 'running']))).all()
-  const existing = pending.find((j) => JSON.parse(j.payloadJson).profileId === profileId)
-  if (existing) throw new AppError('duplicate', 'Já existe uma busca deste perfil na fila.')
-  return enqueue(ctx.db, { workspaceId, type: 'fetch_profile', payload: { profileId, limit, discovery }, label: `Carregar até ${limit} ${discovery ? 'posts/reels' : 'reels'} de @${profile.username}`, maxAttempts: 3 }, ctx.clock())
+  if (!Number.isInteger(limit) || limit < 1 || limit > (discovery ? 1000 : 100))
+    throw new AppError(
+      'invalid_input',
+      discovery ? 'Escolha de 1 a 1000 posts.' : 'Escolha de 1 a 100 vídeos.'
+    )
+  const pending = ctx.db
+    .select()
+    .from(jobs)
+    .where(
+      and(
+        eq(jobs.workspaceId, workspaceId),
+        eq(jobs.type, 'fetch_profile'),
+        inArray(jobs.state, ['queued', 'running'])
+      )
+    )
+    .all()
+  const existing = pending.find(
+    (j) => JSON.parse(j.payloadJson).profileId === profileId
+  )
+  if (existing)
+    throw new AppError('duplicate', 'Já existe uma busca deste perfil na fila.')
+  return enqueue(
+    ctx.db,
+    {
+      workspaceId,
+      type: 'fetch_profile',
+      payload: { profileId, limit, discovery },
+      label: `Carregar até ${limit} ${discovery ? 'posts/reels' : 'reels'} de @${profile.username}`,
+      maxAttempts: 3
+    },
+    ctx.clock()
+  )
+}
+
+export function profileImportProgress(ctx: Ctx, ws: string, profileId: string) {
+  if (!getProfile(ctx.db, ws, profileId))
+    throw new AppError('not_found', 'Perfil não encontrado.')
+  const job = ctx.db
+    .select()
+    .from(jobs)
+    .where(
+      and(
+        eq(jobs.workspaceId, ws),
+        eq(jobs.type, 'fetch_profile'),
+        sql`json_extract(${jobs.payloadJson}, '$.profileId') = ${profileId}`
+      )
+    )
+    .orderBy(desc(jobs.createdAt), desc(jobs.id))
+    .limit(1)
+    .get()
+  if (!job) return null
+  const checkpoint = job.resultJson ? JSON.parse(job.resultJson) : {}
+  return {
+    jobId: job.id,
+    state: job.state,
+    error: job.lastError,
+    progress: (checkpoint.progress ?? null) as ImportProgress | null
+  }
 }
 
 export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
-  const { profileId, limit, discovery } = z.object({ profileId: z.string(), limit: z.number().int().min(1).max(1000), discovery: z.boolean().default(false) }).parse(job.payload)
-  if (!discovery && limit > 100) throw new AppError('invalid_input', 'O download está limitado a 100 vídeos por busca.')
+  const { profileId, limit, discovery } = z
+    .object({
+      profileId: z.string(),
+      limit: z.number().int().min(1).max(1000),
+      discovery: z.boolean().default(false)
+    })
+    .parse(job.payload)
+  if (!discovery && limit > 100)
+    throw new AppError(
+      'invalid_input',
+      'O download está limitado a 100 vídeos por busca.'
+    )
   const profile = getProfile(ctx.db, job.workspaceId, profileId)
   if (!profile) throw new AppError('not_found', 'Perfil não encontrado.')
   const key = token(ctx, job.workspaceId)
-  const condition = and(eq(jobs.workspaceId, job.workspaceId), eq(jobs.id, job.id))
+  const condition = and(
+    eq(jobs.workspaceId, job.workspaceId),
+    eq(jobs.id, job.id)
+  )
   const saved = ctx.db.select().from(jobs).where(condition).get()?.resultJson
-  let checkpoint: { starting?: boolean; runId?: string } = saved ? JSON.parse(saved) : {}
+  let checkpoint: {
+    starting?: boolean
+    runId?: string
+    progress?: ImportProgress
+  } = saved ? JSON.parse(saved) : {}
+  let processed = 0,
+    imported = 0,
+    previewFailures = 0
+  let total: number | null = null
+  let skipped = 0
+  let lastProgress = 0
+  const saveProgress = (phase: ImportProgress['phase'], force = false) => {
+    if (!force && Date.now() - lastProgress < 1000) return
+    lastProgress = Date.now()
+    checkpoint.progress = {
+      phase,
+      processed,
+      total,
+      imported,
+      skipped,
+      previewFailures,
+      percent:
+        total === null
+          ? null
+          : total === 0
+            ? 0
+            : Math.floor((processed / total) * 100)
+    }
+    ctx.db
+      .update(jobs)
+      .set({ resultJson: JSON.stringify(checkpoint) })
+      .where(condition)
+      .run()
+  }
+  saveProgress('searching', true)
   if (!checkpoint.runId) {
-    if (checkpoint.starting) throw new AppError('invalid_input', 'A criação da execução Apify ficou sem confirmação. Confira o console Apify antes de iniciar uma nova busca; esta tarefa não será reenviada automaticamente.')
-    ctx.db.update(jobs).set({ resultJson: JSON.stringify({ starting: true }) }).where(condition).run()
-    const run = runSchema.parse(await apifyJson(`actors/apify~instagram-${discovery ? 'scraper' : 'reel-scraper'}/runs?timeout=600`, key, discovery ? {
-      directUrls: [profile.url], resultsType: 'posts', resultsLimit: limit
-    } : { username: [profile.url], resultsLimit: limit, includeDownloadedVideo: false })).data
-    checkpoint = { runId: run.id }
-    ctx.db.update(jobs).set({ resultJson: JSON.stringify(checkpoint) }).where(condition).run()
+    if (checkpoint.starting)
+      throw new AppError(
+        'invalid_input',
+        'A criação da execução Apify ficou sem confirmação. Confira o console Apify antes de iniciar uma nova busca; esta tarefa não será reenviada automaticamente.'
+      )
+    ctx.db
+      .update(jobs)
+      .set({ resultJson: JSON.stringify({ ...checkpoint, starting: true }) })
+      .where(condition)
+      .run()
+    const run = runSchema.parse(
+      await apifyJson(
+        `actors/apify~instagram-${discovery ? 'scraper' : 'reel-scraper'}/runs?timeout=600`,
+        key,
+        discovery
+          ? {
+              directUrls: [profile.url],
+              resultsType: 'posts',
+              resultsLimit: limit
+            }
+          : {
+              username: [profile.url],
+              resultsLimit: limit,
+              includeDownloadedVideo: false
+            }
+      )
+    ).data
+    checkpoint = { ...checkpoint, starting: false, runId: run.id }
+    ctx.db
+      .update(jobs)
+      .set({ resultJson: JSON.stringify(checkpoint) })
+      .where(condition)
+      .run()
   }
   let dataset: string | undefined
   for (let attempt = 0; attempt < 12; attempt++) {
-    const run = runSchema.parse(await apifyJson(`actor-runs/${remoteId.parse(checkpoint.runId)}?waitForFinish=60`, key)).data
-    if (run.status === 'SUCCEEDED') { dataset = run.defaultDatasetId; break }
-    if (!['READY', 'RUNNING'].includes(run.status)) throw new AppError('invalid_input', `A busca Apify terminou em ${run.status}. Consulte o provedor e inicie uma nova busca.`)
+    const run = runSchema.parse(
+      await apifyJson(
+        `actor-runs/${remoteId.parse(checkpoint.runId)}?waitForFinish=60`,
+        key
+      )
+    ).data
+    if (run.status === 'SUCCEEDED') {
+      dataset = run.defaultDatasetId
+      break
+    }
+    if (!['READY', 'RUNNING'].includes(run.status))
+      throw new AppError(
+        'invalid_input',
+        `A busca Apify terminou em ${run.status}. Consulte o provedor e inicie uma nova busca.`
+      )
   }
-  if (!dataset) throw new AppError('internal', 'A busca ainda não terminou. A próxima tentativa consultará a mesma execução.')
+  if (!dataset)
+    throw new AppError(
+      'internal',
+      'A busca ainda não terminou. A próxima tentativa consultará a mesma execução.'
+    )
   const items: unknown[] = []
   for (let offset = 0; offset < limit; offset += 100) {
     const pageSize = Math.min(100, limit - offset)
-    const page = z.array(z.unknown()).max(pageSize).parse(await apifyJson(`datasets/${dataset}/items?clean=true&limit=${pageSize}&offset=${offset}`, key))
+    const page = z
+      .array(z.unknown())
+      .max(pageSize)
+      .parse(
+        await apifyJson(
+          `datasets/${dataset}/items?clean=true&limit=${pageSize}&offset=${offset}`,
+          key
+        )
+      )
     items.push(...page)
     if (page.length < pageSize) break
   }
   let queued = 0
-  let skipped = 0
+  total = items.length
+  saveProgress('importing', true)
   for (const item of items) {
-    const parsed = reelSchema.safeParse(item)
-    if (!parsed.success) { skipped++; continue }
-    const reel = parsed.data
-    let ref: ReturnType<typeof normalizeInstagramUrl>
-    try { if (reel.audioUrl) allowedUrl(reel.audioUrl); if (reel.videoUrl) allowedUrl(reel.videoUrl); else if (!discovery) throw new Error('No video'); ref = normalizeInstagramUrl(reel.url) } catch { skipped++; continue }
-    if (ref.kind === 'profile') { skipped++; continue }
-    const post = addReelLink(ctx, job.workspaceId, profileId, ref.url)
-    if (post.profileId !== profileId) { skipped++; continue }
-    const timestamp = reel.timestamp && Number.isFinite(Date.parse(reel.timestamp)) ? new Date(reel.timestamp).toISOString() : null
-    ctx.db.update(remotePosts).set({
-      remoteId: reel.id ?? null, caption: reel.caption ?? null, postedAt: timestamp, mediaProductType: reel.videoUrl ? 'VIDEO' : reel.type === 'Sidecar' ? 'CAROUSEL' : 'IMAGE',
-      views: count(reel.videoViewCount), likes: count(reel.likesCount), comments: count(reel.commentsCount),
-      metricsSource: 'api', metricsUpdatedAt: ctx.clock().toISOString()
-    }).where(and(eq(remotePosts.workspaceId, job.workspaceId), eq(remotePosts.id, post.id))).run()
-    setSetting(ctx.db, job.workspaceId, `remoteMedia.${post.id}`, JSON.stringify({ videoUrl: reel.videoUrl ?? null, audioUrl: reel.audioUrl ?? null, type: reel.type ?? (reel.videoUrl ? 'Video' : 'Image') }))
-    if (reel.displayUrl) {
-      const previewDir = resolveInside(workspaceDir(ctx.dataRoot, job.workspaceId), 'previews')
-      await mkdir(previewDir, { recursive: true })
-      const preview = resolveInside(previewDir, `${post.id}.jpg`)
+    try {
+      const parsed = reelSchema.safeParse(item)
+      if (!parsed.success) {
+        skipped++
+        continue
+      }
+      const reel = parsed.data
+      let ref: ReturnType<typeof normalizeInstagramUrl>
       try {
-        await downloadPreview(reel.displayUrl, preview)
-        ctx.db.update(remotePosts).set({ thumbnailPath: preview, durationMs: reel.videoDuration ? Math.round(reel.videoDuration * 1000) : post.durationMs }).where(and(eq(remotePosts.workspaceId, job.workspaceId), eq(remotePosts.id, post.id))).run()
-      } catch { /* Keep metadata when preview is unavailable. */ }
+        if (reel.audioUrl) allowedUrl(reel.audioUrl)
+        if (reel.videoUrl) allowedUrl(reel.videoUrl)
+        else if (!discovery) throw new Error('No video')
+        ref = normalizeInstagramUrl(reel.url)
+      } catch {
+        skipped++
+        continue
+      }
+      if (ref.kind === 'profile') {
+        skipped++
+        continue
+      }
+      const post = addReelLink(ctx, job.workspaceId, profileId, ref.url)
+      if (post.profileId !== profileId) {
+        skipped++
+        continue
+      }
+      const timestamp =
+        reel.timestamp && Number.isFinite(Date.parse(reel.timestamp))
+          ? new Date(reel.timestamp).toISOString()
+          : null
+      ctx.db
+        .update(remotePosts)
+        .set({
+          remoteId: reel.id ?? null,
+          caption: reel.caption ?? null,
+          postedAt: timestamp,
+          mediaProductType: reel.videoUrl
+            ? 'VIDEO'
+            : reel.type === 'Sidecar'
+              ? 'CAROUSEL'
+              : 'IMAGE',
+          views: count(reel.videoViewCount),
+          likes: count(reel.likesCount),
+          comments: count(reel.commentsCount),
+          metricsSource: 'api',
+          metricsUpdatedAt: ctx.clock().toISOString()
+        })
+        .where(
+          and(
+            eq(remotePosts.workspaceId, job.workspaceId),
+            eq(remotePosts.id, post.id)
+          )
+        )
+        .run()
+      setSetting(
+        ctx.db,
+        job.workspaceId,
+        `remoteMedia.${post.id}`,
+        JSON.stringify({
+          videoUrl: reel.videoUrl ?? null,
+          audioUrl: reel.audioUrl ?? null,
+          type: reel.type ?? (reel.videoUrl ? 'Video' : 'Image')
+        })
+      )
+      imported++
+      if (reel.displayUrl) {
+        const previewDir = resolveInside(
+          workspaceDir(ctx.dataRoot, job.workspaceId),
+          'previews'
+        )
+        await mkdir(previewDir, { recursive: true })
+        const preview = resolveInside(previewDir, `${post.id}.jpg`)
+        try {
+          await downloadPreview(reel.displayUrl, preview)
+          ctx.db
+            .update(remotePosts)
+            .set({
+              thumbnailPath: preview,
+              durationMs: reel.videoDuration
+                ? Math.round(reel.videoDuration * 1000)
+                : post.durationMs
+            })
+            .where(
+              and(
+                eq(remotePosts.workspaceId, job.workspaceId),
+                eq(remotePosts.id, post.id)
+              )
+            )
+            .run()
+        } catch {
+          previewFailures++ /* Keep metadata when preview is unavailable. */
+        }
+      }
+      if (
+        discovery ||
+        (post.assetId && getAsset(ctx.db, job.workspaceId, post.assetId))
+      )
+        continue
+      enqueue(
+        ctx.db,
+        {
+          workspaceId: job.workspaceId,
+          type: 'download_reel',
+          payload: {
+            postId: post.id,
+            videoUrl: reel.videoUrl,
+            audioUrl: reel.audioUrl,
+            batchId: job.id
+          },
+          label: `Baixar reel ${ref.code} de @${profile.username}`,
+          idempotencyKey: `download:${job.workspaceId}:${job.id}:${post.id}`,
+          maxAttempts: 3
+        },
+        ctx.clock()
+      )
+      queued++
+    } finally {
+      processed++
+      saveProgress('importing', processed === total)
     }
-    if (discovery || (post.assetId && getAsset(ctx.db, job.workspaceId, post.assetId))) continue
-    enqueue(ctx.db, {
-      workspaceId: job.workspaceId, type: 'download_reel', payload: { postId: post.id, videoUrl: reel.videoUrl, audioUrl: reel.audioUrl, batchId: job.id },
-      label: `Baixar reel ${ref.code} de @${profile.username}`, idempotencyKey: `download:${job.workspaceId}:${job.id}:${post.id}`, maxAttempts: 3
-    }, ctx.clock())
-    queued++
   }
-  if (!items.length || skipped === items.length) throw new AppError('invalid_input', 'Nenhum post disponível. O perfil pode estar privado, vazio ou bloqueado pelo provedor.')
-  ctx.db.update(trackedProfiles).set({ lastSyncedAt: ctx.clock().toISOString() }).where(and(eq(trackedProfiles.workspaceId, job.workspaceId), eq(trackedProfiles.id, profileId))).run()
-  if (notificationPreferences(ctx, job.workspaceId).completed) addNotification(ctx.db, { workspaceId: job.workspaceId, kind: 'info', title: `Busca de @${profile.username} concluída`, body: `${queued} downloads na fila; ${skipped} resultados indisponíveis. Acompanhe cada arquivo na Fila.`, actionJson: JSON.stringify({ type: 'open_queue', jobId: job.id, groupId: job.id, category: 'download' }) }, ctx.clock())
+  if (!items.length || skipped === items.length)
+    throw new AppError(
+      'invalid_input',
+      'Nenhum post disponível. O perfil pode estar privado, vazio ou bloqueado pelo provedor.'
+    )
+  saveProgress('done', true)
+  ctx.db
+    .update(trackedProfiles)
+    .set({ lastSyncedAt: ctx.clock().toISOString() })
+    .where(
+      and(
+        eq(trackedProfiles.workspaceId, job.workspaceId),
+        eq(trackedProfiles.id, profileId)
+      )
+    )
+    .run()
+  if (notificationPreferences(ctx, job.workspaceId).completed)
+    addNotification(
+      ctx.db,
+      {
+        workspaceId: job.workspaceId,
+        kind: 'info',
+        title: `Busca de @${profile.username} concluída`,
+        body: `${queued} downloads na fila; ${skipped} resultados indisponíveis. Acompanhe cada arquivo na Fila.`,
+        actionJson: JSON.stringify({
+          type: 'open_queue',
+          jobId: job.id,
+          groupId: job.id,
+          category: 'download'
+        })
+      },
+      ctx.clock()
+    )
   return { ...checkpoint, queued, skipped }
 }
 
-export function requestSelectedDownloads(ctx: Ctx, ws: string, postIds: string[]) {
-  const posts = postIds.map(id => getRemotePost(ctx.db, ws, id))
-  if (posts.some(p => !p)) throw new AppError('not_found', 'Post não encontrado neste workspace.')
-  const media = posts.map(p => ({ post: p!, url: JSON.parse(getSetting(ctx.db, ws, `remoteMedia.${p!.id}`) ?? '{}').videoUrl as string | undefined, audioUrl: JSON.parse(getSetting(ctx.db, ws, `remoteMedia.${p!.id}`) ?? '{}').audioUrl as string | undefined }))
-  for (const p of media) if (!p.post.assetId) { if (!p.url) throw new AppError('invalid_input', 'Selecione somente vídeos com URL disponível.'); allowedUrl(p.url); if (p.audioUrl) allowedUrl(p.audioUrl) }
+export function requestSelectedDownloads(
+  ctx: Ctx,
+  ws: string,
+  postIds: string[]
+) {
+  const posts = postIds.map((id) => getRemotePost(ctx.db, ws, id))
+  if (posts.some((p) => !p))
+    throw new AppError('not_found', 'Post não encontrado neste workspace.')
+  const media = posts.map((p) => ({
+    post: p!,
+    url: JSON.parse(getSetting(ctx.db, ws, `remoteMedia.${p!.id}`) ?? '{}')
+      .videoUrl as string | undefined,
+    audioUrl: JSON.parse(getSetting(ctx.db, ws, `remoteMedia.${p!.id}`) ?? '{}')
+      .audioUrl as string | undefined
+  }))
+  for (const p of media)
+    if (!p.post.assetId) {
+      if (!p.url)
+        throw new AppError(
+          'invalid_input',
+          'Selecione somente vídeos com URL disponível.'
+        )
+      allowedUrl(p.url)
+      if (p.audioUrl) allowedUrl(p.audioUrl)
+    }
   const batchId = randomUUID()
-  return ctx.db.transaction(() => media.filter(p => !p.post.assetId).map(p => enqueue(ctx.db, { workspaceId: ws, type: 'download_reel', payload: { postId: p.post.id, videoUrl: p.url, audioUrl: p.audioUrl, batchId }, label: `Baixar vídeo selecionado ${p.post.id.slice(0, 8)}`, idempotencyKey: `selected:${ws}:${p.post.id}:${ctx.clock().getTime()}`, maxAttempts: 3 }, ctx.clock())))
+  return ctx.db.transaction(() =>
+    media
+      .filter((p) => !p.post.assetId)
+      .map((p) =>
+        enqueue(
+          ctx.db,
+          {
+            workspaceId: ws,
+            type: 'download_reel',
+            payload: {
+              postId: p.post.id,
+              videoUrl: p.url,
+              audioUrl: p.audioUrl,
+              batchId
+            },
+            label: `Baixar vídeo selecionado ${p.post.id.slice(0, 8)}`,
+            idempotencyKey: `selected:${ws}:${p.post.id}:${ctx.clock().getTime()}`,
+            maxAttempts: 3
+          },
+          ctx.clock()
+        )
+      )
+  )
 }
 
-export function selectedAssets(ctx: Ctx, ws: string, postIds: string[]): string[] {
-  return postIds.map(id => { const post = getRemotePost(ctx.db, ws, id); if (!post?.assetId || !getAsset(ctx.db, ws, post.assetId)) throw new AppError('invalid_input', 'Baixe os vídeos selecionados antes de editar o lote.'); return post.assetId })
+export function selectedAssets(
+  ctx: Ctx,
+  ws: string,
+  postIds: string[]
+): string[] {
+  return postIds.map((id) => {
+    const post = getRemotePost(ctx.db, ws, id)
+    if (!post?.assetId || !getAsset(ctx.db, ws, post.assetId))
+      throw new AppError(
+        'invalid_input',
+        'Baixe os vídeos selecionados antes de editar o lote.'
+      )
+    return post.assetId
+  })
 }
 
-export async function runReelDownload(ctx: Ctx, job: LeasedJob): Promise<unknown> {
-  const { postId, videoUrl, audioUrl } = z.object({ postId: z.string(), videoUrl: z.string(), audioUrl: z.string().nullish() }).parse(job.payload)
+export async function runReelDownload(
+  ctx: Ctx,
+  job: LeasedJob
+): Promise<unknown> {
+  const { postId, videoUrl, audioUrl } = z
+    .object({
+      postId: z.string(),
+      videoUrl: z.string(),
+      audioUrl: z.string().nullish()
+    })
+    .parse(job.payload)
   const post = getRemotePost(ctx.db, job.workspaceId, postId)
   if (!post) throw new AppError('not_found', 'Reel não encontrado.')
-  if (post.assetId && getAsset(ctx.db, job.workspaceId, post.assetId)) return { assetId: post.assetId }
-  const dir = resolveInside(workspaceDir(ctx.dataRoot, job.workspaceId), 'downloads', job.id)
+  if (post.assetId && getAsset(ctx.db, job.workspaceId, post.assetId))
+    return { assetId: post.assetId }
+  const dir = resolveInside(
+    workspaceDir(ctx.dataRoot, job.workspaceId),
+    'downloads',
+    job.id
+  )
   const file = resolveInside(dir, `${post.id}.mp4`)
   await mkdir(dir, { recursive: true })
   try {
@@ -152,13 +526,38 @@ export async function runReelDownload(ctx: Ctx, job: LeasedJob): Promise<unknown
         await mergeAudio(file, audio, merged)
         await rm(file, { force: true })
         await rename(merged, file)
-      } finally { await rm(audio, { force: true }); await rm(merged, { force: true }) }
+      } finally {
+        await rm(audio, { force: true })
+        await rm(merged, { force: true })
+      }
     }
-    const [result] = await importFiles(ctx, job.workspaceId, [file], { origin: 'ig_third_party', rightsNote: `Apify; origem: ${post.permalink}` })
-    if (!result.assetId) throw new AppError('invalid_media', result.errors.join(' ') || 'Vídeo inválido.')
+    const [result] = await importFiles(ctx, job.workspaceId, [file], {
+      origin: 'ig_third_party',
+      rightsNote: `Apify; origem: ${post.permalink}`
+    })
+    if (!result.assetId)
+      throw new AppError(
+        'invalid_media',
+        result.errors.join(' ') || 'Vídeo inválido.'
+      )
     ctx.db.transaction(() => {
-      ctx.db.update(remotePosts).set({ assetId: result.assetId, durationMs: getAsset(ctx.db, job.workspaceId, result.assetId!)!.durationMs }).where(and(eq(remotePosts.workspaceId, job.workspaceId), eq(remotePosts.id, postId))).run()
+      ctx.db
+        .update(remotePosts)
+        .set({
+          assetId: result.assetId,
+          durationMs: getAsset(ctx.db, job.workspaceId, result.assetId!)!
+            .durationMs
+        })
+        .where(
+          and(
+            eq(remotePosts.workspaceId, job.workspaceId),
+            eq(remotePosts.id, postId)
+          )
+        )
+        .run()
     })
     return { assetId: result.assetId, status: result.status }
-  } finally { await rm(file, { force: true }) }
+  } finally {
+    await rm(file, { force: true })
+  }
 }

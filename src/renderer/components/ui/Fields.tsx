@@ -1,4 +1,4 @@
-import { useId, type InputHTMLAttributes, type SelectHTMLAttributes, type TextareaHTMLAttributes, type ReactNode } from 'react'
+import { useId, type InputHTMLAttributes, type TextareaHTMLAttributes, type ReactNode } from 'react'
 import { LoaderCircle, Search } from 'lucide-react'
 import { cx } from './cx'
 import { Input } from './Input'
@@ -11,9 +11,7 @@ export function Checkbox({ label, description, error, className, ...props }: Inp
 export function Radio({ label, description, ...props }: InputHTMLAttributes<HTMLInputElement> & { label: string; description?: string }) {
  const id = useId(); return <label htmlFor={id} className={cx('ds-choice',props.checked && 'ds-selected',props.disabled && 'opacity-50')}><input {...props} type="radio" id={id} /><span><span className="font-medium">{label}</span>{description && <span className="mt-1 block text-xs text-dim">{description}</span>}</span></label>
 }
-export function Select({ label, error, children, className, ...props }: SelectHTMLAttributes<HTMLSelectElement> & { label: string; error?: string; children: ReactNode }) {
- const id = useId(); return <div className="grid gap-1.5"><label className="text-xs text-dim" htmlFor={id}>{label}</label><select {...props} id={id} aria-invalid={!!error || undefined} aria-describedby={error ? `${id}-err` : undefined} className={cx('ds-field',className)}>{children}</select>{error && <p id={`${id}-err`} className="text-xs text-danger-fg">{error}</p>}</div>
-}
+export { Select } from './Select'
 export function Textarea({ label, error, className, ...props }: TextareaHTMLAttributes<HTMLTextAreaElement> & { label: string; error?: string }) {
  const id = useId();return <div className="grid gap-1.5"><label htmlFor={id} className="text-xs text-dim">{label}</label><textarea {...props} id={id} aria-invalid={!!error || undefined} aria-describedby={error ? `${id}-err` : undefined} className={cx('ds-field min-h-24 resize-y',className)} />{error && <p id={`${id}-err`} className="text-xs text-danger-fg">{error}</p>}</div>
 }

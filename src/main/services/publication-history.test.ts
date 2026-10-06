@@ -12,7 +12,7 @@ import { addReelLink } from '../repos/remote-posts'
 import { insertAsset, getAsset } from '../repos/assets'
 import { remotePosts } from '../db/schema'
 import { enqueue } from '../queue/queue'
-import { recordPublication, history } from './publication-history'
+import { publicationFeedback, acknowledgePublications, recordPublication, history } from './publication-history'
 import { achievements } from './achievements'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import { MIGRATIONS_DIR } from '../test-utils'
@@ -64,4 +64,17 @@ it('migração recupera publicações confirmadas antigas sem contar falhas', ()
 it('limpeza não remove arquivo baixado depois do agendamento', async () => {
   const r = await recordPublication(ctx, { workspaceId: ws, jobId: 'remote-only', accountId: '123', username: 'owner', postId, cleanup: true, cleanupAssetId: null })
   expect(r.cleanupState).toBe('no_local_copy'); expect(getAsset(ctx.db, ws, 'asset')).not.toBeNull()
+})
+
+it('feedback ignora histórico anterior, exige confirmação e persiste reconhecimento', async () => {
+  await record()
+  expect(publicationFeedback(ctx, ws)).toEqual([])
+  enqueue(ctx.db, { workspaceId: ws, type: 'export_tiktok', label: 'Exportado manualmente', payload: {} }, ctx.clock())
+  expect(publicationFeedback(ctx, ws)).toEqual([])
+  await recordPublication(ctx, { workspaceId: ws, jobId: 'new-confirmed', accountId: '123', username: 'owner', postId })
+  expect(publicationFeedback(ctx, ws)).toEqual([{ jobId: 'new-confirmed', username: 'owner' }])
+  acknowledgePublications(ctx, ws, ['not-confirmed'])
+  expect(publicationFeedback(ctx, ws)).toHaveLength(1)
+  acknowledgePublications(ctx, ws, ['new-confirmed'])
+  expect(publicationFeedback(ctx, ws)).toEqual([])
 })

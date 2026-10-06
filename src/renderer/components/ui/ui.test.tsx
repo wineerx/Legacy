@@ -1,3 +1,4 @@
+import { profileInitials } from './UserAvatar'
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, act, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -104,4 +105,10 @@ describe('EmptyState', () => {
     expect(screen.getByRole('heading', { name: 'Comece pela biblioteca' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Importar vídeos' })).toBeInTheDocument()
   })
+})
+
+it('iniciais ignoram símbolos do nome e identificam usuários locais', () => {
+ expect(profileInitials('∝winner')).toBe('WN')
+ expect(profileInitials('Eduardo Ximenes')).toBe('EX')
+ expect(profileInitials('')).toBe('LG')
 })

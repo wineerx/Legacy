@@ -2,6 +2,7 @@ import { and, desc, eq, inArray } from 'drizzle-orm'
 import type { Ctx } from '../context'
 import { jobs, mediaAssets, publicationHistory, remotePosts, trackedProfiles } from '../db/schema'
 import { deleteAsset } from './library'
+import { getSetting, setSetting } from '../repos/settings'
 
 export function history(ctx: Ctx, ws: string) {
   return ctx.db.select().from(publicationHistory).where(eq(publicationHistory.workspaceId, ws)).orderBy(desc(publicationHistory.publishedAt)).all()
@@ -38,4 +39,21 @@ export async function recordPublication(ctx: Ctx, input: { workspaceId: string; 
   }
   ctx.db.update(publicationHistory).set({ cleanupState }).where(and(eq(publicationHistory.workspaceId, ws), eq(publicationHistory.jobId, jobId))).run()
   return { ...row, cleanupState }
+}
+
+// Initialize before starting the worker, so old publications never replay celebrations.
+export function publicationFeedback(ctx: Ctx, ws: string) {
+  const rows = history(ctx, ws)
+  const stored = getSetting(ctx.db, ws, 'publicationFeedbackAck')
+  if (stored === null) {
+    setSetting(ctx.db, ws, 'publicationFeedbackAck', JSON.stringify(rows.map(r => r.jobId)))
+    return []
+  }
+  const acknowledged = new Set(JSON.parse(stored) as string[])
+  return rows.filter(r => !acknowledged.has(r.jobId)).slice(0, 100).map(r => ({ jobId: r.jobId, username: r.username }))
+}
+export function acknowledgePublications(ctx: Ctx, ws: string, ids: string[]) {
+  const published = new Set(history(ctx, ws).map(r => r.jobId))
+  const old = JSON.parse(getSetting(ctx.db, ws, 'publicationFeedbackAck') ?? '[]') as string[]
+  setSetting(ctx.db, ws, 'publicationFeedbackAck', JSON.stringify([...new Set([...old, ...ids.filter(id => published.has(id))])]))
 }
