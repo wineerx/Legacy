@@ -42,8 +42,12 @@ test('destinos, calendário, fila real, modal de contas e sidebar acessível',as
  await card.getByRole('button',{name:'Ações da mídia'}).click()
  const menuItem=page.getByRole('button',{name:'Visualizar e ver detalhes'})
  await expect(menuItem).toBeVisible()
- const trigger=await card.getByRole('button',{name:'Ações da mídia'}).boundingBox();const menu=await menuItem.boundingBox()
- expect(Math.abs(menu!.y-(trigger!.y+trigger!.height))).toBeLessThan(80)
+ // Radix pode inverter o lado para manter o menu dentro de janelas menores.
+ await expect.poll(async()=>{
+  const trigger=await card.getByRole('button',{name:'Ações da mídia'}).boundingBox()
+  const menu=await menuItem.evaluate(el=>{const r=el.closest('[data-side]')!.getBoundingClientRect();return {y:r.y,bottom:r.bottom}})
+  return Math.min(Math.abs(menu.y-(trigger!.y+trigger!.height)),Math.abs(menu.bottom-trigger!.y))
+ }).toBeLessThan(12)
  await page.screenshot({path:'docs/screens/qa-publishing/menu-acoes.png'})
  await menuItem.click()
  await expect(page.getByRole('dialog')).toBeVisible()
