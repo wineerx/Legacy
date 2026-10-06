@@ -1,7 +1,7 @@
 import { FirstSteps } from '../features/onboarding/FirstSteps'
 import { useState } from 'react'
 import { PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react'
-import { NAV, SETTINGS_NAV, type PageKey } from '../routes'
+import { NAV, type PageKey } from '../routes'
 import { cx, Tooltip } from './ui'
 import { SidebarUser } from './SidebarUser'
 import { LegacyLogo } from './brand/LegacyMascot'
@@ -14,7 +14,7 @@ export function Sidebar({ current, onNavigate, unread, collapsed, onToggle }: Pr
   const mascot = useMascot()
   const [showStatus, setShowStatus] = useState(false)
   const items = collapsed ? NAV : NAV.filter((n) => n.label.toLowerCase().includes(q.trim().toLowerCase()))
-  const link = (n: { key: PageKey; label: string; icon: typeof SETTINGS_NAV.icon }) => {
+  const link = (n: (typeof NAV)[number]) => {
     const Icon = n.icon
     const badge = n.key === 'notifications' && unread > 0 ? unread : null
     const anchor = (
@@ -47,8 +47,7 @@ export function Sidebar({ current, onNavigate, unread, collapsed, onToggle }: Pr
       </div>
       <div className="flex flex-1 flex-col gap-0.5">{items.map(link)}</div>
       {!collapsed && <FirstSteps navigate={onNavigate} />}
-      <div className="border-t border-line pt-2">{link(SETTINGS_NAV)}</div>
-      <SidebarUser collapsed={collapsed} navigate={onNavigate}/>
+      <div className="border-t border-line pt-2"><SidebarUser collapsed={collapsed} current={current} navigate={onNavigate}/></div>
     </nav>
   )
 }

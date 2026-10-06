@@ -60,7 +60,7 @@ export const contract = {
   'profiles.downloadSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
   'profiles.prepareSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
   'accounts.instagram': z.object({ workspaceId: ws }),
-  'compose.scheduleInstagram': z.object({ workspaceId: ws, assetIds: z.array(id).min(1).max(100), accountId: z.string().regex(/^\d+$/), accountRevision: z.string().min(1), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), captions: z.record(z.string(),z.string().max(2200)), cleanupAfterPublish: z.boolean().default(false) }),
+  'compose.scheduleInstagram': z.object({ workspaceId: ws, assetIds: z.array(id).min(1).max(100), accountId: z.string().regex(/^\d+$/), accountRevision: z.string().min(1), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), captions: z.record(z.string(),z.string().max(2200)), cleanupAfterPublish: z.boolean().default(false), versionIds: z.record(id, id).optional() }),
   'accounts.verifyInstagram': z.object({ workspaceId: ws }),
   'accounts.connectInstagram': z.object({ workspaceId: ws, token: z.string().trim().min(20).max(4096).regex(/^[A-Za-z0-9_.-]+$/) }),
   'accounts.disconnectInstagram': z.object({ workspaceId: ws }),
@@ -74,6 +74,7 @@ export const contract = {
   'covers.createFrameText': z.object({ workspaceId: ws, name: z.string().max(80), frameMs: z.number().int().min(0), text: coverText }),
   'versions.saveCover': z.object({ workspaceId: ws, assetId: id, templateId: id, png }),
   'versions.requestBanner': z.object({ workspaceId: ws, assetId: id, png, startMs: z.number().int().min(0), endMs: z.number().int().positive() }),
+  'versions.prepareVideo': z.object({ workspaceId: ws, assetId: id, banner: z.object({ png, startMs: z.number().int().min(0), endMs: z.number().int().positive() }).optional(), coverVersionId: id.optional() }).refine((i) => i.banner || i.coverVersionId, 'Escolha uma capa ou um banner.'),
   'export.tiktok': z.object({
     workspaceId: ws, assetIds: z.array(id).min(1).max(100), captions: z.record(z.string(), z.string().max(4000)),
     stripMetadata: z.boolean(), remindAt: z.array(z.iso.datetime().nullable())
@@ -159,6 +160,7 @@ export interface Outputs {
   'covers.createFrameText': CoverDto
   'versions.saveCover': { versionId: string }
   'versions.requestBanner': JobView
+  'versions.prepareVideo': { versionId: string; job: JobView }
   'export.tiktok': JobView
   'export.openFolder': null
   'jobs.list': JobView[]

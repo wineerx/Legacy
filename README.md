@@ -2,7 +2,7 @@
 
 **Seu estúdio de conteúdo, direto no desktop.**
 
-![Versão 0.6.0](https://img.shields.io/badge/vers%C3%A3o-0.6.0-6366f1)
+![Versão 0.6.1](https://img.shields.io/badge/vers%C3%A3o-0.6.1-6366f1)
 ![Windows x64](https://img.shields.io/badge/plataforma-Windows%2010%2F11-0078d4)
 ![Electron e React](https://img.shields.io/badge/Electron%20%2B%20React-desktop-22c55e)
 
@@ -12,7 +12,7 @@ O Legacy reúne pesquisa de perfis, downloads de reels públicos via Apify, bibl
 
 ![Biblioteca do Legacy: gerenciamento de mídia, lista e primeiros passos](docs/screens/qa-media/media-list.png)
 
-*Captura real do Legacy 0.6.0 com dados de teste. Valores indisponíveis permanecem como “—”.*
+*Captura real do Legacy 0.6.1 com dados de teste. Valores indisponíveis permanecem como “—”.*
 
 ## O que você pode fazer
 
@@ -39,7 +39,7 @@ O Instagram profissional pode ser conectado por token em **Contas** para agendar
 2. Em **Configurações**, escolha onde guardar os novos vídeos.
 3. Importe vídeos na **Biblioteca**, ou configure Apify e adicione uma URL em **Perfis**.
 4. Selecione um lote e abra **Criar postagem** para ajustar capa, banner e legendas.
-5. Acompanhe a **Fila**, revise a exportação e publique pela plataforma oficial.
+5. Escolha Instagram conectado para agendar o original online, ou TikTok manual para preparar a pasta. Acompanhe a **Fila**.
 6. Use **Tutoriais** para salvar seu plano de perfil e explorar os modelos de legenda.
 
 [Downloads por perfil](#downloads-por-url-de-perfil-instagram) · [Integrações](#visão-geral-e-integrações) · [Webhooks](#notificações-e-webhooks) · [Tutoriais](#tutoriais-e-legendas) · [Instalação](#instalação-e-atualizações)
@@ -114,7 +114,7 @@ Não foi possível ler os perfis de referência diretamente pelo Instagram duran
 
 ## Instalação e atualizações
 
-Versão: **0.6.0**. O instalador NSIS é gerado por `npm run dist`. Em **Visão geral** ou **Configurações → Atualizações**, use **Verificar atualizações**, **Baixar atualização** e **Instalar e reiniciar**. A instalação espera não haver tarefas em execução. Nenhum download ou reinício acontece sem clicar nos botões.
+Versão: **0.6.1**. O instalador NSIS é gerado por `npm run dist`. Em **Visão geral** ou **Configurações → Atualizações**, use **Verificar atualizações**, **Baixar atualização** e **Instalar e reiniciar**. A instalação espera não haver tarefas em execução. Nenhum download ou reinício acontece sem clicar nos botões.
 
 A versão 0.2 precisa ser atualizada uma vez pelo instalador para receber esses controles. Depois disso, o atualizador consulta Releases públicas de `wineerx/Legacy`, que precisam conter o instalador, `.blockmap` e `latest.yml`. Sem uma Release válida, a interface informa a falha; não afirma que está atualizada. Em desenvolvimento, o atualizador fica indisponível. Dados permanecem fora da pasta do aplicativo; credenciais criptografadas podem exigir novo cadastro ao trocar usuário ou computador Windows.
 
@@ -148,7 +148,7 @@ O fluxo foi implementado para a [API Apify](https://docs.apify.com/api/v2) e o [
 
 Stack: Electron 42.11.10, Node.js 24, React 19, TypeScript, SQLite/Drizzle, TanStack Query e FFmpeg LGPL. Renderer isolado e sem acesso direto ao Node; operações passam por contratos IPC validados, processo principal e worker.
 
-Verificação da versão 0.6.0: **286 testes unitários e de integração**, **14 testes E2E no Electron** e typecheck concluídos. Testes de Apify, Instagram, atualizações e webhook usam respostas simuladas; integração externa com credencial real permanece pendente.
+Verificação da versão 0.6.1: **286 testes unitários e de integração**, **14 testes E2E no Electron** e typecheck concluídos. Testes de Apify, Instagram, atualizações e webhook usam respostas simuladas; integração externa com credencial real permanece pendente.
 
 Para contribuir, descreva o problema, mantenha o isolamento por workspace e execute `npm run typecheck`, `npm test -- --maxWorkers=2` e os E2E pertinentes. Não inclua tokens, bancos locais, vídeos pessoais ou pastas de dados no Git.
 

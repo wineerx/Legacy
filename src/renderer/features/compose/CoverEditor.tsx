@@ -21,7 +21,7 @@ export function CoverEditor({ workspaceId, covers, selectedId, onSelect }: { wor
   return (
     <section aria-labelledby="cover-h" className="flex flex-col gap-3 rounded-card border border-line bg-panel p-4">
       <h2 id="cover-h" className="text-sm font-semibold">Capa uniforme</h2>
-      <p className="text-xs text-dim">A mesma capa em todos os vídeos do lote, como nos perfis de referência. Na exportação vira <code>capa.png</code>.</p>
+      <p className="text-xs text-dim">A mesma capa em todos os vídeos do lote. Na exportação manual, entra como primeiro frame e também segue como <code>capa.png</code>.</p>
       <div className="flex flex-wrap gap-1.5">
         <Button size="sm" variant={selectedId === null ? 'primary' : 'secondary'} onClick={() => onSelect(null)}>Sem capa</Button>
         {covers.map((c) => <Button key={c.id} size="sm" variant={selectedId === c.id ? 'primary' : 'secondary'} onClick={() => onSelect(c.id)}>{c.name}</Button>)}

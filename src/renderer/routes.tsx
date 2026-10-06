@@ -1,6 +1,6 @@
 import type { ReactElement } from 'react'
 import type { LucideIcon } from 'lucide-react'
-import { LayoutGrid, UserSearch, Library, PenSquare, Megaphone, CalendarDays, ListOrdered, Link2, Bell, Settings, BookOpen, Trophy } from 'lucide-react'
+import { LayoutGrid, UserSearch, Library, PenSquare, Megaphone, CalendarDays, ListOrdered, Link2, Bell, BookOpen, Trophy } from 'lucide-react'
 import { AchievementsPage } from './features/achievements/AchievementsPage'
 import { ComingSoon } from './components/ComingSoon'
 import { LibraryPage } from './features/library/LibraryPage'
@@ -29,7 +29,6 @@ export const NAV: { key: PageKey; label: string; icon: LucideIcon }[] = [
   { key: 'achievements', label: 'Desafios e conquistas', icon: Trophy },
   { key: 'tutorial', label: 'Tutoriais', icon: BookOpen }
 ]
-export const SETTINGS_NAV = { key: 'settings' as const, label: 'Configurações', icon: Settings }
 
 const PHASE_D = 'Campanhas e calendário chegam junto com a publicação agendada por API.'
 

@@ -1,4 +1,4 @@
-# Publicação e UI — Legacy 0.6
+# Publicação e UI — Legacy 0.6.1
 
 Produto de Eduardo Ximenes (@wineerx).
 
@@ -13,7 +13,7 @@ A conta e sua revisão são fixadas na confirmação; troca ou saída invalida o
 - Instagram usa a conexão já implementada por Instagram User Access Token, protegida pelo Windows. O modal informa permissões, identidade, reconexão e erros. O link para o painel Meta agora pode abrir no navegador externo. Não se implementou OAuth sem redirect URI e credenciais de servidor configurados.
 - A consulta de identidade não comprova a permissão content_publish; a API confirma ao executar. Os testes usam respostas sintéticas e não comprovam uma publicação em uma conta real.
 - Uma conta Instagram por workspace. O menu lateral troca workspaces. Não há múltiplas contas dentro do mesmo workspace.
-- Instagram publica o original online. Arquivos somente locais e edições locais de capa/banner precisam de hospedagem pública adicional; ficam bloqueados nesse destino com explicação. Não se apresenta uma publicação editada quando o backend envia o original.
+- Capas, banners e prévias de grade são aplicados à exportação manual, com capa inserida no primeiro frame e original preservado. Instagram publica o original online. Arquivos somente locais e edições locais de capa/banner precisam de hospedagem pública adicional; ficam bloqueados nesse destino com explicação. Não se apresenta uma publicação editada quando o backend envia o original.
 - TikTok continua exportação manual, conforme escolha do usuário. O modal explica que não existe uma conexão OAuth/API configurada e não simula conta conectada.
 - Ao escolher ambos, a tarefa Instagram e a exportação são operações distintas. Se a exportação falhar após o agendamento, a mensagem informa que Instagram já está na fila. Confira e cancele pela Fila quando necessário.
 - Sair no menu do usuário desconecta Instagram e remove o token do workspace. Não existe uma sessão de login local a revogar. Nome/e-mail são identificação local opcional; não são dados de uma conta online.
@@ -37,3 +37,5 @@ Estados são aplicados conforme a semântica: um spinner não tem estado de sele
 O calendário oferece mês anterior/próximo, data e hora nativas, atalhos e resumo no fuso do workspace. Biblioteca, Perfis e Criar postagem usam o mesmo componente. Sidebar salva recolhimento, mantém mascote, tooltips e menu de perfil local, workspace, configurações e saída da conta.
 
 Referências: imagens fornecidas pelo usuário; [shadcn sidebar-07](https://ui.shadcn.com/blocks/sidebar), [Meta Content Publishing](https://developers.facebook.com/docs/instagram-platform/instagram-api-with-instagram-login/content-publishing). Nenhum código premium foi copiado.
+
+Upload resumível de arquivos locais não é habilitado para a conexão Instagram Login atual: o [exemplo oficial da Meta](https://github.com/fbsamples/reels_publishing_apis/tree/main/insta_reels_publishing_api_sample) usa Facebook Login. O backend rejeita versões editadas antes de enfileirar; não envia o original silenciosamente quando foi escolhida uma edição.

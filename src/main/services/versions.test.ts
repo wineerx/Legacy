@@ -8,7 +8,7 @@ import { createWorkspace } from '../repos/workspaces'
 import { importFiles } from './library'
 import { makeTestVideo } from '../media/test-fixtures'
 import { createFrameTextCover, listCoverTemplates } from '../repos/covers'
-import { saveRenderedCover, requestBanner, assertPng } from './versions'
+import { saveRenderedCover, requestBanner, requestVideoVersion, assertPng } from './versions'
 import { latestVersion } from '../repos/assets'
 import { listJobs } from '../queue/queue'
 import { jobs } from '../db/schema'
@@ -51,6 +51,16 @@ describe('versões', () => {
     expect(existsSync(payload.bannerPath)).toBe(true)
     const rel = relative(join(assetDir(ctx.dataRoot, ws, assetId), 'versions'), payload.bannerPath)
     expect(rel.startsWith('..') || isAbsolute(rel)).toBe(false)
+  })
+  it('capa salva vira primeiro frame da versão editada', async () => {
+    const t = createFrameTextCover(ctx, ws, { name: 'Capa', frameMs: 0, text: { text: 'Capa', position: 'top', fontSizePct: 8, color: '#FFFFFF', background: '#000000AA' } })
+    const cover = await saveRenderedCover(ctx, ws, assetId, t.id, PNG)
+    const { versionId, job } = await requestVideoVersion(ctx, ws, assetId, { coverVersionId: cover.id })
+    const payload = JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id, job.id)).get()!.payloadJson)
+    expect(payload).toMatchObject({ assetId, versionId, coverPath: cover.filePath })
+    expect(payload.bannerPath).toBeUndefined()
+    await expect(requestVideoVersion(ctx, ws, assetId, { coverVersionId: 'inexistente' })).rejects.toThrow(/Capa não encontrada/)
+    await expect(requestVideoVersion(ctx, ws, assetId, {})).rejects.toBeInstanceOf(AppError)
   })
   it('banner com janela inválida falha', async () => {
     await expect(requestBanner(ctx, ws, assetId, PNG, { startMs: 3000, endMs: 1000 })).rejects.toBeInstanceOf(AppError)

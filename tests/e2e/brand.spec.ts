@@ -2,6 +2,7 @@ import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
+import { openSettings } from './helpers'
 
 test('identidade Legacy, personalização persistente e redução de movimento', async () => {
   const root = mkdtempSync(join(tmpdir(), 'legacy-brand-'))
@@ -30,7 +31,7 @@ test('identidade Legacy, personalização persistente e redução de movimento',
     await page.getByRole('heading', { name: 'Visão geral', exact: true }).click()
     await expect(hero).toHaveAttribute('data-state', 'idle')
     await page.screenshot({ path: 'docs/screens/brand/overview.png' })
-    await page.getByRole('link', { name: 'Configurações' }).click()
+    await openSettings(page)
     const panel = page.getByRole('region', { name: 'O seu Legacy.' })
     await panel.scrollIntoViewIfNeeded()
     await page.getByRole('button', { name: 'Visual: Coroa' }).click()
@@ -39,7 +40,7 @@ test('identidade Legacy, personalização persistente e redução de movimento',
     await page.getByRole('switch', { name: 'Animações do mascote' }).click()
     await expect(page.getByRole('img', { name: 'Legacy: Comemorando' })).toHaveAttribute('data-animated', 'false')
     await page.reload()
-    await page.getByRole('link', { name: 'Configurações' }).click()
+    await openSettings(page)
     await expect(page.getByRole('button', { name: 'Visual: Coroa' })).toHaveAttribute('aria-pressed', 'true')
     await expect(page.getByRole('switch', { name: 'Animações do mascote' })).not.toBeChecked()
     await page.getByRole('button', { name: 'Visual: Original' }).click()

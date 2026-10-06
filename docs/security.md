@@ -13,7 +13,7 @@
 
 ## Downloads e armazenamento (2026-10-05)
 
-- HTTPS restrito a api.apify.com para API e subdomínios de cdninstagram.com/fbcdn.net para mídia. DNS IPv4 público validado e fixado à conexão; redirecionamentos de mídia revalidados e limitados a três. Redirects autenticados da API são recusados. Nenhum header de autorização vai ao CDN.
+- HTTPS restrito a api.apify.com para API e subdomínios de cdninstagram.com/fbcdn.net para mídia. DNS IPv4 público validado e fixado à conexão; redirecionamentos de mídia revalidados e limitados a três. Redirects autenticados da API são recusados. Nenhum header de autorização vai ao CDN. Versões locais editadas são rejeitadas no agendamento Instagram; nenhum upload experimental recebe o token.
 - Limite de 1 GiB por vídeo em streaming, timeout de cinco minutos; respostas JSON limitadas a 10 MiB. ffprobe restrito ao demuxer MOV/MP4 e protocolo de arquivo, recusando playlists disfarçadas. Hash e validação antes de disponibilizar o asset.
 - Seleção de armazenamento somente via diálogo nativo, sem caminho arbitrário no contrato IPC. Subdiretório separado por workspace e teste de escrita. Protocol handler aceita pastas internas e diretórios de assets registrados, preservando acesso após troca de destino.
 - A pasta personalizada guarda somente novos arquivos. Backup deve incluir os destinos antigos e atuais. Não há mudança automática do banco, exportações ou temporários.
