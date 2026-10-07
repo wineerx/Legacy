@@ -62,9 +62,23 @@ export function ProfilesPage({ navigate }: PageProps) {
     queryFn: () => call('profiles.list', { workspaceId: workspace.id })
   })
   const refresh = useMutation({
-    mutationFn: (profileId: string) => call('profiles.refresh', { workspaceId: workspace.id, profileId }),
-    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['profiles', workspace.id] }); toast.show({ title: 'Dados do perfil atualizados' }) },
-    onError: (e) => toast.show({ title: 'Não foi possível atualizar o perfil', body: e instanceof Error ? e.message : undefined, tone: 'error' })
+    mutationFn: async () => {
+      const instagramProfiles = profiles.data?.filter((p) => p.platform === 'instagram') ?? []
+      const failures: string[] = []
+      for (const p of instagramProfiles) {
+        try {
+          await call('profiles.refresh', { workspaceId: workspace.id, profileId: p.id })
+        } catch (e) {
+          failures.push(`@${p.username}: ${e instanceof Error ? e.message : 'Falha na atualização'}`)
+        }
+      }
+      return { updated: instagramProfiles.length - failures.length, failures }
+    },
+    onSuccess: ({ updated, failures }) => {
+      toast.show({ title: failures.length ? `${updated} perfil(is) atualizado(s); ${failures.length} falha(s)` : 'Dados de todos os perfis atualizados', body: failures.length ? failures.join('\n') : undefined, tone: failures.length ? 'error' : undefined })
+    },
+    onError: (e) => toast.show({ title: 'Não foi possível atualizar os perfis', body: e instanceof Error ? e.message : undefined, tone: 'error' }),
+    onSettled: () => { void qc.invalidateQueries({ queryKey: ['profiles', workspace.id] }) }
   })
   const [activeId, setActiveId] = useState<string | null>(null)
   const active =
@@ -578,13 +592,16 @@ export function ProfilesPage({ navigate }: PageProps) {
         {[...new Set(profiles.data?.map((p) => p.platform) ?? [])].map(
           (platform) => (
             <section key={platform} aria-label={`Perfis ${platform}`}>
-              <h2 className="mb-2 text-xs font-medium text-dim">
+              <div className="mb-2 flex items-center justify-between gap-2">
+              <h2 className="text-xs font-medium text-dim">
                 {{
                   instagram: 'Instagram',
                   tiktok: 'TikTok',
                   youtube: 'YouTube'
                 }[platform] ?? platform}
               </h2>
+              {platform === 'instagram' && <button type="button" aria-label="Atualizar dados de todos os perfis do Instagram" title="Atualizar dados de todos os perfis do Instagram" disabled={refresh.isPending} onClick={() => refresh.mutate()} className="flex size-8 shrink-0 items-center justify-center rounded-ctl text-dim hover:bg-raised hover:text-fg disabled:opacity-50"><RefreshCw size={14} aria-hidden className={refresh.isPending ? 'animate-spin' : undefined} /></button>}
+              </div>
               <ul className="flex flex-wrap gap-1 xl:flex-col">
                 {profiles.data
                   ?.filter((p) => p.platform === platform)
@@ -604,7 +621,6 @@ export function ProfilesPage({ navigate }: PageProps) {
                       >
                         <ProfileAvatar username={p.username} path={p.avatarPath}/><span className="truncate">@{p.username}</span>
                       </button>
-                      {p.platform === 'instagram' && <button type="button" aria-label={`Atualizar dados de @${p.username}`} title="Atualizar apenas dados do perfil" disabled={refresh.isPending} onClick={() => refresh.mutate(p.id)} className="ml-auto flex size-8 shrink-0 items-center justify-center rounded-ctl text-dim hover:bg-raised hover:text-fg disabled:opacity-50"><RefreshCw size={14} aria-hidden className={refresh.isPending && refresh.variables === p.id ? 'animate-spin' : undefined} /></button>}
                     </li>
                   ))}
               </ul>

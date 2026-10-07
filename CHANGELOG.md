@@ -1,3 +1,9 @@
+# 0.7.5 — atualização de todos os perfis
+
+- Botão de atualizar no cabeçalho Instagram consulta identidade e métricas de todos os perfis, sem importar posts nem iniciar downloads.
+- Um perfil com falha não interrompe os demais; o aviso informa quantos foram atualizados e lista cada falha.
+- Preserva todas as revisões da 0.7.4.
+
 # 0.7.4 — novas revisões de perfis e contas
 
 - Importação Todos combina Posts, Reels e Marcados com limite total e checkpoints separados, reutilizados ao tentar novamente.

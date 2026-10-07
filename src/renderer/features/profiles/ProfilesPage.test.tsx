@@ -7,17 +7,37 @@ import { ProfilesPage } from './ProfilesPage'
 const profile = { platform: 'instagram', id: 'p1', username: 'zanon.boss', url: 'https://www.instagram.com/zanon.boss/', connected: false, lastSyncedAt: null }
 
 describe('ProfilesPage', () => {
-  it('reload consulta apenas dados do perfil sem iniciar busca de conteúdo', async () => {
+  it('reload no cabeçalho consulta todos os perfis do Instagram sem buscar conteúdo', async () => {
     const invoke = mockBridge({
-      'profiles.list': () => [profile],
+      'profiles.list': () => [profile, { ...profile, id: 'p2', username: 'outro' }, { ...profile, id: 'p3', platform: 'tiktok' }],
       'profiles.refresh': () => ({ postsCount: 45, reelsCount: null, followersCount: 100, followingCount: 10, updatedAt: '2026-10-06T12:00:00Z' }),
       'grid.query': () => ({ items: [], total: 0, loadedNote: '' })
     })
     renderWithApp(<ProfilesPage navigate={vi.fn()} />)
-    await userEvent.click(await screen.findByRole('button', { name: 'Atualizar dados de @zanon.boss' }))
+    const refreshButton = await screen.findByRole('button', { name: 'Atualizar dados de todos os perfis do Instagram' })
+    expect(refreshButton.parentElement).toContainElement(screen.getByRole('heading', { name: 'Instagram' }))
+    await userEvent.click(refreshButton)
     expect(invoke).toHaveBeenCalledWith('profiles.refresh', { workspaceId: WS_ID, profileId: profile.id })
-    expect(await screen.findByText('Dados do perfil atualizados')).toBeInTheDocument()
+    expect(await screen.findByText('Dados de todos os perfis atualizados')).toBeInTheDocument()
+    expect(invoke).toHaveBeenCalledWith('profiles.refresh', { workspaceId: WS_ID, profileId: 'p2' })
+    expect(invoke.mock.calls.filter(([channel]) => channel === 'profiles.refresh')).toHaveLength(2)
     expect(invoke.mock.calls.some(([channel]) => channel === 'profiles.discover' || channel === 'profiles.download')).toBe(false)
+  })
+  it('continua atualizando os demais perfis quando um deles falha', async () => {
+    const invoke = mockBridge({
+      'profiles.list': () => [profile, { ...profile, id: 'p2', username: 'quebrado' }, { ...profile, id: 'p3', username: 'terceiro' }],
+      'profiles.refresh': (input: { profileId: string }) => {
+        if (input.profileId === 'p2') throw { code: 'network', message: 'Instagram indisponível' }
+        return { postsCount: 1, reelsCount: null, followersCount: 1, followingCount: 1, updatedAt: '2026-10-06T12:00:00Z' }
+      },
+      'grid.query': () => ({ items: [], total: 0, loadedNote: '' })
+    })
+    renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Atualizar dados de todos os perfis do Instagram' }))
+    expect(await screen.findByText('2 perfil(is) atualizado(s); 1 falha(s)')).toBeInTheDocument()
+    expect(screen.getByText(/@quebrado: Instagram indisponível/)).toBeInTheDocument()
+    const refreshed = invoke.mock.calls.filter(([channel]) => channel === 'profiles.refresh').map(([, input]) => (input as { profileId: string }).profileId)
+    expect(refreshed).toEqual(['p1', 'p2', 'p3'])
   })
   it('enfileira download com limite e perfil selecionado', async () => {
     const invoke = mockBridge({
