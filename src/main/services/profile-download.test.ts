@@ -173,6 +173,28 @@ it('importa TikTok com metadados e avatar na grade, sem baixar vídeos automatic
   expect(listJobs(ctx.db,ws).filter(j=>j.type==='download_reel')).toHaveLength(0)
 })
 
+it('Todos combina as três origens, remove duplicatas e respeita o limite total', async () => {
+  requestProfileDownload(ctx, ws, profileId, 2, true, 'all')
+  const job = leaseNext(ctx.db, ctx.clock(), 60000)!
+  for (const [index, url] of ['https://www.instagram.com/p/POSTAA/', 'https://www.instagram.com/reel/REELAA/', 'https://www.instagram.com/p/TAGGED/'].entries()) {
+    vi.mocked(apifyJson).mockResolvedValueOnce({data:{id:`run${index}`,status:'READY'}})
+      .mockResolvedValueOnce({data:{id:`run${index}`,status:'SUCCEEDED',defaultDatasetId:`ds${index}`}})
+      .mockResolvedValueOnce([{...reel,url}])
+  }
+  await fetchProfile(ctx, job)
+  const inputs = vi.mocked(apifyJson).mock.calls.filter(call => call[0].includes('instagram-scraper/runs')).map(call => call[2])
+  expect(inputs).toEqual(['posts','reels','mentions'].map(resultsType=>({directUrls:['https://www.instagram.com/example/'],resultsType,resultsLimit:2})))
+  expect(ctx.db.select().from(remotePosts).all()).toHaveLength(2)
+  // Retrying reuses all three remote runs instead of creating new billable runs.
+  vi.mocked(apifyJson).mockClear()
+  for (let index=0; index<3; index++) {
+    vi.mocked(apifyJson).mockResolvedValueOnce({data:{id:`run${index}`,status:'SUCCEEDED',defaultDatasetId:`ds${index}`}}).mockResolvedValueOnce([reel])
+  }
+  await fetchProfile(ctx,job)
+  expect(vi.mocked(apifyJson).mock.calls.some(call=>call[0].includes('actors/'))).toBe(false)
+  expect(profileImportProgress(ctx,ws,profileId)?.progress?.total).toBe(1)
+})
+
  it.each([['posts', 'posts'], ['reels', 'reels'], ['tagged', 'mentions']] as const)('busca a origem %s e preserva a preferência', async (source, resultsType) => {
   const queued = requestProfileDownload(ctx, ws, profileId, 10, true, source)
   expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id, queued.id)).get()!.payloadJson)).toMatchObject({ source })
@@ -213,4 +235,20 @@ it('falha da foto preserva os posts e registra o erro no checkpoint', async () =
   await fetchProfile(ctx, job)
   expect(ctx.db.select().from(remotePosts).all()).toHaveLength(1)
   expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id, job.id)).get()!.resultJson!)).toMatchObject({ avatarError: 'avatar unavailable', progress: { phase: 'done' } })
+})
+
+
+it('Todos preserva a criação sem confirmação de uma fonte sem repetir chamadas pagas', async () => {
+  requestProfileDownload(ctx, ws, profileId, 2, true, 'all')
+  const job = leaseNext(ctx.db, ctx.clock(), 60000)!
+  vi.mocked(apifyJson).mockResolvedValueOnce({ data: { id: 'run1', status: 'SUCCEEDED' } })
+    .mockResolvedValueOnce({ data: { id: 'run1', status: 'SUCCEEDED', defaultDatasetId: 'ds1' } })
+    .mockResolvedValueOnce([reel])
+    .mockRejectedValueOnce(new Error('network'))
+  await expect(fetchProfile(ctx, job)).rejects.toThrow('network')
+  vi.mocked(apifyJson).mockClear()
+  vi.mocked(apifyJson).mockResolvedValueOnce({ data: { id: 'run1', status: 'SUCCEEDED', defaultDatasetId: 'ds1' } })
+    .mockResolvedValueOnce([reel])
+  await expect(fetchProfile(ctx, job)).rejects.toThrow('sem confirmação')
+  expect(vi.mocked(apifyJson).mock.calls.some(call => call[0].startsWith('actors/'))).toBe(false)
 })

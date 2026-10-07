@@ -1,3 +1,12 @@
+# 0.7.4 — novas revisões de perfis e contas
+
+- Importação Todos combina Posts, Reels e Marcados com limite total e checkpoints separados, reutilizados ao tentar novamente.
+- Atualização manual de identidade e métricas do perfil sem importar posts nem iniciar downloads.
+- Seletor de origem por ícones com ToggleGroup Radix; mantém preferência e navegação pelo teclado.
+- Contas conectadas e opções das redes em cards, com desconexão confirmada e TikTok manual.
+- Alinha logos, textos e seleção nos destinos da composição; ajusta o checklist inicial.
+- Preserva sessão visitante, fila, publicação local e revisões da 0.7.3.
+
 # 0.7.3 — todas as revisões recentes
 
 - Toasts empilhados com Sonner, mantendo mascote, teclado, pausa ao focar e erros persistentes.

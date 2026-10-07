@@ -47,7 +47,7 @@ test('perfil por link e reel guardado como referência', async () => {
   await page.getByLabel('Link do perfil').fill('instagram.com/perfil.teste')
   await page.getByRole('button', { name: 'Importar perfil' }).click()
   await expect(page.getByRole('heading', { name: '@perfil.teste' })).toBeVisible()
-  await expect(page.getByText(/Busca e download de reels públicos via Apify/)).toBeVisible()
+  await expect(page.getByRole('radiogroup', { name: 'Origem da atualização' }).getByRole('radio', { name: 'Posts', exact: true })).toBeChecked()
   await page.getByRole('button', { name: 'Adicionar link de reel' }).click()
   await page.getByLabel('Link do reel').fill('https://www.instagram.com/reel/ABCDE12345/')
   await page.getByRole('button', { name: 'Adicionar', exact: true }).click()

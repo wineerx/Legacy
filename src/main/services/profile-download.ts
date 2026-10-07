@@ -107,7 +107,7 @@ export function requestProfileDownload(
       workspaceId,
       type: 'fetch_profile',
       payload: { profileId, limit, discovery, source: contentSource },
-      label: `Carregar até ${limit} ${discovery ? ({ posts: 'posts', reels: 'reels', tagged: 'marcados' }[contentSource]) : 'reels'} de @${profile.username}`,
+      label: `Carregar até ${limit} ${discovery ? ({ posts: 'posts', reels: 'reels', tagged: 'marcados', all: 'posts, reels e marcados' }[contentSource]) : 'reels'} de @${profile.username}`,
       maxAttempts: 3
     },
     ctx.clock()
@@ -165,6 +165,7 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
   let checkpoint: {
     starting?: boolean
     runId?: string
+    sourceRuns?: Record<string, { starting?: boolean; runId?: string }>
     progress?: ImportProgress
     avatarStarting?: boolean
     avatarRunId?: string
@@ -203,78 +204,99 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
       .run()
   }
   saveProgress('searching', true)
-  if (!checkpoint.runId) {
-    if (checkpoint.starting)
-      throw new AppError(
-        'invalid_input',
-        'A criação da execução Apify ficou sem confirmação. Confira o console Apify antes de iniciar uma nova busca; esta tarefa não será reenviada automaticamente.'
-      )
-    ctx.db
-      .update(jobs)
-      .set({ resultJson: JSON.stringify({ ...checkpoint, starting: true }) })
-      .where(condition)
-      .run()
-    const run = runSchema.parse(
-      await apifyJson(
-        profile.platform === 'tiktok' ? 'actors/clockworks~tiktok-profile-scraper/runs?timeout=600' : `actors/apify~instagram-${discovery ? 'scraper' : 'reel-scraper'}/runs?timeout=600`,
-        key,
-        profile.platform === 'tiktok' ? { profiles: [profile.username], resultsPerPage: limit, profileSorting: 'latest', shouldDownloadVideos: false, shouldDownloadCovers: false } : discovery
-          ? {
-              directUrls: [profile.url],
-              resultsType: source === 'tagged' ? 'mentions' : source,
-              resultsLimit: limit
-            }
-          : {
-              username: [profile.url],
-              resultsLimit: limit,
-              includeDownloadedVideo: false
-            }
-      )
-    ).data
-    checkpoint = { ...checkpoint, starting: false, runId: run.id }
-    ctx.db
-      .update(jobs)
-      .set({ resultJson: JSON.stringify(checkpoint) })
-      .where(condition)
-      .run()
-  }
-  let dataset: string | undefined
-  for (let attempt = 0; attempt < 12; attempt++) {
-    const run = runSchema.parse(
-      await apifyJson(
-        `actor-runs/${remoteId.parse(checkpoint.runId)}?waitForFinish=60`,
-        key
-      )
-    ).data
-    if (run.status === 'SUCCEEDED') {
-      dataset = run.defaultDatasetId
-      break
-    }
-    if (!['READY', 'RUNNING'].includes(run.status))
-      throw new AppError(
-        'invalid_input',
-        `A busca Apify terminou em ${run.status}. Consulte o provedor e inicie uma nova busca.`
-      )
-  }
-  if (!dataset)
-    throw new AppError(
-      'internal',
-      'A busca ainda não terminou. A próxima tentativa consultará a mesma execução.'
-    )
-  const items: unknown[] = []
-  for (let offset = 0; offset < limit; offset += 100) {
-    const pageSize = Math.min(100, limit - offset)
-    const page = z
-      .array(z.unknown())
-      .max(pageSize)
-      .parse(
+  const sources = source === 'all' && discovery && profile.platform === 'instagram' ? ['posts', 'reels', 'tagged'] : [source]
+  const batches: unknown[][] = []
+  for (const currentSource of sources) {
+    let sourceRun = checkpoint.sourceRuns?.[currentSource] ?? (source !== 'all' ? { starting: checkpoint.starting, runId: checkpoint.runId } : {})
+    if (!sourceRun.runId) {
+      if (sourceRun.starting)
+        throw new AppError(
+          'invalid_input',
+          'A criação da execução Apify ficou sem confirmação. Confira o console Apify antes de iniciar uma nova busca; esta tarefa não será reenviada automaticamente.'
+        )
+      ctx.db
+        .update(jobs)
+        .set({ resultJson: JSON.stringify({ ...checkpoint, sourceRuns: { ...checkpoint.sourceRuns, [currentSource]: { ...sourceRun, starting: true } } }) })
+        .where(condition)
+        .run()
+      const run = runSchema.parse(
         await apifyJson(
-          `datasets/${dataset}/items?clean=true&limit=${pageSize}&offset=${offset}`,
+          profile.platform === 'tiktok' ? 'actors/clockworks~tiktok-profile-scraper/runs?timeout=600' : `actors/apify~instagram-${discovery ? 'scraper' : 'reel-scraper'}/runs?timeout=600`,
+          key,
+          profile.platform === 'tiktok' ? { profiles: [profile.username], resultsPerPage: limit, profileSorting: 'latest', shouldDownloadVideos: false, shouldDownloadCovers: false } : discovery
+            ? {
+                directUrls: [profile.url],
+                resultsType: currentSource === 'tagged' ? 'mentions' : currentSource,
+                resultsLimit: limit
+              }
+            : {
+                username: [profile.url],
+                resultsLimit: limit,
+                includeDownloadedVideo: false
+              }
+        )
+      ).data
+      sourceRun = { starting: false, runId: run.id }
+      checkpoint.sourceRuns = { ...checkpoint.sourceRuns, [currentSource]: sourceRun }
+      if (source !== 'all') { checkpoint.starting = false; checkpoint.runId = run.id }
+      ctx.db
+        .update(jobs)
+        .set({ resultJson: JSON.stringify(checkpoint) })
+        .where(condition)
+        .run()
+    }
+    let dataset: string | undefined
+    for (let attempt = 0; attempt < 12; attempt++) {
+      const run = runSchema.parse(
+        await apifyJson(
+          `actor-runs/${remoteId.parse(sourceRun.runId)}?waitForFinish=60`,
           key
         )
+      ).data
+      if (run.status === 'SUCCEEDED') {
+        dataset = run.defaultDatasetId
+        break
+      }
+      if (!['READY', 'RUNNING'].includes(run.status))
+        throw new AppError(
+          'invalid_input',
+          `A busca Apify terminou em ${run.status}. Consulte o provedor e inicie uma nova busca.`
+        )
+    }
+    if (!dataset)
+      throw new AppError(
+        'internal',
+        'A busca ainda não terminou. A próxima tentativa consultará a mesma execução.'
       )
-    items.push(...page)
-    if (page.length < pageSize) break
+    const sourceItems: unknown[] = []
+    for (let offset = 0; offset < limit; offset += 100) {
+      const pageSize = Math.min(100, limit - offset)
+      const page = z
+        .array(z.unknown())
+        .max(pageSize)
+        .parse(
+          await apifyJson(
+            `datasets/${dataset}/items?clean=true&limit=${pageSize}&offset=${offset}`,
+            key
+          )
+        )
+      sourceItems.push(...page)
+      if (page.length < pageSize) break
+    }
+    batches.push(sourceItems)
+  }
+  // Interleave sources so the total limit does not favor posts over Reels or tags.
+  const items: unknown[] = source === 'all' ? [] : batches[0]
+  const seen = new Set<string>()
+  for (let index = 0; source === 'all' && items.length < limit && batches.some(batch => index < batch.length); index++) {
+    for (const batch of batches) {
+      if (index >= batch.length || items.length >= limit) continue
+      const item = batch[index]
+      const key = typeof item === 'object' && item !== null && 'url' in item ? String(item.url) : JSON.stringify(item)
+      if (seen.has(key)) continue
+      seen.add(key)
+      items.push(item)
+    }
   }
   let queued = 0
   total = items.length

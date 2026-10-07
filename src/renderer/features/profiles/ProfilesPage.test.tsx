@@ -7,6 +7,18 @@ import { ProfilesPage } from './ProfilesPage'
 const profile = { platform: 'instagram', id: 'p1', username: 'zanon.boss', url: 'https://www.instagram.com/zanon.boss/', connected: false, lastSyncedAt: null }
 
 describe('ProfilesPage', () => {
+  it('reload consulta apenas dados do perfil sem iniciar busca de conteúdo', async () => {
+    const invoke = mockBridge({
+      'profiles.list': () => [profile],
+      'profiles.refresh': () => ({ postsCount: 45, reelsCount: null, followersCount: 100, followingCount: 10, updatedAt: '2026-10-06T12:00:00Z' }),
+      'grid.query': () => ({ items: [], total: 0, loadedNote: '' })
+    })
+    renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Atualizar dados de @zanon.boss' }))
+    expect(invoke).toHaveBeenCalledWith('profiles.refresh', { workspaceId: WS_ID, profileId: profile.id })
+    expect(await screen.findByText('Dados do perfil atualizados')).toBeInTheDocument()
+    expect(invoke.mock.calls.some(([channel]) => channel === 'profiles.discover' || channel === 'profiles.download')).toBe(false)
+  })
   it('enfileira download com limite e perfil selecionado', async () => {
     const invoke = mockBridge({
       'profiles.list': () => [profile], 'profiles.downloadStatus': () => ({ configured: true }),
@@ -46,7 +58,7 @@ describe('ProfilesPage', () => {
       'grid.query': () => ({ items: [], total: 0, loadedNote: 'Ranking cobre os 0 posts carregados deste perfil.' })
     })
     renderWithApp(<ProfilesPage navigate={vi.fn()} />)
-    expect(await screen.findByText(/Busca e download de reels públicos via Apify/)).toBeInTheDocument()
+    expect(await screen.findByText(/— posts/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Mais curtidos' }))
     expect(invoke).toHaveBeenCalledWith('grid.query', expect.objectContaining({ workspaceId: WS_ID, source: 'remote', profileId: 'p1', sortBy: 'likes', sortDir: 'desc' }))
   })
@@ -108,11 +120,15 @@ it('envia a origem salva ao atualizar a grade', async () => {
   expect(invoke).toHaveBeenCalledWith('profiles.discover', { workspaceId: WS_ID, profileId: profile.id, limit: 100, source: 'tagged' })
 })
 
-it.each(['reels', 'tagged'] as const)('incorpora perfil usando %s escolhido antes da busca', async (source) => {
+it.each(['reels', 'tagged', 'all'] as const)('incorpora perfil usando %s escolhido antes da busca', async (source) => {
   const invoke = mockBridge({ 'profiles.list': () => [], 'profiles.add': () => profile, 'profiles.downloadStatus': () => ({ configured: true }), 'profiles.discover': () => ({ id: 'job1' }), 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
   renderWithApp(<ProfilesPage navigate={vi.fn()} />)
-  const group = await screen.findByRole('group', { name: 'Origem do conteúdo (Instagram)' })
-  await userEvent.click(within(group).getByRole('button', { name: source === 'reels' ? 'Reels' : 'Marcados' }))
+  const group = await screen.findByRole('radiogroup', { name: 'Origem do conteúdo (Instagram)' })
+  const selected = within(group).getByRole('radio', { name: source === 'reels' ? 'Reels' : source === 'tagged' ? 'Marcados' : 'Todos' })
+  await userEvent.click(selected)
+  expect(selected).toHaveAttribute('aria-checked', 'true')
+  expect(within(group).getAllByRole('radio').filter(button => button.getAttribute('aria-checked') === 'true')).toHaveLength(1)
+  expect(within(group).getAllByRole('radio').every(button => button.textContent === '')).toBe(true)
   await userEvent.type(screen.getByLabelText('Link do perfil'), profile.url)
   await userEvent.click(screen.getByRole('button', { name: 'Importar perfil' }))
   await waitFor(() => expect(invoke).toHaveBeenCalledWith('profiles.discover', { workspaceId: WS_ID, profileId: profile.id, limit: 100, source }))

@@ -423,6 +423,7 @@ export function ComposePage({ navigate }: PageProps) {
         <section className="grid gap-3 rounded-card border border-line bg-panel p-4">
           <h2 className="text-sm font-semibold">Publicar em</h2>
           <Checkbox
+            className="publication-destination"
             icon={<InstagramLogo/>}
             label={
               account.data
@@ -448,6 +449,7 @@ export function ComposePage({ navigate }: PageProps) {
             </Button>
           )}
           <Checkbox
+            className="publication-destination"
             label="TikTok — exportação manual"
             description="Sem conta conectada: o Legacy prepara vídeo, capa e legenda numa pasta; a postagem é feita por você no app oficial."
             checked={tiktok}

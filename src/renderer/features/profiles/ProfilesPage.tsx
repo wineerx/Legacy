@@ -1,3 +1,4 @@
+import { ContentSourcePicker } from './ContentSourcePicker'
 import { useRepostConfirmation } from '../compose/useRepostConfirmation'
 import { CollapsibleCard } from '../../components/ui'
 import { ProfileAvatar } from '../../components/ui/ProfileAvatar'
@@ -5,6 +6,7 @@ import * as Popover from '@radix-ui/react-popover'
 import { useEffect, useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  RefreshCw,
   Link2,
   FileUp,
   ArrowDownUp,
@@ -46,7 +48,8 @@ import { useMascotSignal } from '../../components/brand/MascotProvider'
 
 import type { ProfileContentSource } from '@shared/ipc-contract'
 
-const sourceLabels = { posts: 'Posts', reels: 'Reels', tagged: 'Marcados' }
+const sourceLabels = { posts: 'Posts', reels: 'Reels', tagged: 'Marcados', all: 'Todos' }
+const formatProfileCount = (value: number | null | undefined) => typeof value === 'number' ? value.toLocaleString('pt-BR') : '—'
 type Sort = 'views' | 'likes' | 'comments' | 'postedAt'
 
 export function ProfilesPage({ navigate }: PageProps) {
@@ -57,6 +60,11 @@ export function ProfilesPage({ navigate }: PageProps) {
   const profiles = useQuery({
     queryKey: ['profiles', workspace.id],
     queryFn: () => call('profiles.list', { workspaceId: workspace.id })
+  })
+  const refresh = useMutation({
+    mutationFn: (profileId: string) => call('profiles.refresh', { workspaceId: workspace.id, profileId }),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['profiles', workspace.id] }); toast.show({ title: 'Dados do perfil atualizados' }) },
+    onError: (e) => toast.show({ title: 'Não foi possível atualizar o perfil', body: e instanceof Error ? e.message : undefined, tone: 'error' })
   })
   const [activeId, setActiveId] = useState<string | null>(null)
   const active =
@@ -426,7 +434,7 @@ export function ProfilesPage({ navigate }: PageProps) {
               <div className="min-w-0 flex-1">
                 <Input
                   label="Link do perfil"
-                  placeholder="instagram.com/usuario ou tiktok.com/@usuario"
+                  placeholder="@legacy"
                   value={url}
                   onChange={(e) => setUrl(e.target.value)}
                   error={urlError}
@@ -554,9 +562,7 @@ export function ProfilesPage({ navigate }: PageProps) {
               </Popover.Content>
             </Popover.Portal>
           </Popover.Root>
-          <Pills<ProfileContentSource> label="Origem do conteúdo (Instagram)" value={newSource} onChange={setNewSource} options={[
-            { value: 'posts', label: 'Posts' }, { value: 'reels', label: 'Reels' }, { value: 'tagged', label: 'Marcados' }
-          ]} />
+          <ContentSourcePicker fullWidth label="Origem do conteúdo (Instagram)" value={newSource} onChange={setNewSource} />
           <Input
             label="Limite de posts para analisar"
             type="number"
@@ -566,7 +572,7 @@ export function ProfilesPage({ navigate }: PageProps) {
             onChange={(e) => setDiscoveryLimit(e.target.value)}
           />
           <p className="text-[11px] text-dim">
-            A Apify buscará a origem escolhida até o limite configurado. Para TikTok, serão buscadas as publicações.
+            {newSource === 'all' ? 'Todos consulta três fontes na Apify, com limite total de resultados.' : 'A Apify buscará a origem escolhida até o limite configurado.'}
           </p>
         </form>
         {[...new Set(profiles.data?.map((p) => p.platform) ?? [])].map(
@@ -583,14 +589,14 @@ export function ProfilesPage({ navigate }: PageProps) {
                 {profiles.data
                   ?.filter((p) => p.platform === platform)
                   .map((p) => (
-                    <li key={p.id}>
+                    <li key={p.id} className={cx("flex min-w-0 items-center rounded-ctl", active?.id === p.id && "bg-raised")}>
                       <button
                         type="button"
                         aria-label={`@${p.username}`}
                         onClick={() => setActiveId(p.id)}
                         aria-current={active?.id === p.id}
                         className={cx(
-                          'flex w-full items-center gap-2 rounded-ctl px-2.5 py-1.5 text-left text-sm',
+                          'flex min-w-0 flex-1 items-center gap-2 rounded-ctl px-2.5 py-1.5 text-left text-sm',
                           active?.id === p.id
                             ? 'bg-raised text-fg'
                             : 'text-dim hover:text-fg'
@@ -598,6 +604,7 @@ export function ProfilesPage({ navigate }: PageProps) {
                       >
                         <ProfileAvatar username={p.username} path={p.avatarPath}/><span className="truncate">@{p.username}</span>
                       </button>
+                      {p.platform === 'instagram' && <button type="button" aria-label={`Atualizar dados de @${p.username}`} title="Atualizar apenas dados do perfil" disabled={refresh.isPending} onClick={() => refresh.mutate(p.id)} className="ml-auto flex size-8 shrink-0 items-center justify-center rounded-ctl text-dim hover:bg-raised hover:text-fg disabled:opacity-50"><RefreshCw size={14} aria-hidden className={refresh.isPending && refresh.variables === p.id ? 'animate-spin' : undefined} /></button>}
                     </li>
                   ))}
               </ul>
@@ -623,15 +630,17 @@ export function ProfilesPage({ navigate }: PageProps) {
                 <div className="min-w-0">
                 <h1 className="text-lg font-semibold">@{active.username}</h1>
                 <p className="text-xs text-dim">
-                  {active.connected
-                    ? 'Conta conectada'
-                    : 'Perfil de terceiros. Busca e download de reels públicos via Apify.'}{' '}
-                  {grid.loadedNote}
+                  <strong className="font-semibold">{formatProfileCount(active.metrics?.postsCount)} posts</strong>
+                  {' · '}{formatProfileCount(active.metrics?.followersCount)} seguidores
+                  {' · '}{formatProfileCount(active.metrics?.followingCount)} seguindo
+                  {' · '}{formatProfileCount(active.metrics?.reelsCount)} reels
                 </p>
                 {active.lastSyncedAt && (
                   <p className="text-xs text-dim">
                     Última busca:{' '}
-                    {new Date(active.lastSyncedAt).toLocaleString('pt-BR', {
+                    {new Date(active.lastSyncedAt).toLocaleDateString('pt-BR', {
+                      timeZone: workspace.timeZone
+                    })}{' · '}{new Date(active.lastSyncedAt).toLocaleTimeString('pt-BR', {
                       timeZone: workspace.timeZone
                     })}
                   </p>
@@ -645,9 +654,7 @@ export function ProfilesPage({ navigate }: PageProps) {
               >
                 Baixar vídeos
               </Button>
-              {active.platform === 'instagram' && <Pills<ProfileContentSource> label="Origem da atualização" value={activeSource} onChange={(source) => setSourceOverrides(prev => ({ ...prev, [active.id]: source }))} options={[
-                { value: 'posts', label: 'Posts' }, { value: 'reels', label: 'Reels' }, { value: 'tagged', label: 'Marcados' }
-              ]} />}
+              {active.platform === 'instagram' && <ContentSourcePicker label="Origem da atualização" value={activeSource} onChange={(source) => setSourceOverrides(prev => ({ ...prev, [active.id]: source }))} />}
               <Button
                 disabled={
                   !downloadStatus.data?.configured ||

@@ -3,7 +3,7 @@ import type { AchievementSummary } from './achievements'
 import type { AppErrorCode } from './errors'
 import type { MediaDetails, GridPage, JobView, QueuePageResult, DashboardSummary, IntegrationStatus } from './types'
 
-export const profileContentSource = z.enum(['posts', 'reels', 'tagged'])
+export const profileContentSource = z.enum(['posts', 'reels', 'tagged', 'all'])
 export type ProfileContentSource = z.infer<typeof profileContentSource>
 const ws = z.uuid()
 export interface UpdateStatus { state: 'idle' | 'checking' | 'available' | 'current' | 'downloading' | 'downloaded' | 'error' | 'unsupported'; version: string | null; progress: number; message: string }
@@ -60,6 +60,7 @@ export const contract = {
     minLikes: z.number().int().min(0).optional(), minComments: z.number().int().min(0).optional(),
     status: z.enum(['ready', 'processing', 'scheduled', 'published', 'failed', 'unpublished']).optional(), sourceProfile: z.string().max(100).optional(), publicationAccount: z.string().max(100).optional(), platform: z.enum(['instagram', 'tiktok']).optional(), favoritesOnly: z.boolean().optional(), mediaKind: z.enum(['all', 'videos', 'images']).optional(), limit: z.number().int().min(1).max(200), offset: z.number().int().min(0)
   }),
+  'profiles.refresh': z.object({ workspaceId: ws, profileId: id }),
   'profiles.list': z.object({ workspaceId: ws }),
   'storage.get': z.object({ workspaceId: ws }),
   'storage.choose': z.object({ workspaceId: ws }),
@@ -117,7 +118,8 @@ export interface WorkspaceDto { id: string; name: string; timeZone: string }
 export interface ImportResultDto { path: string; status: 'imported' | 'duplicate' | 'rejected'; assetId?: string; errors: string[]; warnings: string[] }
 export interface GuestSessionDto { entered: boolean; email: 'guest@legacy.com'; mode: 'development' }
 export interface ImportProgress { phase: 'searching' | 'importing' | 'done'; processed: number; total: number | null; imported: number; skipped: number; previewFailures: number; percent: number | null }
-export interface ProfileDto { contentSource?: ProfileContentSource; avatarPath?: string | null; platform: string; id: string; username: string; url: string; connected: boolean; lastSyncedAt: string | null }
+export interface ProfileMetrics { postsCount: number | null; reelsCount: number | null; followersCount: number | null; followingCount: number | null; updatedAt: string }
+export interface ProfileDto { metrics?: ProfileMetrics | null; contentSource?: ProfileContentSource; avatarPath?: string | null; platform: string; id: string; username: string; url: string; connected: boolean; lastSyncedAt: string | null }
 export interface CoverDto { id: string; name: string; kind: 'image' | 'frame_text'; imagePath: string | null; frameMs: number | null; textJson: string | null }
 export interface NotificationDto { id: string; kind: 'info' | 'error' | 'manual_task'; title: string; body: string; actionJson: string | null; dueAt: string | null; readAt: string | null; createdAt: string }
 export interface OnboardingStepDto { key: string; label: string; done: boolean; disabledReason?: string }
@@ -159,6 +161,7 @@ export interface Outputs {
   'library.setFavorite': null
   'library.frame': { path: string }
   'grid.query': GridPage
+  'profiles.refresh': ProfileMetrics
   'profiles.list': ProfileDto[]
   'storage.get': { path: string; custom: boolean }
   'storage.choose': { path: string; custom: boolean } | null

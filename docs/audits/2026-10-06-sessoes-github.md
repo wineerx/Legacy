@@ -144,3 +144,11 @@ O [schema oficial do Instagram Scraper](https://apify.com/apify/instagram-scrape
 Testes de regressão foram atualizados para identificar o toast Sonner sem confundi-lo com o alerta do diálogo e para o novo formato do mês. Typecheck e 443 testes em 79 arquivos passaram. A compilação final é produzida de um checkout isolado do commit consolidado, evitando incluir edições concorrentes depois do commit.
 
 A validação de integração reforçou a pausa com confirmação explícita do worker antes do retorno à entrada e proteção contra uma entrada atrasada após sair. O mascote combina visibilidade do documento com eventos show/hide/minimize/restore do Electron. Os 23 E2E verificam navegação, pausa, progresso, celebração e responsividade; a expectativa do menu acompanha a realocação do seletor para Configurações.
+
+## Alterações locais posteriores — 0.7.4
+
+A revisão incorpora a origem Todos (Posts/Reels/Marcados), seletor por ícones com ToggleGroup Radix, atualização manual de identidade/métricas sem importação de posts, organização dos cards de Contas e alinhamento dos destinos na composição. Threads aparece somente como opção indisponível; TikTok continua manual.
+
+Todos consulta três fontes distintas da Apify, com limite total e deduplicação. Cada fonte conserva seu checkpoint; tentativas subsequentes consultam a execução existente. A atualização de métricas também persiste o runId e protege criações sem confirmação para não repetir uma execução paga após falha de rede. A interface explica as três consultas ao selecionar Todos.
+
+Typecheck, 452 testes em 80 arquivos e 23 E2E passaram, incluindo respostas desconhecidas, falha no dataset e o novo seletor de origem. A compilação fica identificada pelo commit definitivo e a reinstalação preserva o banco. Nenhuma busca paga nem publicação real foi iniciada pela validação.

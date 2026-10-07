@@ -10,6 +10,9 @@
 .ds-choice { display:flex; align-items:flex-start; gap:10px; border:1px solid var(--color-line); border-radius:10px; padding:12px; cursor:pointer; font-size:14px; }
 .ds-choice:hover:not(:has(input:disabled)) { background:var(--color-raised); }
 .ds-choice:has(input:disabled) { cursor:not-allowed; }
+.ds-choice.publication-destination { align-items:center; }
+.publication-destination > input[type=checkbox] { order:1; margin:0 0 0 auto; flex-shrink:0; }
+.publication-destination > span:last-child { flex:1; }
 .ds-selected { border-color:var(--color-line-strong); background:var(--color-raised); }
 input[type=radio] { accent-color:var(--color-fg); width:16px; height:16px; flex-shrink:0; margin:2px 0 0; }
 /* Checkbox no padrão shadcn: caixa 16px, raio 4px, marca desenhada por máscara para herdar o token de cor. */
