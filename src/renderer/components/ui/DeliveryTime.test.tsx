@@ -12,3 +12,9 @@ describe('delivery time',()=>{
   expect(deliveryError('2026-10-05T18:30','UTC',now,2,NaN)).toMatch(/intervalo/)
  })
 })
+
+it('um vídeo ignora intervalo oculto inválido; lote continua exigindo intervalo válido', () => {
+ const now=new Date('2026-10-05T12:00:00Z')
+ expect(deliveryError('2026-10-06T18:30','UTC',now,1,NaN)).toBeUndefined()
+ expect(deliveryError('2026-10-06T18:30','UTC',now,2,NaN)).toMatch(/intervalo/)
+})

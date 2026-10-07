@@ -32,4 +32,5 @@ jobs:
             dist/Legacy-Setup-*.exe
             dist/*.blockmap
             dist/latest.yml
+            out/main/build-info.json
           retention-days: 14

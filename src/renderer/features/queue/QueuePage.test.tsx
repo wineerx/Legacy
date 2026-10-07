@@ -1,3 +1,4 @@
+import { takeLibraryFocus } from '../../lib/selection'
 import { describe, it, expect, vi } from 'vitest'
 import { screen, within, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -38,7 +39,7 @@ describe('QueuePage', () => {
     renderWithApp(<QueuePage navigate={vi.fn()} />)
     await userEvent.click(await screen.findByRole('button', { name: 'Cancelar' }))
     await userEvent.click(screen.getByRole('button', { name: 'Confirmar cancelamento' }))
-    const alert = await screen.findByRole('alert')
+    const alert = await waitFor(() => { const node = document.querySelector('[data-sonner-toast] [role="alert"]'); expect(node).not.toBeNull(); return node! })
     expect(alert).toHaveTextContent('Não foi possível cancelar')
     expect(alert).toHaveTextContent('Job já iniciou.')
   })
@@ -47,7 +48,8 @@ describe('QueuePage', () => {
     const invoke=mockBridge({'jobs.query': i=>({...paged([job({})]),total:60,page:i.page,pageSize:i.pageSize})})
     renderWithApp(<QueuePage navigate={vi.fn()}/> )
     await screen.findByText(/60 tarefas/)
-    await userEvent.selectOptions(screen.getByLabelText('Tipo'),'publish_instagram')
+    await userEvent.click(screen.getByLabelText('Tipo'))
+    await userEvent.click(await screen.findByRole('option',{name:'Publicação Instagram'}))
     await userEvent.click(screen.getByRole('button',{name:'Próxima'}))
     await waitFor(()=>expect(invoke).toHaveBeenCalledWith('jobs.query',expect.objectContaining({page:2,type:'publish_instagram'})))
     await userEvent.type(screen.getByLabelText('Buscar tarefa ou conta'),'teste')
@@ -60,7 +62,10 @@ describe('QueuePage', () => {
     renderWithApp(<QueuePage navigate={vi.fn()}/> )
     await userEvent.click(await screen.findByRole('button',{name:'Passar a vez'}))
     await screen.findByText('3 tarefas pendentes antes do horário sugerido.')
-    expect(await screen.findByText(new Date(runAt).toLocaleDateString('pt-BR',{month:'long',year:'numeric',timeZone:'America/Sao_Paulo'}))).toBeInTheDocument()
+    await userEvent.click(screen.getByLabelText('Data'))
+    const month = new Date(runAt).toLocaleDateString('pt-BR',{month:'long',year:'numeric',timeZone:'America/Sao_Paulo'}).replace(' de ', ' ')
+    expect(screen.getByText(month.charAt(0).toUpperCase() + month.slice(1))).toBeInTheDocument()
+    await userEvent.keyboard('{Escape}')
     expect(invoke.mock.calls.some(([channel])=>channel==='jobs.reschedule')).toBe(false)
     await userEvent.click(screen.getByRole('button',{name:'Confirmar novo horário'}))
     await waitFor(()=>expect(invoke).toHaveBeenCalledWith('jobs.reschedule',expect.objectContaining({workspaceId:WS_ID,id:'j1',expectedUpdatedAt:'2026-10-05T12:00:00.000Z'})))
@@ -74,4 +79,14 @@ describe('QueuePage', () => {
     await userEvent.click(screen.getByRole('button',{name:'Ver lote completo'}))
     await waitFor(()=>expect(invoke).toHaveBeenCalledWith('jobs.query',expect.objectContaining({batchId:'batch-a',page:1})))
   })
+})
+
+it('identifica o vídeo publicado e abre um filtro exato na Biblioteca', async () => {
+ const navigate=vi.fn()
+ mockBridge({'jobs.query':()=>({items:[{id:'published-job',workspaceId:WS_ID,type:'publish_instagram',state:'done',attempts:1,maxAttempts:24,label:'Publicar Reel',runAt:new Date().toISOString(),createdAt:new Date().toISOString(),updatedAt:new Date().toISOString(),batchId:null,account:'destino',lastError:null,publishedVideo:{assetId:'a',name:'Vídeo específico'}}],total:1,page:1,pageSize:25,counts:{done:1,queued:0,running:0,failed:0,cancelled:0}})})
+ renderWithApp(<QueuePage navigate={navigate}/>)
+ expect(await screen.findByText('Publicado: Vídeo específico')).toBeInTheDocument()
+ await userEvent.click(screen.getByRole('button',{name:'Ver vídeo na Biblioteca'}))
+ expect(navigate).toHaveBeenCalledWith('library')
+ expect(takeLibraryFocus(WS_ID)).toMatchObject({publicationJobId:'published-job'})
 })

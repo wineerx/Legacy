@@ -41,10 +41,10 @@ export async function detectH264Encoder(): Promise<string> {
   throw new AppError('ffmpeg_failed', 'Nenhum encoder H.264 disponível neste computador. Atualize o driver de vídeo ou o Windows.')
 }
 
-function encoderArgs(encoder: string): string[] {
-  if (encoder === 'libopenh264') return ['-c:v', encoder, '-b:v', '8M']
-  if (encoder === 'h264_mf') return ['-c:v', encoder, '-b:v', '8M', '-rate_control', 'cbr']
-  return ['-c:v', encoder, '-b:v', '8M']
+function encoderArgs(encoder: string, bitrate = '8M'): string[] {
+  if (encoder === 'libopenh264') return ['-c:v', encoder, '-b:v', bitrate]
+  if (encoder === 'h264_mf') return ['-c:v', encoder, '-b:v', bitrate, '-rate_control', 'cbr']
+  return ['-c:v', encoder, '-b:v', bitrate]
 }
 
 export type BannerWindow = { startMs: number; endMs: number }
@@ -59,8 +59,8 @@ export const COVER_FRAME_MS = 33
 
 /**
  * Gera a versão editada em uma única codificação: banner sobreposto no intervalo pedido e,
- * opcionalmente, a capa como primeiro frame. O Instagram usa o frame 0 como miniatura do Reel,
- * então a capa aparece na grade do perfil sem depender de cover_url público.
+ * opcionalmente, a capa como primeiro frame. O primeiro frame contém a capa/banner e pode ser escolhido como miniatura
+ * pela plataforma; a API Instagram recebe thumb_offset=0 para essa referência.
  */
 export async function renderVideoVersion(input: string, out: string, opts: { banner?: { png: string; window: BannerWindow }; coverPng?: string }): Promise<void> {
   if (!opts.banner && !opts.coverPng) throw new AppError('invalid_input', 'Nada a aplicar no vídeo.')
@@ -76,7 +76,7 @@ export async function renderVideoVersion(input: string, out: string, opts: { ban
     args.push('-i', opts.banner.png)
     const b = `[${next++}:v]`
     const { startMs, endMs } = opts.banner.window
-    chains.push(`${b}scale=${w}:${h}[bn]`, `${main}[bn]overlay=0:0:enable='between(t,${seconds(startMs)},${seconds(endMs)})'[ov]`)
+    chains.push(`${b}scale=${w}:${h}[bn]`, `${main}[bn]overlay=0:0:enable='eq(n,0)+between(t,${seconds(startMs)},${seconds(endMs)})'[ov]`)
     main = '[ov]'
   }
   chains.push(`${main}scale=${w}:${h},setsar=1,format=yuv420p[main]`)
@@ -92,7 +92,7 @@ export async function renderVideoVersion(input: string, out: string, opts: { ban
       ? ['-filter_complex', `${chains.join(';')};[0:a]adelay=delays=${COVER_FRAME_MS}:all=1[a]`, '-map', video, '-map', '[a]', '-c:a', 'aac', '-b:a', '192k']
       : ['-filter_complex', chains.join(';'), '-map', video, '-map', '0:a', '-c:a', 'copy']
     : ['-filter_complex', chains.join(';'), '-map', video]
-  await ff([...args, ...audio, ...encoderArgs(encoder), '-fps_mode', 'vfr', '-map_metadata', '0', '-movflags', '+faststart', out])
+  await ff([...args, ...audio, ...encoderArgs(encoder, String(Math.max(8_000_000, Math.ceil(p.sizeBytes * 8 / Math.max(0.001, p.durationMs / 1000))))), '-fps_mode', 'vfr', '-map_metadata', '0', '-movflags', '+faststart', out])
 }
 
 export async function overlayBanner(input: string, bannerPng: string, out: string, window: BannerWindow): Promise<void> {

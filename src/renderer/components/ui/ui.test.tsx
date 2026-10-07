@@ -1,5 +1,6 @@
+import { profileInitials } from './UserAvatar'
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, act, within } from '@testing-library/react'
+import { render, screen, act, within, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Button, Input, Modal, Pills, Toggle, EmptyState, ToastProvider, useToast, cx } from './index'
 
@@ -46,28 +47,54 @@ function Trigger({ tone }: { tone: 'info' | 'error' }) {
 }
 
 describe('Toast', () => {
-  it('erro vai em role=alert, tem "Erro:" e não some sozinho', () => {
+  it('erro vai em role=alert, tem "Erro:" e não some sozinho', async () => {
     vi.useFakeTimers()
     try {
       render(<ToastProvider><Trigger tone="error" /></ToastProvider>)
-      act(() => { screen.getByText('disparar').click() })
+      await act(async () => { screen.getByText('disparar').click(); await vi.advanceTimersByTimeAsync(1) })
       const alert = screen.getByRole('alert')
       expect(alert).toHaveTextContent('Erro: Falhou')
       act(() => { vi.advanceTimersByTime(6000) })
       expect(within(screen.getByRole('alert')).getByText('Falhou')).toBeInTheDocument()
     } finally { vi.useRealTimers() }
   })
-  it('info some após 5 s e pode ser fechada', () => {
+  it('info some após 5 s', async () => {
     vi.useFakeTimers()
     try {
       render(<ToastProvider><Trigger tone="info" /></ToastProvider>)
-      act(() => { screen.getByText('disparar').click() })
+      await act(async () => { screen.getByText('disparar').click(); await vi.advanceTimersByTimeAsync(1) })
       expect(screen.getByText('Falhou')).toBeInTheDocument()
-      act(() => { vi.advanceTimersByTime(5100) })
+      await act(async () => { await vi.advanceTimersByTimeAsync(5400) })
       expect(screen.queryByText('Falhou')).not.toBeInTheDocument()
-      act(() => { screen.getByText('disparar').click() })
-      act(() => { screen.getByRole('button', { name: 'Fechar notificação' }).click() })
-      expect(screen.queryByText('Falhou')).not.toBeInTheDocument()
+    } finally { vi.useRealTimers() }
+  })
+  it('fecha manualmente uma notificação de erro', async () => {
+    render(<ToastProvider><Trigger tone="error" /></ToastProvider>)
+    await userEvent.click(screen.getByText('disparar'))
+    await userEvent.click(await screen.findByRole('button', { name: 'Fechar notificação' }))
+    await waitFor(() => expect(screen.queryByText('Falhou')).not.toBeInTheDocument())
+  })
+  it('empilha avisos de tipos diferentes e pausa o fechamento ao expandir', async () => {
+    vi.useFakeTimers()
+    try {
+      render(<ToastProvider><Trigger tone="info" /><Trigger tone="error" /></ToastProvider>)
+      await act(async () => {
+        screen.getAllByText('disparar').forEach(button => button.click())
+        await vi.advanceTimersByTimeAsync(1)
+      })
+      const cards = document.querySelectorAll('[data-sonner-toast]')
+      expect(cards).toHaveLength(2)
+      expect(cards[0]).toHaveAttribute('data-front', 'true')
+      expect(within(cards[0] as HTMLElement).getByRole('alert')).toBeInTheDocument()
+      const stack = document.querySelector('[data-sonner-toaster]')!
+      fireEvent.mouseEnter(stack)
+      expect(cards[1]).toHaveAttribute('data-expanded', 'true')
+      await act(async () => { await vi.advanceTimersByTimeAsync(6000) })
+      expect(screen.getByRole('status')).toBeInTheDocument()
+      fireEvent.mouseLeave(stack)
+      await act(async () => { await vi.advanceTimersByTimeAsync(5400) })
+      expect(screen.queryByRole('status')).not.toBeInTheDocument()
+      expect(screen.getByRole('alert')).toBeInTheDocument()
     } finally { vi.useRealTimers() }
   })
 })
@@ -104,4 +131,10 @@ describe('EmptyState', () => {
     expect(screen.getByRole('heading', { name: 'Comece pela biblioteca' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Importar vídeos' })).toBeInTheDocument()
   })
+})
+
+it('iniciais ignoram símbolos do nome e identificam usuários locais', () => {
+ expect(profileInitials('∝winner')).toBe('WN')
+ expect(profileInitials('Eduardo Ximenes')).toBe('EX')
+ expect(profileInitials('')).toBe('LG')
 })

@@ -32,14 +32,23 @@ export function MediaCard916({ item, selected, onToggleSelect, onOpen, actions, 
   const title = item.caption?.slice(0, 80) || 'Vídeo sem legenda'
   return (
     <article aria-label={title} style={{ aspectRatio: '9 / 16' }}
+      onClickCapture={(event) => {
+        if (!event.ctrlKey && !event.metaKey) return
+        const target = event.target as HTMLElement
+        if (target.closest('input, a, button:not([data-media-open]), [role="button"], [role="menuitem"]')) return
+        event.preventDefault()
+        event.stopPropagation()
+        onToggleSelect(item.id)
+      }}
       className={cx('group relative overflow-hidden rounded-ctl border bg-raised', selected ? 'border-fg' : 'border-line')}>
       {thumbnail
         ? <img src={mediaUrl(thumbnail)} alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" />
         : <div className="absolute inset-0 flex items-center justify-center text-mute"><Film size={28} aria-hidden /></div>}
-      {onOpen && <button type="button" onClick={() => onOpen(item)} className="absolute inset-0" aria-label={`Abrir ${title}`} />}
+      {onOpen && <button type="button" data-media-open onClick={() => onOpen(item)} className="absolute inset-0" aria-label={`Abrir ${title}`} aria-description="Ctrl + clique para marcar ou desmarcar este vídeo sem abrir o player." />}
       <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex items-start gap-2 bg-gradient-to-b from-black/60 to-transparent p-2">
         <input type="checkbox" checked={selected} onChange={() => onToggleSelect(item.id)} aria-label={`Selecionar ${title}`} className="ds-check-media pointer-events-auto m-0" />
         <div className="ml-auto flex min-w-0 items-center gap-1">
+          {item.sourcePlatform && <span className="rounded bg-black/70 px-1.5 py-0.5 text-[10px] text-fg">{item.sourcePlatform === 'tiktok' ? 'TikTok' : 'Instagram'}</span>}
           {item.kind === 'asset' && item.status && <span className={cx('truncate rounded px-1.5 py-0.5 text-[11px] leading-4', item.status === 'failed' ? 'bg-danger/80 text-white' : 'bg-black/70 text-fg')}>{STATUS[item.status]}</span>}
           {BADGES.filter(([b]) => item.badges.includes(b)).map(([b, Icon, label]) => (
             <span key={b} role="img" aria-label={label} title={label} className="pointer-events-auto flex h-5 w-5 shrink-0 items-center justify-center rounded bg-black/70 text-fg"><Icon size={12} aria-hidden fill={b === 'favorito' ? 'currentColor' : 'none'} /></span>

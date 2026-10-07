@@ -16,7 +16,7 @@ export const settings = sqliteTable('settings', {
 export const mediaAssets = sqliteTable('media_assets', {
   id: text('id').primaryKey(),
   workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  origin: text('origin', { enum: ['pc', 'ig_own', 'ig_third_party', 'link_ref'] }).notNull(),
+  origin: text('origin', { enum: ['pc', 'ig_own', 'ig_third_party', 'tiktok_third_party', 'link_ref'] }).notNull(),
   sourceName: text('source_name').notNull(),
   filePath: text('file_path').notNull(),
   sha256: text('sha256').notNull(),
@@ -57,7 +57,7 @@ export const coverTemplates = sqliteTable('cover_templates', {
 export const trackedProfiles = sqliteTable('tracked_profiles', {
   id: text('id').primaryKey(),
   workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
-  platform: text('platform', { enum: ['instagram'] }).notNull(),
+  platform: text('platform', { enum: ['instagram', 'tiktok'] }).notNull(),
   username: text('username').notNull(),
   url: text('url').notNull(),
   connectedAccountId: text('connected_account_id'),
@@ -149,7 +149,7 @@ export const publicationHistory = sqliteTable('publication_history', {
   jobId: text('job_id').primaryKey(),
   workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
   accountId: text('account_id').notNull(), username: text('username').notNull(),
-  postId: text('post_id').notNull(), assetSha: text('asset_sha'), mediaId: text('media_id'),
+  postId: text('post_id'), assetSha: text('asset_sha'), mediaId: text('media_id'),
   provenanceJson: text('provenance_json').notNull(), publishedAt: text('published_at').notNull(),
   cleanupState: text('cleanup_state').notNull().default('kept')
 }, t => [index('publication_history_ws_account').on(t.workspaceId, t.accountId), index('publication_history_ws_sha').on(t.workspaceId, t.assetSha, t.publishedAt)])

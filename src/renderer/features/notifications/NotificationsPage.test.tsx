@@ -41,3 +41,28 @@ describe('NotificationsPage', () => {
     expect(alert).toHaveTextContent('Pasta inválida.')
   })
 })
+
+it('seleção múltipla e exclusão em massa aguardam confirmação', async () => {
+  const invoke = mockBridge({'notifications.list':()=>[note({}),note({id:'n2',title:'Outra'})], 'notifications.delete':()=>({deleted:2})})
+  renderWithApp(<NotificationsPage navigate={vi.fn()}/>)
+  await screen.findByText('Outra')
+  await userEvent.click(screen.getByRole('button',{name:'Selecionar notificações'}))
+  await userEvent.click(screen.getByRole('checkbox',{name:'Selecionar todas'}))
+  await userEvent.click(screen.getByRole('button',{name:'Excluir selecionadas (2)'}))
+  expect(invoke.mock.calls.some(c=>c[0]==='notifications.delete')).toBe(false)
+  await userEvent.click(screen.getByRole('button',{name:'Confirmar exclusão'}))
+  expect(invoke).toHaveBeenCalledWith('notifications.delete',{workspaceId:WS_ID,ids:['n1','n2']})
+})
+
+it('selecionar todas fica desativado quando o filtro não contém notificações', async () => {
+ mockBridge({'notifications.list':()=>[]})
+ renderWithApp(<NotificationsPage navigate={vi.fn()}/>)
+ await screen.findByText('Tudo em dia')
+ await userEvent.click(screen.getByRole('button',{name:'Selecionar notificações'}))
+ const input=screen.getByRole('checkbox',{name:'Selecionar todas'})
+ expect(input).toBeDisabled()
+ expect(input.closest('label')).toHaveClass('ds-choice-compact')
+ await userEvent.click(input)
+ expect(input).not.toBeChecked()
+ expect(screen.getByRole('button',{name:'Excluir selecionadas (0)'})).toBeDisabled()
+})

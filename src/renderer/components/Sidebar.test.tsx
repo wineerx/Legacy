@@ -49,3 +49,10 @@ describe('Sidebar', () => {
     expect(await screen.findByRole('link', { name: 'Notificações, 3 não lidas' })).toBeInTheDocument()
   })
 })
+
+it.each([0,2,42,120])('notificações permanecem acessíveis ao compactar com %s itens', async unread => {
+  renderWithApp(<Sidebar current="library" onToggle={vi.fn()} collapsed unread={unread} onNavigate={vi.fn()}/>)
+  const link=await screen.findByRole('link',{name:`Notificações, ${unread} não lidas`})
+  expect(link.querySelector('svg')).toBeInTheDocument()
+  expect(link).toHaveTextContent(unread>99 ? '99+' : String(unread))
+})

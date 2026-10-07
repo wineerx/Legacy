@@ -3,6 +3,8 @@ import type { AchievementSummary } from './achievements'
 import type { AppErrorCode } from './errors'
 import type { MediaDetails, GridPage, JobView, QueuePageResult, DashboardSummary, IntegrationStatus } from './types'
 
+export const profileContentSource = z.enum(['posts', 'reels', 'tagged', 'all'])
+export type ProfileContentSource = z.infer<typeof profileContentSource>
 const ws = z.uuid()
 export interface UpdateStatus { state: 'idle' | 'checking' | 'available' | 'current' | 'downloading' | 'downloaded' | 'error' | 'unsupported'; version: string | null; progress: number; message: string }
 const id = z.string().min(1).max(64)
@@ -15,6 +17,14 @@ const coverText = z.object({
 
 export const contract = {
   'app.bootstrap': z.object({}),
+  'notifications.delete': z.object({ workspaceId: ws, ids: z.array(id).max(1000).optional(), all: z.boolean().optional() }).refine(v => v.all || Boolean(v.ids?.length), 'Selecione notificações.'),
+  'publications.checkRepost': z.object({ workspaceId: ws, accountId: z.string().min(1), postIds: z.array(id).max(1000).optional(), assetIds: z.array(id).max(1000).optional() }),
+  'session.get': z.object({}),
+  'session.enterGuest': z.object({}),
+  'session.exit': z.object({}),
+  'profiles.importProgress': z.object({ workspaceId: ws, profileId: id }),
+  'publications.feedback': z.object({ workspaceId: ws }),
+  'publications.acknowledge': z.object({ workspaceId: ws, ids: z.array(id).max(100) }),
   'dashboard.get': z.object({ workspaceId: ws }),
   'achievements.get': z.object({ workspaceId: ws }),
   'achievements.acknowledge': z.object({ workspaceId: ws, ids: z.array(z.string().max(40)).max(30) }),
@@ -42,7 +52,7 @@ export const contract = {
   'library.setFavorite': z.object({ workspaceId: ws, id, favorite: z.boolean() }),
   'library.frame': z.object({ workspaceId: ws, assetId: id, atMs: z.number().int().min(0) }),
   'grid.query': z.object({
-    workspaceId: ws, source: z.enum(['library', 'remote']), profileId: id.optional(),
+    workspaceId: ws, source: z.enum(['library', 'remote']), profileId: id.optional(), assetId: id.optional(), publicationJobId: id.optional(),
     sortBy: z.enum(['views', 'likes', 'comments', 'postedAt', 'importedAt', 'durationMs']), sortDir: z.enum(['asc', 'desc']),
     text: z.string().max(100).optional(), hashtag: z.string().max(100).optional(),
     from: z.iso.datetime().optional(), to: z.iso.datetime().optional(),
@@ -50,21 +60,22 @@ export const contract = {
     minLikes: z.number().int().min(0).optional(), minComments: z.number().int().min(0).optional(),
     status: z.enum(['ready', 'processing', 'scheduled', 'published', 'failed', 'unpublished']).optional(), sourceProfile: z.string().max(100).optional(), publicationAccount: z.string().max(100).optional(), platform: z.enum(['instagram', 'tiktok']).optional(), favoritesOnly: z.boolean().optional(), mediaKind: z.enum(['all', 'videos', 'images']).optional(), limit: z.number().int().min(1).max(200), offset: z.number().int().min(0)
   }),
+  'profiles.refresh': z.object({ workspaceId: ws, profileId: id }),
   'profiles.list': z.object({ workspaceId: ws }),
   'storage.get': z.object({ workspaceId: ws }),
   'storage.choose': z.object({ workspaceId: ws }),
   'storage.reset': z.object({ workspaceId: ws }),
   'profiles.downloadStatus': z.object({ workspaceId: ws }),
   'profiles.download': z.object({ workspaceId: ws, profileId: id, limit: z.number().int().min(1).max(100) }),
-  'profiles.discover': z.object({ workspaceId: ws, profileId: id, limit: z.number().int().min(1).max(1000) }),
+  'profiles.discover': z.object({ workspaceId: ws, profileId: id, limit: z.number().int().min(1).max(1000), source: profileContentSource.optional() }),
   'profiles.downloadSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
   'profiles.prepareSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
   'accounts.instagram': z.object({ workspaceId: ws }),
-  'compose.scheduleInstagram': z.object({ workspaceId: ws, assetIds: z.array(id).min(1).max(100), accountId: z.string().regex(/^\d+$/), accountRevision: z.string().min(1), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), captions: z.record(z.string(),z.string().max(2200)), cleanupAfterPublish: z.boolean().default(false), versionIds: z.record(id, id).optional() }),
+  'compose.scheduleInstagram': z.object({ workspaceId: ws, assetIds: z.array(id).min(1).max(100), accountId: z.string().regex(/^\d+$/), accountRevision: z.string().min(1), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), captions: z.record(z.string(),z.string().max(2200)), allowRepost: z.boolean().optional(), cleanupAfterPublish: z.boolean().default(false), shareToFeed: z.boolean().default(true), versionIds: z.record(id, id).optional() }),
   'accounts.verifyInstagram': z.object({ workspaceId: ws }),
   'accounts.connectInstagram': z.object({ workspaceId: ws, token: z.string().trim().min(20).max(4096).regex(/^[A-Za-z0-9_.-]+$/) }),
   'accounts.disconnectInstagram': z.object({ workspaceId: ws }),
-  'profiles.scheduleInstagram': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), caption: z.string().max(2200).optional(), cleanupAfterPublish: z.boolean().default(false) }),
+  'profiles.scheduleInstagram': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), caption: z.string().max(2200).optional(), allowRepost: z.boolean().optional(), cleanupAfterPublish: z.boolean().default(false), shareToFeed: z.boolean().default(true) }),
   'profiles.add': z.object({ workspaceId: ws, url: z.string().min(1).max(300) }),
   'profiles.addReel': z.object({ workspaceId: ws, profileId: id, url: z.string().min(1).max(300) }),
   'profiles.importMetricsFile': z.object({ workspaceId: ws, profileId: id }),
@@ -105,17 +116,28 @@ export type Input<C extends Channel> = z.infer<(typeof contract)[C]>
 
 export interface WorkspaceDto { id: string; name: string; timeZone: string }
 export interface ImportResultDto { path: string; status: 'imported' | 'duplicate' | 'rejected'; assetId?: string; errors: string[]; warnings: string[] }
-export interface ProfileDto { id: string; username: string; url: string; connected: boolean; lastSyncedAt: string | null }
+export interface GuestSessionDto { entered: boolean; email: 'guest@legacy.com'; mode: 'development' }
+export interface ImportProgress { phase: 'searching' | 'importing' | 'done'; processed: number; total: number | null; imported: number; skipped: number; previewFailures: number; percent: number | null }
+export interface ProfileMetrics { postsCount: number | null; reelsCount: number | null; followersCount: number | null; followingCount: number | null; updatedAt: string }
+export interface ProfileDto { metrics?: ProfileMetrics | null; contentSource?: ProfileContentSource; avatarPath?: string | null; platform: string; id: string; username: string; url: string; connected: boolean; lastSyncedAt: string | null }
 export interface CoverDto { id: string; name: string; kind: 'image' | 'frame_text'; imagePath: string | null; frameMs: number | null; textJson: string | null }
 export interface NotificationDto { id: string; kind: 'info' | 'error' | 'manual_task'; title: string; body: string; actionJson: string | null; dueAt: string | null; readAt: string | null; createdAt: string }
 export interface OnboardingStepDto { key: string; label: string; done: boolean; disabledReason?: string }
 
 export interface Outputs {
-  'app.bootstrap': { workspaces: WorkspaceDto[]; version: string; workerAlive: boolean; dataDir: string }
+  'notifications.delete': { deleted: number }
+  'publications.checkRepost': { id: string; name: string; reason: string }[]
+  'session.get': GuestSessionDto
+  'session.enterGuest': GuestSessionDto
+  'session.exit': GuestSessionDto
+  'profiles.importProgress': { jobId: string; state: string; error: string | null; progress: ImportProgress | null } | null
+  'publications.feedback': { jobId: string; username: string }[]
+  'publications.acknowledge': null
+  'app.bootstrap': { workspaces: WorkspaceDto[]; version: string; buildCommit?: string; buildTime?: string; workerAlive: boolean; dataDir: string }
   'dashboard.get': DashboardSummary
   'achievements.get': AchievementSummary & { acknowledged: string[] }
   'achievements.acknowledge': null
-  'publications.history': { jobId: string; accountId: string; username: string; postId: string; assetSha: string | null; mediaId: string | null; provenanceJson: string; publishedAt: string; cleanupState: string }[]
+  'publications.history': { jobId: string; accountId: string; username: string; postId: string | null; assetSha: string | null; mediaId: string | null; provenanceJson: string; publishedAt: string; cleanupState: string }[]
   'captions.top': { items: { id: string; username: string; text: string | null; permalink: string; value: number | null; updatedAt: string | null; source: 'api' | 'csv' | null }[]; total: number; sortBy: 'views' | 'likes' | 'comments'; note: string }
   'tutorial.planGet': { username: string; niche: string; audience: string; bio: string; cadence: string } | null
   'tutorial.planSave': null
@@ -139,6 +161,7 @@ export interface Outputs {
   'library.setFavorite': null
   'library.frame': { path: string }
   'grid.query': GridPage
+  'profiles.refresh': ProfileMetrics
   'profiles.list': ProfileDto[]
   'storage.get': { path: string; custom: boolean }
   'storage.choose': { path: string; custom: boolean } | null
@@ -170,7 +193,7 @@ export interface Outputs {
   'jobs.query': QueuePageResult
   'jobs.tail': { runAt: string; ahead: number }
   'jobs.reschedule': boolean
-  'jobs.details': { attempts: { startedAt: string; finishedAt: string | null; outcome: string | null; errorMessage: string | null }[]; attemptTotal: number; batchId: string | null; account: string | null; checkpoint: string | null; label: string; runAt: string; error: string | null; files: { id: string; name: string; filePath: string; thumbnailPath: string | null }[]; originUrl: string | null; folders: string[] }
+  'jobs.details': { attempts: { startedAt: string; finishedAt: string | null; outcome: string | null; errorMessage: string | null }[]; attemptTotal: number; batchId: string | null; account: string | null; checkpoint: string | null; confirmedPublished?: boolean; publishedVideo?: { assetId: string | null; name: string } | null; label: string; runAt: string; error: string | null; files: { id: string; name: string; filePath: string; thumbnailPath: string | null }[]; originUrl: string | null; folders: string[] }
   'library.saveCopy': { saved: boolean }
   'library.openAsset': null
   'updates.status': UpdateStatus
@@ -187,4 +210,4 @@ export interface Outputs {
 }
 
 export type IpcResult<T> = { ok: true; data: T } | { ok: false; error: { code: AppErrorCode; message: string } }
-export const EVENTS = { jobsChanged: 'jobs.changed', navigate: 'app.navigate' } as const
+export const EVENTS = { jobsChanged: 'jobs.changed', navigate: 'app.navigate', visibility: 'app.visibility' } as const
