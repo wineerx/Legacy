@@ -14,6 +14,7 @@ import { makeTestVideo } from '../media/test-fixtures'
 import { apifyJson, downloadVideo, downloadPreview } from './download-http'
 import { profileImportProgress, fetchProfile, requestProfileDownload, runReelDownload, requestSelectedDownloads } from './profile-download'
 import { setVideoStorage } from './storage'
+import { setSetting } from '../repos/settings'
 
 vi.mock('./download-http', async (original) => ({ ...await original<typeof import('./download-http')>(), apifyJson: vi.fn(), downloadVideo: vi.fn(), downloadPreview: vi.fn() }))
 let ctx: Ctx
@@ -26,6 +27,9 @@ beforeEach(async () => {
   ctx = { db: memDb(), dataRoot: await mkdtemp(join(tmpdir(), 'legacy-download-')), clock: () => new Date('2026-10-05T12:00:00Z') }
   ws = createWorkspace(ctx.db, { name: 'A', timeZone: 'UTC' }).id
   profileId = addProfileFromUrl(ctx, ws, 'https://instagram.com/example/').id
+  const avatarPath = join(ctx.dataRoot, 'cached-avatar.jpg')
+  await writeFile(avatarPath, 'cached avatar')
+  setSetting(ctx.db, ws, `profileAvatar.${profileId}`, avatarPath)
 })
 afterEach(() => vi.unstubAllEnvs())
 
@@ -167,4 +171,46 @@ it('importa TikTok com metadados e avatar na grade, sem baixar vídeos automatic
   expect(ctx.db.select().from(remotePosts).all()[0]).toMatchObject({caption:'TikTok',remoteId:'123456789',views:123,durationMs:12000})
   expect(downloadPreview).toHaveBeenCalledTimes(2)
   expect(listJobs(ctx.db,ws).filter(j=>j.type==='download_reel')).toHaveLength(0)
+})
+
+ it.each([['posts', 'posts'], ['reels', 'reels'], ['tagged', 'mentions']] as const)('busca a origem %s e preserva a preferência', async (source, resultsType) => {
+  const queued = requestProfileDownload(ctx, ws, profileId, 10, true, source)
+  expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id, queued.id)).get()!.payloadJson)).toMatchObject({ source })
+  const job = leaseNext(ctx.db, ctx.clock(), 60000)!
+  responses()
+  await fetchProfile(ctx, job)
+  expect(apifyJson).toHaveBeenCalledWith(expect.stringContaining('instagram-scraper/runs'), 'test-token', { directUrls: ['https://www.instagram.com/example/'], resultsType, resultsLimit: 10 })
+  expect(listJobs(ctx.db, ws).filter(j => j.type === 'download_reel')).toHaveLength(0)
+  ctx.db.update(jobs).set({ state: 'done' }).where(eq(jobs.id, job.id)).run()
+  const next = requestProfileDownload(ctx, ws, profileId, 10, true)
+  expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id, next.id)).get()!.payloadJson)).toMatchObject({ source })
+ })
+
+it('busca foto da conta em details sem usar o autor de um post marcado', async () => {
+  setSetting(ctx.db, ws, `profileAvatar.${profileId}`, 'missing-avatar.jpg')
+  requestProfileDownload(ctx, ws, profileId, 10, true, 'tagged')
+  const job = leaseNext(ctx.db, ctx.clock(), 60000)!
+  vi.mocked(apifyJson)
+    .mockResolvedValueOnce({ data: { id: 'run1', status: 'READY' } })
+    .mockResolvedValueOnce({ data: { id: 'run1', status: 'SUCCEEDED', defaultDatasetId: 'ds1' } })
+    .mockResolvedValueOnce([{ ...reel, ownerProfilePicUrl: 'https://scontent.cdninstagram.com/other.jpg' }])
+    .mockResolvedValueOnce({ data: { id: 'avatar1', status: 'READY' } })
+    .mockResolvedValueOnce({ data: { id: 'avatar1', status: 'SUCCEEDED', defaultDatasetId: 'avatarDs' } })
+    .mockResolvedValueOnce([{ username: 'example', profilePicUrlHD: 'https://scontent.cdninstagram.com/account.jpg' }])
+  await fetchProfile(ctx, job)
+  expect(apifyJson).toHaveBeenCalledWith(expect.stringContaining('instagram-scraper/runs'), 'test-token', { directUrls: ['https://www.instagram.com/example/'], resultsType: 'details', resultsLimit: 1 })
+  expect(downloadPreview).toHaveBeenCalledWith('https://scontent.cdninstagram.com/account.jpg', expect.stringContaining(`profile-${profileId}.jpg`))
+  expect(downloadPreview).not.toHaveBeenCalledWith('https://scontent.cdninstagram.com/other.jpg', expect.anything())
+  expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id, job.id)).get()!.resultJson!)).toMatchObject({ avatarRunId: 'avatar1', avatarChecked: true })
+  expect(ctx.db.select().from(remotePosts).all()).toHaveLength(1)
+})
+it('falha da foto preserva os posts e registra o erro no checkpoint', async () => {
+  setSetting(ctx.db, ws, `profileAvatar.${profileId}`, 'missing-avatar.jpg')
+  requestProfileDownload(ctx, ws, profileId, 10, true)
+  const job = leaseNext(ctx.db, ctx.clock(), 60000)!
+  responses()
+  vi.mocked(apifyJson).mockRejectedValueOnce(new Error('avatar unavailable'))
+  await fetchProfile(ctx, job)
+  expect(ctx.db.select().from(remotePosts).all()).toHaveLength(1)
+  expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id, job.id)).get()!.resultJson!)).toMatchObject({ avatarError: 'avatar unavailable', progress: { phase: 'done' } })
 })

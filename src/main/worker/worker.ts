@@ -24,7 +24,7 @@ let paused = process.env.LEGACY_WORKER_PAUSED === '1'
 let credentialsReady: () => void = () => {}
 const ready = process.env.LEGACY_MANAGED_SECRETS === '1' ? new Promise<void>((resolve) => { credentialsReady = resolve }) : Promise.resolve()
 parent?.on('message', (e) => {
-  const data = e.data as { type?: string; secrets?: SecretMap; paused?: boolean }
+  const data = e.data as { type?: string; secrets?: SecretMap; paused?: boolean; requestId?: number }
   if (data?.type === 'stop') {
     stopping = true; credentialsReady()
     // The supervisor kills the worker 5 s after 'stop'; release tunnels and copies now instead of after the current job.
@@ -32,7 +32,10 @@ parent?.on('message', (e) => {
     void releaseAll().catch((err) => console.error('[worker] release', err))
     closeAllTunnels()
   }
-  if (data?.type === 'pause') paused = data.paused === true
+  if (data?.type === 'pause') {
+    paused = data.paused === true
+    if (data.requestId !== undefined) parent?.postMessage({ type: 'pause-applied', requestId: data.requestId })
+  }
   if (data?.type === 'credentials') { secrets = data.secrets ?? {}; credentialsReady() }
 })
 // Announce readiness only after the message listener and database are initialized.

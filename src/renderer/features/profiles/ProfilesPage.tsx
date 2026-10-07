@@ -40,11 +40,13 @@ import {
   type Selection
 } from '../../lib/selection'
 import type { PageProps } from '../../routes'
-import { CaptionRibbon } from '../compose/CaptionRibbon'
 import { DeliveryTime, deliveryError } from '../../components/ui'
 import { zonedToUtc } from '@shared/schedule'
 import { useMascotSignal } from '../../components/brand/MascotProvider'
 
+import type { ProfileContentSource } from '@shared/ipc-contract'
+
+const sourceLabels = { posts: 'Posts', reels: 'Reels', tagged: 'Marcados' }
 type Sort = 'views' | 'likes' | 'comments' | 'postedAt'
 
 export function ProfilesPage({ navigate }: PageProps) {
@@ -95,6 +97,9 @@ export function ProfilesPage({ navigate }: PageProps) {
   const [downloadLimit, setDownloadLimit] = useState('20')
   const [topCount, setTopCount] = useState('5')
   const [discoveryLimit, setDiscoveryLimit] = useState('100')
+  const [newSource, setNewSource] = useState<ProfileContentSource>('posts')
+  const [sourceOverrides, setSourceOverrides] = useState<Record<string, ProfileContentSource>>({})
+  const activeSource = active?.platform === 'instagram' ? sourceOverrides[active.id] ?? active.contentSource ?? 'posts' : 'posts'
   const [scheduleOpen, setScheduleOpen] = useState(false)
   const [cleanupAfterPublish, setCleanupAfterPublish] = useState(false)
   const [scheduleAt, setScheduleAt] = useState('')
@@ -135,17 +140,18 @@ export function ProfilesPage({ navigate }: PageProps) {
       })
   })
   const discover = useMutation({
-    mutationFn: ({ profileId, limit }: { profileId: string; limit: number }) =>
+    mutationFn: ({ profileId, limit, source }: { profileId: string; limit: number; source: ProfileContentSource }) =>
       call('profiles.discover', {
         workspaceId: workspace.id,
         profileId,
-        limit
+        limit,
+        source
       }),
-    onSuccess: () => {
+    onSuccess: (_, input) => {
       setProgressOpen(true)
       void qc.invalidateQueries()
       toast.show({
-        title: 'Carregando posts e reels',
+        title: `Carregando ${sourceLabels[input.source].toLowerCase()}`,
         body: 'A grade atualizará durante a busca. A grade cobre os itens retornados conforme o limite configurado; o provedor pode retornar menos.'
       })
     },
@@ -332,6 +338,7 @@ export function ProfilesPage({ navigate }: PageProps) {
       if (downloadStatus.data?.configured)
         discover.mutate({
           profileId: p.id,
+          source: p.platform === 'instagram' ? newSource : 'posts',
           limit: Math.min(1000, Math.max(1, Number(discoveryLimit)))
         })
       else
@@ -547,6 +554,9 @@ export function ProfilesPage({ navigate }: PageProps) {
               </Popover.Content>
             </Popover.Portal>
           </Popover.Root>
+          <Pills<ProfileContentSource> label="Origem do conteúdo (Instagram)" value={newSource} onChange={setNewSource} options={[
+            { value: 'posts', label: 'Posts' }, { value: 'reels', label: 'Reels' }, { value: 'tagged', label: 'Marcados' }
+          ]} />
           <Input
             label="Limite de posts para analisar"
             type="number"
@@ -556,7 +566,7 @@ export function ProfilesPage({ navigate }: PageProps) {
             onChange={(e) => setDiscoveryLimit(e.target.value)}
           />
           <p className="text-[11px] text-dim">
-            A Apify buscará posts até o limite configurado.
+            A Apify buscará a origem escolhida até o limite configurado. Para TikTok, serão buscadas as publicações.
           </p>
         </form>
         {[...new Set(profiles.data?.map((p) => p.platform) ?? [])].map(
@@ -608,7 +618,9 @@ export function ProfilesPage({ navigate }: PageProps) {
         ) : (
           <>
             <header className="flex flex-wrap items-center gap-3">
-              <div className="w-full">
+              <div className="flex w-full items-center gap-3">
+                <ProfileAvatar key={active.id} username={active.username} path={active.avatarPath} size="lg" />
+                <div className="min-w-0">
                 <h1 className="text-lg font-semibold">@{active.username}</h1>
                 <p className="text-xs text-dim">
                   {active.connected
@@ -624,6 +636,7 @@ export function ProfilesPage({ navigate }: PageProps) {
                     })}
                   </p>
                 )}
+                </div>
               </div>
               <Button
                 aria-label="Baixar vídeos do perfil"
@@ -632,6 +645,9 @@ export function ProfilesPage({ navigate }: PageProps) {
               >
                 Baixar vídeos
               </Button>
+              {active.platform === 'instagram' && <Pills<ProfileContentSource> label="Origem da atualização" value={activeSource} onChange={(source) => setSourceOverrides(prev => ({ ...prev, [active.id]: source }))} options={[
+                { value: 'posts', label: 'Posts' }, { value: 'reels', label: 'Reels' }, { value: 'tagged', label: 'Marcados' }
+              ]} />}
               <Button
                 disabled={
                   !downloadStatus.data?.configured ||
@@ -644,6 +660,7 @@ export function ProfilesPage({ navigate }: PageProps) {
                 onClick={() =>
                   discover.mutate({
                     profileId: active.id,
+                    source: activeSource,
                     limit: Number(discoveryLimit)
                   })
                 }
@@ -833,12 +850,6 @@ export function ProfilesPage({ navigate }: PageProps) {
                 }
               />
             )}
-            <CaptionRibbon
-              key={active.id}
-              profileId={active.id}
-              defaultMode="ranked"
-              navigate={navigate}
-            />
           </>
         )}
       </section>

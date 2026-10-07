@@ -87,7 +87,8 @@ test('destinos, calendário, fila real, modal de contas e sidebar acessível',as
  await page.getByRole('link',{name:'Biblioteca',exact:true}).hover()
  await expect(page.getByRole('tooltip',{name:'Biblioteca',exact:true})).toBeVisible()
  await page.getByRole('button',{name:'Menu do usuário'}).click()
- await expect(page.getByLabel('Workspace',{exact:true})).toBeVisible()
+ await expect(page.getByRole('button',{name:'Configurações',exact:true})).toBeVisible()
+ await expect(page.getByRole('button',{name:'Sair do Legacy',exact:true})).toBeVisible()
  await page.screenshot({path:'docs/screens/qa-publishing/sidebar-recolhida.png'})
  }finally{await app.close()}
 })

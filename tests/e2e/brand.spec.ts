@@ -27,6 +27,8 @@ test('identidade Legacy, personalização persistente e redução de movimento',
     await expect(page.getByRole('dialog', { name: 'Status da fila' })).toHaveCount(0)
     const hero = page.locator('.brand-welcome .legacy-mascot')
     await expect(hero).toHaveAttribute('data-animated', 'true')
+    await hero.hover()
+    await expect(hero).toHaveAttribute('data-visible', 'true')
     const bounds = await hero.boundingBox()
     await page.mouse.move(bounds!.x + bounds!.width * .8, bounds!.y + bounds!.height * .3)
     await expect.poll(() => hero.evaluate(el => el.style.getPropertyValue('--look-x'))).not.toBe('0')

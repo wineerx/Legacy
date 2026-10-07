@@ -38,3 +38,12 @@ describe('SettingsPage', () => {
     expect(await screen.findByText('Pasta de dados: C:\\Users\\teste\\AppData\\Roaming\\Legacy')).toBeInTheDocument()
   })
 })
+
+it('troca de workspace continua disponível em Configurações', async () => {
+  mockBridge({ 'app.bootstrap': () => ({ workspaces: [{ id: WS_ID, name: 'A', timeZone: 'UTC' }, { id: 'outro', name: 'B', timeZone: 'UTC' }], version: 'test', workerAlive: true, dataDir: 'C:/test' }), 'settings.get': () => null })
+  renderWithApp(<SettingsPage navigate={vi.fn()} />)
+  await userEvent.click(await screen.findByRole('combobox', { name: 'Workspace ativo' }))
+  await userEvent.click(await screen.findByRole('option', { name: 'B' }))
+  expect(await screen.findByText(/padrões do workspace B/)).toBeInTheDocument()
+  localStorage.removeItem('workspaceId')
+})

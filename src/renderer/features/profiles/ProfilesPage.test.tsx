@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { mockBridge, renderWithApp, WS_ID } from '../../test-utils'
 import { ProfilesPage } from './ProfilesPage'
@@ -99,4 +99,31 @@ it('mostra progresso indeterminado, reabre resultado real e mantém erro da tare
   await waitFor(() => expect(screen.getByText('32 de 80 posts processados · 40%')).toBeVisible(), { timeout: 3500 })
   expect(screen.getByText('O provedor encerrou a busca.')).toBeVisible()
   expect(screen.getByRole('progressbar')).toHaveAttribute('value', '40')
+})
+
+it('envia a origem salva ao atualizar a grade', async () => {
+  const invoke = mockBridge({ 'profiles.list': () => [{ ...profile, contentSource: 'tagged' }], 'profiles.downloadStatus': () => ({ configured: true }), 'profiles.discover': () => ({ id: 'job1' }), 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
+  renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+  await userEvent.click(await screen.findByRole('button', { name: 'Atualizar grade' }))
+  expect(invoke).toHaveBeenCalledWith('profiles.discover', { workspaceId: WS_ID, profileId: profile.id, limit: 100, source: 'tagged' })
+})
+
+it.each(['reels', 'tagged'] as const)('incorpora perfil usando %s escolhido antes da busca', async (source) => {
+  const invoke = mockBridge({ 'profiles.list': () => [], 'profiles.add': () => profile, 'profiles.downloadStatus': () => ({ configured: true }), 'profiles.discover': () => ({ id: 'job1' }), 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
+  renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+  const group = await screen.findByRole('group', { name: 'Origem do conteúdo (Instagram)' })
+  await userEvent.click(within(group).getByRole('button', { name: source === 'reels' ? 'Reels' : 'Marcados' }))
+  await userEvent.type(screen.getByLabelText('Link do perfil'), profile.url)
+  await userEvent.click(screen.getByRole('button', { name: 'Importar perfil' }))
+  await waitFor(() => expect(invoke).toHaveBeenCalledWith('profiles.discover', { workspaceId: WS_ID, profileId: profile.id, limit: 100, source }))
+})
+
+it('exibe a foto do perfil a esquerda do nome no cabecalho', async () => {
+  mockBridge({ 'profiles.list': () => [{ ...profile, avatarPath: 'C:/avatars/example.jpg' }], 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
+  renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+  const heading = await screen.findByRole('heading', { name: '@zanon.boss' })
+  const header = heading.closest('header')!
+  const avatar = header.querySelector('.size-14')!
+  expect(avatar).toBeInTheDocument()
+  expect(avatar.nextElementSibling).toContainElement(heading)
 })

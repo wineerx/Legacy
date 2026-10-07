@@ -57,8 +57,43 @@ body { margin: 0; background: var(--color-app); color: var(--color-fg); font-fam
 @keyframes confetti-drop { to { transform: translateY(70vh) rotate(360deg); opacity: 0; } }
 @media (prefers-reduced-motion: reduce) { .guest-glow { transition: none; background: radial-gradient(ellipse 42% 60% at 50% 0%, #1b3e714d, transparent 90%); } .publication-confetti { display: none; } }
 
-.date-picker { width: auto; --rdp-accent-color: var(--color-fg); --rdp-accent-background-color: var(--color-raised); --rdp-day-height: 34px; --rdp-day-width: 34px; --rdp-selected-border: 0; }
-.date-picker .rdp-selected .rdp-day_button { background: var(--color-fg); color: var(--color-app); border-radius: 8px; }
+.date-picker { width: 218px; padding: 10px; border-radius: 12px; }
+.date-picker .rdp-root {
+  --rdp-accent-color: var(--color-fg);
+  --rdp-accent-background-color: var(--color-raised);
+  --rdp-today-color: var(--color-fg);
+  --rdp-day-height: 36px;
+  --rdp-day-width: 28px;
+  --rdp-day_button-height: 28px;
+  --rdp-day_button-width: 28px;
+  --rdp-day_button-border-radius: 8px;
+  --rdp-day_button-border: 0;
+  --rdp-selected-border: 0;
+  --rdp-nav-height: 32px;
+  --rdp-nav_button-width: 28px;
+  --rdp-outside-opacity: 1;
+  --rdp-weekday-opacity: 1;
+  --rdp-disabled-opacity: .35;
+  color: var(--color-fg);
+  font-size: 14px;
+}
+.date-picker .rdp-month_caption { justify-content: center; padding: 0 28px; margin-bottom: 8px; }
+.date-picker .rdp-caption_label { font-size: 14px; font-weight: 600; }
+.date-picker .rdp-weekday { padding: 6px 0; color: var(--color-dim); font-size: 12px; font-weight: 400; }
+.date-picker .rdp-day_button { margin: auto; font-size: 14px; font-weight: 500; }
+.date-picker .rdp-selected { font-size: inherit; }
+.date-picker .rdp-outside { color: var(--color-dim); }
+.date-picker .rdp-today .rdp-day_button,
+.date-picker .rdp-selected .rdp-day_button { background: var(--color-raised); color: var(--color-fg); }
+.date-picker .rdp-day_button:hover:not(:disabled),
+.date-picker .rdp-button_previous:hover:not(:disabled),
+.date-picker .rdp-button_next:hover:not(:disabled) { background: var(--color-raised); }
+.date-picker .rdp-button_previous,
+.date-picker .rdp-button_next { border-radius: 8px; }
+.date-picker .rdp-chevron { width: 16px; height: 16px; fill: currentColor; }
+.date-picker .rdp-day_button:focus-visible,
+.date-picker .rdp-button_previous:focus-visible,
+.date-picker .rdp-button_next:focus-visible { outline: 2px solid var(--color-dim); outline-offset: 2px; }
 
 .guest-entry .mascot-float { animation: none !important; }
 

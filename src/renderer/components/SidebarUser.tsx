@@ -1,13 +1,13 @@
 import * as Popover from '@radix-ui/react-popover'
 import { useState } from 'react'
 import { UserRound, ChevronsUpDown, Settings, LogOut } from 'lucide-react'
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useQuery } from '@tanstack/react-query'
 import { useWorkspace } from '../lib/workspace'
 import { useSession } from '../lib/session'
 import { UserAvatar } from './ui/UserAvatar'
 import { call } from '../lib/api'
 import type { PageKey } from '../routes'
-import { Button, Modal, Input, Select, Tooltip, useToast } from './ui'
+import { Button, Modal, Input, Tooltip, useToast } from './ui'
 
 function readProfile() {
   try {
@@ -31,29 +31,15 @@ export function SidebarUser({
   navigate(p: PageKey): void
 }) {
   const { exit } = useSession()
-  const { workspace, workspaces, setWorkspaceId } = useWorkspace()
-  const qc = useQueryClient()
+  const { workspace } = useWorkspace()
   const toast = useToast()
   const [profile, setProfile] = useState(readProfile)
   const [draft, setDraft] = useState(profile)
   const [edit, setEdit] = useState(false)
-  const [disconnectOpen, setDisconnectOpen] = useState(false)
   const [error, setError] = useState('')
   const account = useQuery({
     queryKey: ['instagram-account', workspace.id],
     queryFn: () => call('accounts.instagram', { workspaceId: workspace.id })
-  })
-  const disconnect = useMutation({
-    mutationFn: () =>
-      call('accounts.disconnectInstagram', { workspaceId: workspace.id }),
-    onSuccess: () => {
-      void qc.invalidateQueries()
-      setDisconnectOpen(false)
-    },
-    onError: (e) =>
-      setError(
-        e instanceof Error ? e.message : 'Não foi possível desconectar a conta.'
-      )
   })
   const name =
     profile.name || (account.data ? `@${account.data.username}` : 'Visitante')
@@ -166,35 +152,9 @@ export function SidebarUser({
                 Configurações
               </button>
             </Popover.Close>
-            <div className="border-y border-line p-2">
-              <Select
-                label="Workspace"
-                value={workspace.id}
-                onChange={(e) => setWorkspaceId(e.target.value)}
-              >
-                {workspaces.map((w) => (
-                  <option key={w.id} value={w.id}>
-                    {w.name}
-                  </option>
-                ))}
-              </Select>
-            </div>
             <Popover.Close asChild>
               <button
-                disabled={!account.data}
-                className="flex w-full gap-2 rounded-ctl p-2 text-sm hover:bg-raised disabled:opacity-50"
-                onClick={() => {
-                  setError('')
-                  setDisconnectOpen(true)
-                }}
-              >
-                <LogOut size={16} />
-                Desconectar Instagram
-              </button>
-            </Popover.Close>
-            <Popover.Close asChild>
-              <button
-                className="flex w-full gap-2 rounded-ctl border-t border-line p-2 text-sm hover:bg-raised"
+                className="flex w-full gap-2 rounded-ctl border-t border-line p-2 text-sm text-red-400 hover:bg-raised hover:text-red-300"
                 onClick={() =>
                   void exit().catch((e) =>
                     toast.show({
@@ -258,30 +218,6 @@ export function SidebarUser({
             </p>
           )}
         </div>
-      </Modal>
-      <Modal
-        open={disconnectOpen}
-        onOpenChange={setDisconnectOpen}
-        title="Desconectar Instagram?"
-        description="Desconecta esta conta do workspace e remove o token salvo. Seus arquivos e histórico permanecem; tarefas pendentes não poderão publicar."
-        footer={
-          <>
-            <Button onClick={() => setDisconnectOpen(false)}>Cancelar</Button>
-            <Button
-              variant="danger"
-              loading={disconnect.isPending}
-              onClick={() => disconnect.mutate()}
-            >
-              Desconectar
-            </Button>
-          </>
-        }
-      >
-        {error && (
-          <p role="alert" className="text-danger-fg">
-            {error}
-          </p>
-        )}
       </Modal>
     </>
   )

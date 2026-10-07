@@ -134,3 +134,13 @@ A remoção de duplicados permanece pela seleção e exclusão confirmada da Bib
 Validação da consolidação: typecheck, 426 testes em 78 arquivos e 23 E2E no Electron. Testes novos cobrem publicação de PC, idempotência, histórico sem origem, filtro exato da Biblioteca, migração com linhas antigas e limpeza protegida por outra publicação local. API Instagram simulada e nenhuma busca paga.
 
 Instalação autorizada separadamente pelo usuário. Backup consistente do banco original contém 36 tarefas na fila, 440 concluídas, 43 canceladas e nenhuma em execução. O SHA definitivo e os checksums do instalador ficam no manifesto externo da compilação, produzido depois do commit final. Esta consolidação não mescla PRs nem publica release.
+
+## União das alterações posteriores — 0.7.3
+
+Após o pedido de reunir todas as atualizações, a revisão incorpora Sonner, calendário compacto, avatares maiores no cabeçalho, escolhas Posts/Reels/Marcados com preferência persistida, consulta opcional da foto da conta com checkpoint, checklist e menu de perfil simplificado. O seletor de workspace foi realocado para Configurações para preservar a função; Instagram continua desconectável em Contas.
+
+O [schema oficial do Instagram Scraper](https://apify.com/apify/instagram-scraper/input-schema) confirma resultsType posts/reels/mentions/details. Marcados usa mentions; a foto usa details para não confundir o perfil importado com o autor de um post marcado. A consulta da foto pode consumir uma execução adicional do provedor quando não houver imagem local válida; erros dessa consulta preservam os posts importados. Nenhuma busca paga foi executada na validação.
+
+Testes de regressão foram atualizados para identificar o toast Sonner sem confundi-lo com o alerta do diálogo e para o novo formato do mês. Typecheck e 443 testes em 79 arquivos passaram. A compilação final é produzida de um checkout isolado do commit consolidado, evitando incluir edições concorrentes depois do commit.
+
+A validação de integração reforçou a pausa com confirmação explícita do worker antes do retorno à entrada e proteção contra uma entrada atrasada após sair. O mascote combina visibilidade do documento com eventos show/hide/minimize/restore do Electron. Os 23 E2E verificam navegação, pausa, progresso, celebração e responsividade; a expectativa do menu acompanha a realocação do seletor para Configurações.

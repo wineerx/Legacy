@@ -1,6 +1,6 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron'
 
-const ALLOWED_EVENTS = new Set(['jobs.changed', 'app.navigate'])
+const ALLOWED_EVENTS = new Set(['jobs.changed', 'app.navigate', 'app.visibility'])
 
 contextBridge.exposeInMainWorld('legacy', {
   version: process.env.LEGACY_APP_VERSION,

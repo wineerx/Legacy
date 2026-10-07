@@ -56,6 +56,11 @@ function createWindow(): BrowserWindow {
   if (process.platform === 'win32') {
     w.setAppDetails({ appId: 'app.legacy.desktop', appIconPath, appIconIndex: 0 })
   }
+  const sendVisibility = () => w.webContents.send('app.visibility', { visible: w.isVisible() && !w.isMinimized() })
+  w.on('show', sendVisibility)
+  w.on('hide', sendVisibility)
+  w.on('minimize', sendVisibility)
+  w.on('restore', sendVisibility)
   w.on('page-title-updated', e => e.preventDefault())
   w.once('ready-to-show', () => w.show())
   w.on('session-end', () => { quitting = true })

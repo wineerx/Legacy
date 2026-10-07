@@ -24,10 +24,10 @@ it('preserva pausa no reinício e não interrompe o processo em andamento', asyn
   const worker = startWorker({ dbPath: 'db', dataRoot: 'data', migrationsDir: 'migrations', onEvent: vi.fn(), initiallyPaused: true })
   expect(mocked.fork.mock.calls.at(-1)?.[2].env.LEGACY_WORKER_PAUSED).toBe('1')
   worker.setPaused(false)
-  expect(first.postMessage).toHaveBeenLastCalledWith({ type: 'pause', paused: false })
+  expect(first.postMessage).toHaveBeenLastCalledWith({ type: 'pause', paused: false, requestId: 1 })
   worker.setPaused(true)
   expect(first.kill).not.toHaveBeenCalled()
-  expect(first.postMessage).toHaveBeenLastCalledWith({ type: 'pause', paused: true })
+  expect(first.postMessage).toHaveBeenLastCalledWith({ type: 'pause', paused: true, requestId: 2 })
   first.emit('exit')
   await vi.advanceTimersByTimeAsync(1000)
   expect(mocked.fork.mock.calls.at(-1)?.[2].env.LEGACY_WORKER_PAUSED).toBe('1')
@@ -35,4 +35,23 @@ it('preserva pausa no reinício e não interrompe o processo em andamento', asyn
   expect(second.postMessage).toHaveBeenCalledWith({ type: 'pause', paused: true })
   const stopped = worker.stop(); second.emit('exit'); await stopped
   vi.useRealTimers()
+})
+
+
+it('confirma a pausa somente após o worker responder, inclusive durante inicialização', async () => {
+  const child = Object.assign(new EventEmitter(), { postMessage: vi.fn(), kill: vi.fn() })
+  mocked.fork.mockReturnValue(child)
+  const onEvent = vi.fn()
+  const worker = startWorker({ dbPath: 'db', dataRoot: 'data', migrationsDir: 'migrations', onEvent })
+  let acknowledged = false
+  const pausing = worker.setPaused(true).then(() => { acknowledged = true })
+  await Promise.resolve()
+  expect(acknowledged).toBe(false)
+  child.emit('message', { type: 'credentials-ready' })
+  expect(child.postMessage).toHaveBeenCalledWith({ type: 'pause', paused: true, requestId: 1 })
+  child.emit('message', { type: 'pause-applied', requestId: 1 })
+  await pausing
+  expect(acknowledged).toBe(true)
+  expect(onEvent).not.toHaveBeenCalled()
+  const stopped = worker.stop(); child.emit('exit'); await stopped
 })

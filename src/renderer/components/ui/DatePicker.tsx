@@ -26,6 +26,7 @@ export function DatePicker({
       <span className="text-xs text-dim">{label}</span>
       <Popover.Root open={open} onOpenChange={setOpen}>
         <Popover.Trigger
+          type="button"
           className="ds-field flex h-9 w-full items-center justify-between gap-3 text-left"
           aria-label={label}
         >
@@ -37,20 +38,27 @@ export function DatePicker({
         <Popover.Portal>
           <Popover.Content
             className="ds-dropdown date-picker"
+            aria-label={`Calendário: ${label}`}
             align="start"
             sideOffset={6}
           >
             <DayPicker
               mode="single"
               locale={ptBR}
+              navLayout="around"
+              showOutsideDays
+              weekStartsOn={0}
+              autoFocus
               selected={date}
-              defaultMonth={date}
+              defaultMonth={date ?? (min ? new Date(`${min}T12:00:00`) : undefined)}
               formatters={{
-                formatCaption: (d) =>
-                  d.toLocaleDateString('pt-BR', {
+                formatCaption: (d) => {
+                  const caption = d.toLocaleDateString('pt-BR', {
                     month: 'long',
                     year: 'numeric'
-                  })
+                  }).replace(' de ', ' ')
+                  return caption.charAt(0).toUpperCase() + caption.slice(1)
+                }
               }}
               disabled={
                 min ? { before: new Date(`${min}T00:00:00`) } : undefined

@@ -1,3 +1,4 @@
+import { profileContentSource } from '@shared/ipc-contract'
 import { repostWarnings } from '../services/repost-check'
 import { deleteNotifications } from '../repos/notifications'
 import { mediaDetails, pendingMedia, deleteMany } from '../services/media-manager'
@@ -103,10 +104,10 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
       return { path: out }
     },
     'grid.query': (i) => queryGrid(ctx.db, i),
-    'profiles.list': (i) => listProfiles(ctx.db, i.workspaceId).map(p => profileDto(p, getSetting(ctx.db, i.workspaceId, `profileAvatar.${p.id}`))),
+    'profiles.list': (i) => listProfiles(ctx.db, i.workspaceId).map(p => ({ ...profileDto(p, getSetting(ctx.db, i.workspaceId, `profileAvatar.${p.id}`)), contentSource: profileContentSource.catch('posts').parse(getSetting(ctx.db, i.workspaceId, `profileContentSource.${p.id}`)) })),
     'profiles.downloadStatus': (i) => ({ configured: downloadConfigured(ctx, i.workspaceId) }),
     'profiles.download': (i) => changed(i.workspaceId, requestProfileDownload(ctx, i.workspaceId, i.profileId, i.limit)),
-    'profiles.discover': (i) => changed(i.workspaceId, requestProfileDownload(ctx, i.workspaceId, i.profileId, i.limit, true)),
+    'profiles.discover': (i) => changed(i.workspaceId, requestProfileDownload(ctx, i.workspaceId, i.profileId, i.limit, true, i.source)),
     'profiles.downloadSelected': (i) => changed(i.workspaceId, requestSelectedDownloads(ctx, i.workspaceId, i.postIds)),
     'profiles.prepareSelected': (i) => selectedAssets(ctx, i.workspaceId, i.postIds),
     'accounts.instagram': (i) => instagramAccount(ctx, i.workspaceId),

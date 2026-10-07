@@ -1,3 +1,12 @@
+# 0.7.3 — todas as revisões recentes
+
+- Toasts empilhados com Sonner, mantendo mascote, teclado, pausa ao focar e erros persistentes.
+- Calendário compacto com navegação e dias externos; avatares de perfil na lista e no cabeçalho.
+- Importação Instagram permite Posts, Reels e Marcados, preserva a origem escolhida e busca a foto da conta correta com checkpoint.
+- Menu de perfil simplificado; troca de workspace mantida em Configurações e desconexão Instagram em Contas.
+- Pausa visitante aguarda confirmação do worker; uma entrada atrasada não desfaz a saída. Mascote interrompe animações também pelos eventos reais da janela.
+- Mantém publicação local, histórico e todas as revisões da 0.7.2.
+
 # 0.7.2 — compilação consolidada de revisão
 
 - Reúne entrada visitante, pausa da fila, UI shadcn, importação incremental Instagram/TikTok, notificações e revisão de publicação.

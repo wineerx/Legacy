@@ -3,6 +3,8 @@ import type { AchievementSummary } from './achievements'
 import type { AppErrorCode } from './errors'
 import type { MediaDetails, GridPage, JobView, QueuePageResult, DashboardSummary, IntegrationStatus } from './types'
 
+export const profileContentSource = z.enum(['posts', 'reels', 'tagged'])
+export type ProfileContentSource = z.infer<typeof profileContentSource>
 const ws = z.uuid()
 export interface UpdateStatus { state: 'idle' | 'checking' | 'available' | 'current' | 'downloading' | 'downloaded' | 'error' | 'unsupported'; version: string | null; progress: number; message: string }
 const id = z.string().min(1).max(64)
@@ -64,7 +66,7 @@ export const contract = {
   'storage.reset': z.object({ workspaceId: ws }),
   'profiles.downloadStatus': z.object({ workspaceId: ws }),
   'profiles.download': z.object({ workspaceId: ws, profileId: id, limit: z.number().int().min(1).max(100) }),
-  'profiles.discover': z.object({ workspaceId: ws, profileId: id, limit: z.number().int().min(1).max(1000) }),
+  'profiles.discover': z.object({ workspaceId: ws, profileId: id, limit: z.number().int().min(1).max(1000), source: profileContentSource.optional() }),
   'profiles.downloadSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
   'profiles.prepareSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
   'accounts.instagram': z.object({ workspaceId: ws }),
@@ -115,7 +117,7 @@ export interface WorkspaceDto { id: string; name: string; timeZone: string }
 export interface ImportResultDto { path: string; status: 'imported' | 'duplicate' | 'rejected'; assetId?: string; errors: string[]; warnings: string[] }
 export interface GuestSessionDto { entered: boolean; email: 'guest@legacy.com'; mode: 'development' }
 export interface ImportProgress { phase: 'searching' | 'importing' | 'done'; processed: number; total: number | null; imported: number; skipped: number; previewFailures: number; percent: number | null }
-export interface ProfileDto { avatarPath?: string | null; platform: string; id: string; username: string; url: string; connected: boolean; lastSyncedAt: string | null }
+export interface ProfileDto { contentSource?: ProfileContentSource; avatarPath?: string | null; platform: string; id: string; username: string; url: string; connected: boolean; lastSyncedAt: string | null }
 export interface CoverDto { id: string; name: string; kind: 'image' | 'frame_text'; imagePath: string | null; frameMs: number | null; textJson: string | null }
 export interface NotificationDto { id: string; kind: 'info' | 'error' | 'manual_task'; title: string; body: string; actionJson: string | null; dueAt: string | null; readAt: string | null; createdAt: string }
 export interface OnboardingStepDto { key: string; label: string; done: boolean; disabledReason?: string }
@@ -205,4 +207,4 @@ export interface Outputs {
 }
 
 export type IpcResult<T> = { ok: true; data: T } | { ok: false; error: { code: AppErrorCode; message: string } }
-export const EVENTS = { jobsChanged: 'jobs.changed', navigate: 'app.navigate' } as const
+export const EVENTS = { jobsChanged: 'jobs.changed', navigate: 'app.navigate', visibility: 'app.visibility' } as const

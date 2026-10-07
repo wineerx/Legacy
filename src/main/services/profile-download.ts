@@ -1,9 +1,10 @@
 import { mkdir, rm, rename } from 'node:fs/promises'
+import { existsSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
 import { and, desc, eq, inArray, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { AppError } from '@shared/errors'
-import type { ImportProgress } from '@shared/ipc-contract'
+import { profileContentSource, type ProfileContentSource, type ImportProgress } from '@shared/ipc-contract'
 import { normalizeSocialUrl } from '@shared/social-url'
 import type { Ctx } from '../context'
 import { jobs, remotePosts, trackedProfiles } from '../db/schema'
@@ -69,10 +70,14 @@ export function requestProfileDownload(
   workspaceId: string,
   profileId: string,
   limit: number,
-  discovery = false
+  discovery = false,
+  source?: ProfileContentSource
 ) {
   const profile = getProfile(ctx.db, workspaceId, profileId)
   if (!profile) throw new AppError('not_found', 'Perfil não encontrado.')
+  const contentSource = profileContentSource.parse(source ?? (discovery ? getSetting(ctx.db, workspaceId, `profileContentSource.${profileId}`) ?? 'posts' : 'reels'))
+  if (profile.platform !== 'instagram' && contentSource !== 'posts' && discovery)
+    throw new AppError('invalid_input', 'Reels e marcados estão disponíveis apenas para Instagram.')
   token(ctx, workspaceId)
   if (!Number.isInteger(limit) || limit < 1 || limit > (discovery ? 1000 : 100))
     throw new AppError(
@@ -95,13 +100,14 @@ export function requestProfileDownload(
   )
   if (existing)
     throw new AppError('duplicate', 'Já existe uma busca deste perfil na fila.')
+  if (discovery) setSetting(ctx.db, workspaceId, `profileContentSource.${profileId}`, contentSource)
   return enqueue(
     ctx.db,
     {
       workspaceId,
       type: 'fetch_profile',
-      payload: { profileId, limit, discovery },
-      label: `Carregar até ${limit} ${discovery ? 'posts/reels' : 'reels'} de @${profile.username}`,
+      payload: { profileId, limit, discovery, source: contentSource },
+      label: `Carregar até ${limit} ${discovery ? ({ posts: 'posts', reels: 'reels', tagged: 'marcados' }[contentSource]) : 'reels'} de @${profile.username}`,
       maxAttempts: 3
     },
     ctx.clock()
@@ -135,11 +141,12 @@ export function profileImportProgress(ctx: Ctx, ws: string, profileId: string) {
 }
 
 export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
-  const { profileId, limit, discovery } = z
+  const { profileId, limit, discovery, source } = z
     .object({
       profileId: z.string(),
       limit: z.number().int().min(1).max(1000),
-      discovery: z.boolean().default(false)
+      discovery: z.boolean().default(false),
+      source: profileContentSource.default('posts')
     })
     .parse(job.payload)
   if (!discovery && limit > 100)
@@ -159,6 +166,10 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
     starting?: boolean
     runId?: string
     progress?: ImportProgress
+    avatarStarting?: boolean
+    avatarRunId?: string
+    avatarChecked?: boolean
+    avatarError?: string
   } = saved ? JSON.parse(saved) : {}
   let accepted = 0
   let avatarAttempted = false
@@ -210,7 +221,7 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
         profile.platform === 'tiktok' ? { profiles: [profile.username], resultsPerPage: limit, profileSorting: 'latest', shouldDownloadVideos: false, shouldDownloadCovers: false } : discovery
           ? {
               directUrls: [profile.url],
-              resultsType: 'posts',
+              resultsType: source === 'tagged' ? 'mentions' : source,
               resultsLimit: limit
             }
           : {
@@ -338,7 +349,7 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
       )
       if (existing || post.metricsUpdatedAt) skipped++; else imported++
       const avatarUrl = reel.ownerProfilePicUrl ?? reel.profilePicUrl
-      if (avatarUrl && !avatarAttempted && !getSetting(ctx.db, job.workspaceId, `profileAvatar.${profile.id}`)) {
+      if (profile.platform === 'tiktok' && avatarUrl && !avatarAttempted && !getSetting(ctx.db, job.workspaceId, `profileAvatar.${profile.id}`)) {
         avatarAttempted = true
         const dir = resolveInside(workspaceDir(ctx.dataRoot, job.workspaceId), 'previews'); await mkdir(dir, { recursive: true })
         const path = resolveInside(dir, `profile-${profile.id}.jpg`)
@@ -406,6 +417,48 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
       'invalid_input',
       'Nenhum post disponível. O perfil pode estar privado, vazio ou bloqueado pelo provedor.'
     )
+  // Posts need not contain the account photo; tagged posts belong to other authors.
+  const cachedAvatar = getSetting(ctx.db, job.workspaceId, `profileAvatar.${profile.id}`)
+  if (profile.platform === 'instagram' && (!cachedAvatar || !existsSync(cachedAvatar)) && !checkpoint.avatarChecked) {
+    const persistAvatar = () => ctx.db.update(jobs).set({ resultJson: JSON.stringify(checkpoint) }).where(condition).run()
+    try {
+      if (!checkpoint.avatarRunId) {
+        if (checkpoint.avatarStarting) throw new Error('A consulta da foto ficou sem confirma\u00e7\u00e3o; confira a execu\u00e7\u00e3o na Apify.')
+        checkpoint.avatarStarting = true
+        persistAvatar()
+        const run = runSchema.parse(await apifyJson('actors/apify~instagram-scraper/runs?timeout=600', key, {
+          directUrls: [profile.url], resultsType: 'details', resultsLimit: 1
+        })).data
+        checkpoint.avatarRunId = run.id
+        checkpoint.avatarStarting = false
+        persistAvatar()
+      }
+      let avatarDataset: string | undefined
+      for (let attempt = 0; attempt < 12; attempt++) {
+        const run = runSchema.parse(await apifyJson(`actor-runs/${remoteId.parse(checkpoint.avatarRunId)}?waitForFinish=60`, key)).data
+        if (run.status === 'SUCCEEDED') { avatarDataset = run.defaultDatasetId; break }
+        if (!['READY', 'RUNNING'].includes(run.status)) throw new Error(`Consulta da foto terminou em ${run.status}.`)
+      }
+      if (!avatarDataset) throw new Error('A consulta da foto ainda n\u00e3o terminou.')
+      const details = z.array(z.object({ username: z.string(), profilePicUrl: z.string().optional(), profilePicUrlHD: z.string().optional() })).parse(
+        await apifyJson(`datasets/${avatarDataset}/items?clean=true&limit=1`, key)
+      ).find(p => p.username.toLowerCase() === profile.username.toLowerCase())
+      const avatarUrl = details?.profilePicUrlHD ?? details?.profilePicUrl
+      if (!avatarUrl) throw new Error('O provedor n\u00e3o retornou a foto desta conta.')
+      const dir = resolveInside(workspaceDir(ctx.dataRoot, job.workspaceId), 'previews')
+      await mkdir(dir, { recursive: true })
+      const path = resolveInside(dir, `profile-${profile.id}.jpg`)
+      await downloadPreview(avatarUrl, path)
+      setSetting(ctx.db, job.workspaceId, `profileAvatar.${profile.id}`, path)
+      checkpoint.avatarChecked = true
+      delete checkpoint.avatarError
+    } catch (error) {
+      checkpoint.avatarError = error instanceof Error ? error.message : 'Falha ao carregar foto do perfil.'
+      // Keep imported posts; a future refresh retries the optional photo.
+      checkpoint.avatarChecked = true
+    }
+    persistAvatar()
+  }
   saveProgress('done', true)
   ctx.db
     .update(trackedProfiles)
