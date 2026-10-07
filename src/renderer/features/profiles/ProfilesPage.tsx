@@ -124,6 +124,7 @@ export function ProfilesPage({ navigate }: PageProps) {
   const activeSource = active?.platform === 'instagram' ? sourceOverrides[active.id] ?? active.contentSource ?? 'posts' : 'posts'
   const [scheduleOpen, setScheduleOpen] = useState(false)
   const [cleanupAfterPublish, setCleanupAfterPublish] = useState(false)
+  const [shareToFeed, setShareToFeed] = useState(true)
   const [scheduleAt, setScheduleAt] = useState('')
   const [intervalMin, setIntervalMin] = useState('60')
   const [scheduleCaption, setScheduleCaption] = useState('')
@@ -146,7 +147,7 @@ export function ProfilesPage({ navigate }: PageProps) {
         firstAt: zonedToUtc(date, time, workspace.timeZone).toISOString(),
         intervalMin: ids.length > 1 ? Number(intervalMin) : 60,
         caption: scheduleCaption || undefined,
-        cleanupAfterPublish, allowRepost
+        cleanupAfterPublish, shareToFeed, allowRepost
       })
     },
     onSuccess: () => {
@@ -866,7 +867,7 @@ export function ProfilesPage({ navigate }: PageProps) {
                 items={grid.items}
                 loading={grid.isLoading}
                 selection={selection}
-                onToggleSelect={(id) => setSelection(toggleId(selection, id))}
+                onToggleSelect={(id) => setSelection(previous => toggleId(previous, id))}
                 onOpen={setPreview}
                 onEndReached={
                   grid.hasNextPage ? () => void grid.fetchNextPage() : undefined
@@ -962,6 +963,14 @@ export function ProfilesPage({ navigate }: PageProps) {
             value={scheduleCaption}
             onChange={(e) => setScheduleCaption(e.target.value)}
           />
+          <label className="flex items-start gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={shareToFeed}
+              onChange={(e) => setShareToFeed(e.target.checked)}
+            />
+            Mover para a aba posts (o reel também aparece na grade do perfil)
+          </label>
           <label className="flex items-start gap-2 text-sm">
             <input
               type="checkbox"

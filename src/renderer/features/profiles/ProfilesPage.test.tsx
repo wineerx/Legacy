@@ -7,6 +7,25 @@ import { ProfilesPage } from './ProfilesPage'
 const profile = { platform: 'instagram', id: 'p1', username: 'zanon.boss', url: 'https://www.instagram.com/zanon.boss/', connected: false, lastSyncedAt: null }
 
 describe('ProfilesPage', () => {
+  it('mantém atualização girando e continua os demais perfis após uma falha', async () => {
+    let fail!: (error: unknown) => void
+    const first = new Promise((_, reject) => { fail = reject })
+    const invoke = mockBridge({
+      'profiles.list': () => [profile, { ...profile, id: 'p2', username: 'outro' }],
+      'profiles.refresh': ({ profileId }) => profileId === 'p1' ? first : {},
+      'grid.query': () => ({ items: [], total: 0, loadedNote: '' })
+    })
+    renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+    const button = await screen.findByRole('button', { name: 'Atualizar dados de todos os perfis do Instagram' })
+    await userEvent.click(button)
+    expect(button).toBeDisabled()
+    expect(button.querySelector('svg')).toHaveClass('animate-spin')
+    fail({ code: 'network', message: 'Falha da Apify' })
+    expect(await screen.findByText('1 perfil(is) atualizado(s); 1 falha(s)')).toBeInTheDocument()
+    expect(invoke).toHaveBeenCalledWith('profiles.refresh', { workspaceId: WS_ID, profileId: 'p2' })
+    await waitFor(() => expect(button).toBeEnabled())
+    expect(button.querySelector('svg')).not.toHaveClass('animate-spin')
+  })
   it('reload no cabeçalho consulta todos os perfis do Instagram sem buscar conteúdo', async () => {
     const invoke = mockBridge({
       'profiles.list': () => [profile, { ...profile, id: 'p2', username: 'outro' }, { ...profile, id: 'p3', platform: 'tiktok' }],

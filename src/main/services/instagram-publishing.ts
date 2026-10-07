@@ -74,7 +74,7 @@ export function disconnectInstagram(ctx: Ctx, vault: SecretVault, ws: string) {
   ctx.db.transaction(() => { saveSecret(ctx, vault, ws, 'instagramToken', ''); setSetting(ctx.db, ws, 'instagramAccount', '') })
 }
 type PublishItem = { postId: string | null; localAssetId: string; caption: string }
-type ScheduleInput = { firstAt: string; intervalMin: number; cleanupAfterPublish?: boolean; allowRepost?: boolean; versionIds?: Record<string,string> }
+type ScheduleInput = { firstAt: string; intervalMin: number; cleanupAfterPublish?: boolean; shareToFeed?: boolean; allowRepost?: boolean; versionIds?: Record<string,string> }
 function enqueuePublications(ctx: Ctx, ws: string, account: NonNullable<ReturnType<typeof instagramAccount>>, posts: PublishItem[], input: ScheduleInput) {
   const first = new Date(input.firstAt)
   const last = first.getTime() + (posts.length - 1) * input.intervalMin * 60000
@@ -86,7 +86,7 @@ function enqueuePublications(ctx: Ctx, ws: string, account: NonNullable<ReturnTy
     const repeated = posts.map((post, i) => ctx.db.select().from(jobs).where(and(eq(jobs.workspaceId, ws), eq(jobs.idempotencyKey, key(post, i)))).get())
     if (repeated.every(Boolean)) return repeated.map(r => ({ ...r!, type: 'publish_instagram' as const }))
     if (!input.allowRepost && repostWarnings(ctx, ws, account.id, { postIds: posts.flatMap(p => p.postId ? [p.postId] : []), assetIds: posts.filter(p => !p.postId).map(p => p.localAssetId) }).length) throw new AppError('duplicate', 'Possível repostagem nesta conta. Revise o aviso e confirme antes de agendar novamente.')
-    return posts.map((post, i) => enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', label: `Publicar reel em @${account.username}`, payload: { ...post, username: account.username, accountId: account.id, accountRevision: account.revision, cleanupAfterPublish: input.cleanupAfterPublish ?? false, versionId: input.versionIds?.[post.localAssetId], allowRepost: input.allowRepost ?? false, batchId }, runAt: new Date(first.getTime() + i * input.intervalMin * 60000), maxAttempts: 24, idempotencyKey: key(post, i) }, ctx.clock()))
+    return posts.map((post, i) => enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', label: `Publicar reel em @${account.username}`, payload: { ...post, username: account.username, accountId: account.id, accountRevision: account.revision, cleanupAfterPublish: input.cleanupAfterPublish ?? false, shareToFeed: input.shareToFeed ?? true, versionId: input.versionIds?.[post.localAssetId], allowRepost: input.allowRepost ?? false, batchId }, runAt: new Date(first.getTime() + i * input.intervalMin * 60000), maxAttempts: 24, idempotencyKey: key(post, i) }, ctx.clock()))
   })
 }
 export function scheduleInstagram(ctx: Ctx, ws: string, input: ScheduleInput & { postIds: string[]; caption?: string; captions?: Record<string,string> }) {
@@ -100,7 +100,7 @@ export function scheduleInstagram(ctx: Ctx, ws: string, input: ScheduleInput & {
   })
   return enqueuePublications(ctx, ws, account, posts, input)
 }
-export function scheduleComposition(ctx: Ctx, ws: string, input: { assetIds: string[]; accountId: string; accountRevision: string; firstAt: string; intervalMin: number; captions: Record<string,string>; cleanupAfterPublish: boolean; versionIds?: Record<string,string>; allowRepost?: boolean }) {
+export function scheduleComposition(ctx: Ctx, ws: string, input: { assetIds: string[]; accountId: string; accountRevision: string; firstAt: string; intervalMin: number; captions: Record<string,string>; cleanupAfterPublish: boolean; shareToFeed?: boolean; versionIds?: Record<string,string>; allowRepost?: boolean }) {
  for (const [assetId, versionId] of Object.entries(input.versionIds ?? {})) { if (!listVersions(ctx.db, ws, assetId).some(v => v.id === versionId && v.kind === 'banner') && !ctx.db.select().from(jobs).where(and(eq(jobs.workspaceId, ws), eq(jobs.type, 'apply_banner'), inArray(jobs.state, ['queued', 'running']))).all().some(j => {const p = JSON.parse(j.payloadJson);return p.versionId === versionId && p.assetId === assetId})) throw new AppError('invalid_input', 'Versão editada inválida neste workspace.') }
  const account=instagramAccount(ctx,ws)
  if (!account || account.id!==input.accountId || account.revision!==input.accountRevision) throw new AppError('invalid_input','O destino mudou. Atualize e revise a conta antes de confirmar.')
@@ -118,7 +118,7 @@ const PUBLISH_FAILED = 'O Instagram não conseguiu processar o vídeo enviado pe
 const quietly = (p: Promise<void>) => p.catch(() => {})
 
 export async function publishInstagram(ctx: Ctx, job: LeasedJob, requestApi = instagramJson, deps: PublishDeps = defaultPublishDeps()) {
-  const payload = z.object({ postId: z.string().nullish(), localAssetId: z.string().nullish(), versionId: z.string().optional(), allowRepost: z.boolean().default(false), caption: z.string().max(2200), accountId: numericId, accountRevision: z.string(), cleanupAfterPublish: z.boolean().default(false) }).parse(job.payload)
+  const payload = z.object({ postId: z.string().nullish(), localAssetId: z.string().nullish(), versionId: z.string().optional(), allowRepost: z.boolean().default(false), caption: z.string().max(2200), accountId: numericId, accountRevision: z.string(), cleanupAfterPublish: z.boolean().default(false), shareToFeed: z.boolean().default(true) }).parse(job.payload)
   // Cleanup of stale exposures (any job) must never fail this publication.
   await quietly(releaseExpired())
   const recorded = history(ctx, job.workspaceId).find(r => r.jobId === job.id)
@@ -157,7 +157,7 @@ export async function publishInstagram(ctx: Ctx, job: LeasedJob, requestApi = in
     const videoUrl = await exposeForJob(job.id, () => deps.prepare(version?.filePath ?? asset.filePath, tmpDir), deps.host)
     checkpoint.creating = true; checkpoint.hostId = deps.host.id; checkpoint.exposedAt = ctx.clock().toISOString(); save()
     let response: unknown
-    try { response = await requestApi(`${account.id}/media`, token, { media_type: 'REELS', video_url: videoUrl, caption: payload.caption, share_to_feed: 'true', ...(payload.versionId ? { thumb_offset: '0' } : {}) }) }
+    try { response = await requestApi(`${account.id}/media`, token, { media_type: 'REELS', video_url: videoUrl, caption: payload.caption, share_to_feed: String(payload.shareToFeed), ...(payload.versionId ? { thumb_offset: '0' } : {}) }) }
     catch (e) { if (e instanceof InstagramApiError && e.status < 500) { checkpoint.creating = false; save(); await quietly(releaseExposure(job.id)) } throw e }
     checkpoint.containerId = z.object({ id: numericId }).parse(response).id; save()
   }

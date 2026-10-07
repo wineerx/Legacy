@@ -40,8 +40,8 @@ beforeEach(async () => {
   await connectInstagram(ctx, vault, ws, 'private-token', vi.fn().mockResolvedValue({ id: 'app-scoped', user_id: '12345', username: 'destination' }))
 })
 afterEach(async () => { await releaseAll() })
-function leased() {
-  scheduleInstagram(ctx, ws, { postIds: [postId], firstAt: '2026-10-05T12:02:00Z', intervalMin: 60 })
+function leased(extra: { shareToFeed?: boolean } = {}) {
+  scheduleInstagram(ctx, ws, { postIds: [postId], firstAt: '2026-10-05T12:02:00Z', intervalMin: 60, ...extra })
   expect(leaseNext(ctx.db, ctx.clock(), 60000)).toBeNull()
   ctx.clock = () => new Date('2026-10-05T12:02:00Z')
   return leaseNext(ctx.db, ctx.clock(), 60000)!
@@ -103,6 +103,16 @@ describe('publicação agendada Instagram', () => {
     expect(api).toHaveBeenNthCalledWith(1, '12345/media', 'private-token', expect.objectContaining({ video_url: 'https://t.trycloudflare.com/tok/video.mp4', media_type: 'REELS' }))
     expect(release).toHaveBeenCalledTimes(1)
     expect(JSON.stringify(job.payload)).not.toContain('trycloudflare')
+  })
+  it('envia share_to_feed conforme a opção de mover para a aba posts', async () => {
+    const api = vi.fn().mockResolvedValueOnce({ id: '987' }).mockResolvedValueOnce({ status_code: 'FINISHED' }).mockResolvedValueOnce({ id: '456' })
+    await publishInstagram(ctx, leased({ shareToFeed: false }), api, deps)
+    expect(api).toHaveBeenNthCalledWith(1, '12345/media', 'private-token', expect.objectContaining({ share_to_feed: 'false' }))
+  })
+  it('sem opção explícita mantém o reel na grade do perfil', async () => {
+    const api = vi.fn().mockResolvedValueOnce({ id: '987' }).mockResolvedValueOnce({ status_code: 'FINISHED' }).mockResolvedValueOnce({ id: '456' })
+    await publishInstagram(ctx, leased(), api, deps)
+    expect(api).toHaveBeenNthCalledWith(1, '12345/media', 'private-token', expect.objectContaining({ share_to_feed: 'true' }))
   })
   it('ERROR libera, mostra o código e a nova tentativa cria outro container', async () => {
     const job = leased()

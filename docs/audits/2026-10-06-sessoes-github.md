@@ -154,3 +154,9 @@ Todos consulta três fontes distintas da Apify, com limite total e deduplicaçã
 Typecheck, 452 testes em 80 arquivos e 23 E2E passaram, incluindo respostas desconhecidas, falha no dataset e o novo seletor de origem. A compilação fica identificada pelo commit definitivo e a reinstalação preserva o banco. Nenhuma busca paga nem publicação real foi iniciada pela validação.
 
 As últimas edições da outra sessão centralizam o avatar e posicionam o badge acima do ícone na Sidebar compactada. O conjunto completo passou novamente por typecheck, 452 testes e 23 E2E antes do commit final.
+
+## Consolidação 0.7.5
+
+Atualização de todos os perfis Instagram pelo cabeçalho, mantendo consultas independentes após falha parcial. Ctrl + clique marca/desmarca vídeos das grades compartilhadas sem abrir o player; checkboxes e menus mantêm seu comportamento. A seleção usa o estado anterior. Opção de grade de posts percorre composição, revisão, contrato IPC, payload persistido e share_to_feed; filas antigas usam o padrão compatível.
+
+Typecheck e 457 testes em 80 arquivos passaram. A seleção por modificador também é exercitada no Electron para Biblioteca e Perfis. A validação e o empacotamento final usam checkout isolado para evitar screenshots abertos e edições concorrentes.

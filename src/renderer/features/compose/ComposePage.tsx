@@ -68,6 +68,7 @@ export function ComposePage({ navigate }: PageProps) {
   const [delivery, setDelivery] = useState('')
   const [interval, setInterval] = useState(60)
   const [cleanup, setCleanup] = useState(false)
+  const [shareToFeed, setShareToFeed] = useState(true)
   const [ids] = useState(() => peekComposeSelection())
   const assets = useQuery({
     queryKey: ['compose-assets', ids],
@@ -286,6 +287,7 @@ export function ComposePage({ navigate }: PageProps) {
             items.map((i, k) => [i.id, captions[k]])
           ),
           cleanupAfterPublish: cleanup,
+          shareToFeed,
           versionIds: edited ? versionIds : undefined
         })
       }
@@ -508,6 +510,20 @@ export function ComposePage({ navigate }: PageProps) {
             necessário para tocar o vídeo com qualidade.
           </p>
           <div className="flex items-center justify-between">
+            <h2 className="text-sm font-semibold">Mover para a aba posts</h2>
+            <Toggle
+              label="Mover para a aba posts"
+              checked={shareToFeed}
+              disabled={!instagram}
+              onChange={setShareToFeed}
+            />
+          </div>
+          <p className="text-xs text-dim">
+            {instagram
+              ? 'O reel publicado também aparece na grade do perfil, além da aba Reels.'
+              : 'Disponível ao publicar no Instagram. Marcado, o reel também aparece na grade do perfil.'}
+          </p>
+          <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">Lembretes para postar</h2>
             <Toggle
               label="Lembretes para postar"
@@ -585,6 +601,7 @@ export function ComposePage({ navigate }: PageProps) {
         coverName={cover?.name ?? null}
         bannerOn={bannerActive}
         stripMetadata={stripMetadata}
+        shareToFeed={shareToFeed}
         busy={run.isPending}
         blockReason={blockReason}
         instagram={instagram ? account.data?.username : undefined}

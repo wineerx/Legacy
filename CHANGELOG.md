@@ -2,6 +2,8 @@
 
 - Botão de atualizar no cabeçalho Instagram consulta identidade e métricas de todos os perfis, sem importar posts nem iniciar downloads.
 - Um perfil com falha não interrompe os demais; o aviso informa quantos foram atualizados e lista cada falha.
+- Ctrl + clique marca/desmarca vídeos nas grades da Biblioteca e Perfis sem abrir o player nem substituir a seleção anterior.
+- Opção de publicar o Reel também na grade de posts do Instagram; a escolha é persistida na tarefa e enviada como share_to_feed.
 - Preserva todas as revisões da 0.7.4.
 
 # 0.7.4 — novas revisões de perfis e contas
