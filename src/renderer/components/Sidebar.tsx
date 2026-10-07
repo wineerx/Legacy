@@ -26,7 +26,7 @@ export function Sidebar({ current, onNavigate, unread, collapsed, onToggle }: Pr
         className={cx('relative flex h-8 shrink-0 items-center gap-2.5 rounded-ctl px-2.5 text-sm', current === n.key ? 'bg-raised text-fg' : 'text-dim hover:bg-raised/60 hover:text-fg')}>
         <Icon size={16} className="shrink-0" aria-hidden />
         {!collapsed && <span className="flex-1 truncate">{n.label}</span>}
-        {badge !== null && <span className={cx('rounded-full bg-fg px-1 text-[10px] font-semibold leading-4 text-app', collapsed && 'absolute -bottom-1 right-0')}>{badge! > 99 ? '99+' : badge}</span>}
+        {badge !== null && <span className={cx('rounded-full bg-fg px-1 text-[10px] font-semibold leading-4 text-app', collapsed && 'absolute -top-1 right-0')}>{badge! > 99 ? '99+' : badge}</span>}
       </a>
     )
     return collapsed ? <Tooltip key={n.key} content={n.label}>{anchor}</Tooltip> : anchor

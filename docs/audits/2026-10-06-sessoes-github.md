@@ -152,3 +152,5 @@ A revisão incorpora a origem Todos (Posts/Reels/Marcados), seletor por ícones 
 Todos consulta três fontes distintas da Apify, com limite total e deduplicação. Cada fonte conserva seu checkpoint; tentativas subsequentes consultam a execução existente. A atualização de métricas também persiste o runId e protege criações sem confirmação para não repetir uma execução paga após falha de rede. A interface explica as três consultas ao selecionar Todos.
 
 Typecheck, 452 testes em 80 arquivos e 23 E2E passaram, incluindo respostas desconhecidas, falha no dataset e o novo seletor de origem. A compilação fica identificada pelo commit definitivo e a reinstalação preserva o banco. Nenhuma busca paga nem publicação real foi iniciada pela validação.
+
+As últimas edições da outra sessão centralizam o avatar e posicionam o badge acima do ícone na Sidebar compactada. O conjunto completo passou novamente por typecheck, 452 testes e 23 E2E antes do commit final.

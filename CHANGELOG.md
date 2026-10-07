@@ -5,6 +5,7 @@
 - Seletor de origem por ícones com ToggleGroup Radix; mantém preferência e navegação pelo teclado.
 - Contas conectadas e opções das redes em cards, com desconexão confirmada e TikTok manual.
 - Alinha logos, textos e seleção nos destinos da composição; ajusta o checklist inicial.
+- Centraliza o avatar e reposiciona o badge de notificações na Sidebar compactada.
 - Preserva sessão visitante, fila, publicação local e revisões da 0.7.3.
 
 # 0.7.3 — todas as revisões recentes

@@ -97,7 +97,7 @@ export function SidebarUser({
   }
   const trigger = (
     <Popover.Trigger
-      className="flex w-full items-center gap-2 rounded-ctl p-2 text-left hover:bg-raised"
+      className={`flex w-full items-center gap-2 rounded-ctl py-2 text-left hover:bg-raised ${collapsed ? 'justify-center px-0' : 'px-2'}`}
       aria-label="Menu do usuário"
     >
       <UserAvatar key={profile.photo} name={name} photo={profile.photo} />
