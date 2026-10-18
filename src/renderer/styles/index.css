@@ -2,6 +2,27 @@
 @import "./tokens.css";
 @import "./controls.css";
 
+.collapsible { min-width: 0; border: 1px solid color-mix(in srgb, var(--color-line) 65%, transparent); border-radius: var(--radius-card); background: var(--color-panel); transition: border-color 220ms ease, background-color 220ms ease; }
+.collapsible[data-state="open"] { border-color: var(--color-line); background: color-mix(in srgb, var(--color-panel) 90%, var(--color-raised)); }
+.collapsible-header { display: flex; align-items: center; gap: 8px; }
+.collapsible-trigger { display: flex; flex: 1; min-width: 0; width: 100%; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 16px; border-radius: calc(var(--radius-card) - 1px); text-align: left; cursor: pointer; transition: background-color 180ms ease; }
+.collapsible-trigger:hover:not(:disabled) { background: color-mix(in srgb, var(--color-raised) 60%, transparent); }
+.collapsible-trigger:active:not(:disabled) { background: var(--color-raised); }
+.collapsible-trigger:focus-visible { outline-offset: -3px; }
+.collapsible-trigger:disabled { opacity: .5; cursor: not-allowed; }
+.collapsible-heading { display: flex; min-width: 0; flex-direction: column; gap: 4px; }
+.collapsible-title { font-size: var(--text-sm); font-weight: 500; color: var(--color-fg); }
+.collapsible-description { font-size: var(--text-xs); font-weight: 400; color: var(--color-dim); }
+.collapsible-actions { display: flex; flex-shrink: 0; align-items: center; gap: 8px; padding-right: 12px; }
+.collapsible-chevron { width: 16px; height: 16px; flex-shrink: 0; color: var(--color-dim); transition: transform 220ms cubic-bezier(.2, 0, 0, 1); }
+.collapsible-trigger[data-state="open"] .collapsible-chevron { transform: rotate(90deg); }
+.collapsible-height { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows 220ms cubic-bezier(.2, 0, 0, 1), visibility 0s 220ms; }
+.collapsible-height[data-state="open"] { grid-template-rows: 1fr; visibility: visible; transition-delay: 0s; }
+.collapsible-clip { min-height: 0; overflow: hidden; }
+.collapsible-body { margin: 0 16px; padding: 14px 0 16px; border-top: 1px solid color-mix(in srgb, var(--color-line) 65%, transparent); opacity: 0; transform: translateY(-4px); transition: opacity 80ms ease, transform 80ms ease; }
+/* Reveal after the height settles; hide immediately on collapse. Total: 300ms. */
+.collapsible-height[data-state="open"] > .collapsible-clip > .collapsible-body { opacity: 1; transform: translateY(0); transition-delay: 220ms; }
+
 html, body, #root { height: 100%; min-width: 0; }
 body { margin: 0; background: var(--color-app); color: var(--color-fg); font-family: var(--font-sans); font-size: 14px; -webkit-font-smoothing: antialiased; }
 :focus-visible { outline: 2px solid #8ab4ff; outline-offset: 2px; }
@@ -21,3 +42,59 @@ body { margin: 0; background: var(--color-app); color: var(--color-fg); font-fam
 .legacy-first-progress::-webkit-progress-bar { background: var(--color-raised); }
 .legacy-first-progress::-webkit-progress-value { background: var(--color-fg); }
 .legacy-first-progress::-moz-progress-bar { background: var(--color-fg); }
+
+.guest-entry { position: relative; display: flex; height: 100%; min-height: 480px; align-items: center; justify-content: center; overflow: hidden; background: #0a0a0a; }
+.guest-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 42% 60% at var(--glow-x, 50%) var(--glow-y, 0%), #1b3e714d, transparent 90%); transition: background-position .4s ease; }
+.number-field { display: flex; align-items: center; padding: 0; }
+.number-field:focus-within { outline: 2px solid #8ab4ff; outline-offset: 2px; }
+.number-field input { appearance: textfield; width: 100%; min-width: 0; height: 100%; padding: 0 .5rem; background: transparent; text-align: center; outline: none; }
+.number-field input::-webkit-inner-spin-button, .number-field input::-webkit-outer-spin-button { appearance: none; margin: 0; }
+.number-field button { height: 100%; width: 2rem; flex-shrink: 0; display: grid; place-items: center; border-radius: inherit; }
+.number-field button:hover { background: var(--color-raised); }
+.number-field button:disabled { opacity: .35; cursor: not-allowed; }
+.publication-confetti { position: fixed; inset: 0; z-index: 60; pointer-events: none; overflow: hidden; }
+.publication-confetti i { position: absolute; top: -1rem; width: 6px; height: 10px; background: #a4c8ef; animation: confetti-drop 1.4s ease-out both; }
+@keyframes confetti-drop { to { transform: translateY(70vh) rotate(360deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .guest-glow { transition: none; background: radial-gradient(ellipse 42% 60% at 50% 0%, #1b3e714d, transparent 90%); } .publication-confetti { display: none; } }
+
+.date-picker { width: 218px; padding: 10px; border-radius: 12px; }
+.date-picker .rdp-root {
+  --rdp-accent-color: var(--color-fg);
+  --rdp-accent-background-color: var(--color-raised);
+  --rdp-today-color: var(--color-fg);
+  --rdp-day-height: 36px;
+  --rdp-day-width: 28px;
+  --rdp-day_button-height: 28px;
+  --rdp-day_button-width: 28px;
+  --rdp-day_button-border-radius: 8px;
+  --rdp-day_button-border: 0;
+  --rdp-selected-border: 0;
+  --rdp-nav-height: 32px;
+  --rdp-nav_button-width: 28px;
+  --rdp-outside-opacity: 1;
+  --rdp-weekday-opacity: 1;
+  --rdp-disabled-opacity: .35;
+  color: var(--color-fg);
+  font-size: 14px;
+}
+.date-picker .rdp-month_caption { justify-content: center; padding: 0 28px; margin-bottom: 8px; }
+.date-picker .rdp-caption_label { font-size: 14px; font-weight: 600; }
+.date-picker .rdp-weekday { padding: 6px 0; color: var(--color-dim); font-size: 12px; font-weight: 400; }
+.date-picker .rdp-day_button { margin: auto; font-size: 14px; font-weight: 500; }
+.date-picker .rdp-selected { font-size: inherit; }
+.date-picker .rdp-outside { color: var(--color-dim); }
+.date-picker .rdp-today .rdp-day_button,
+.date-picker .rdp-selected .rdp-day_button { background: var(--color-raised); color: var(--color-fg); }
+.date-picker .rdp-day_button:hover:not(:disabled),
+.date-picker .rdp-button_previous:hover:not(:disabled),
+.date-picker .rdp-button_next:hover:not(:disabled) { background: var(--color-raised); }
+.date-picker .rdp-button_previous,
+.date-picker .rdp-button_next { border-radius: 8px; }
+.date-picker .rdp-chevron { width: 16px; height: 16px; fill: currentColor; }
+.date-picker .rdp-day_button:focus-visible,
+.date-picker .rdp-button_previous:focus-visible,
+.date-picker .rdp-button_next:focus-visible { outline: 2px solid var(--color-dim); outline-offset: 2px; }
+
+.guest-entry .mascot-float { animation: none !important; }
+
+.number-field[data-invalid="true"] { border-color: var(--color-danger); }

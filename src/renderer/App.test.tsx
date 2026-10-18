@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, waitFor, act } from '@testing-library/react'
+import { render, screen, waitFor, act, fireEvent } from '@testing-library/react'
 import { App } from './App'
 import { mockBridge, WS_ID } from './test-utils'
 
@@ -20,4 +20,19 @@ describe('App', () => {
     await waitFor(() => expect(localStorage.getItem('workspaceId')).toBe(WS2))
     expect(screen.queryByText('Abrindo…')).toBeNull()
   })
+})
+
+it('entrada impede app.navigate de contornar a sessão e permite entrar depois', async () => {
+  localStorage.clear()
+  const invoke = mockBridge({ 'session.get': () => ({ entered: false, email: 'guest@legacy.com', mode: 'development' }), 'notifications.list': () => [] })
+  const handlers: ((p: unknown) => void)[] = []
+  window.legacy.on = vi.fn((name, cb) => { if (name === 'app.navigate') handlers.push(cb); return () => {} }) as never
+  render(<App />)
+  await screen.findByRole('button', { name: 'Entrar como visitante' })
+  await act(async () => handlers.forEach(h => h({ page: 'notifications', workspaceId: WS_ID })))
+  expect(screen.getByRole('heading', { name: 'Entrar no Legacy' })).toBeVisible()
+  expect(invoke.mock.calls.some(([channel]) => channel === 'dashboard.get')).toBe(false)
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Entrar como visitante' })).not.toBeDisabled())
+  fireEvent.click(screen.getByRole('button', { name: 'Entrar como visitante' }))
+  await screen.findByRole('heading', { name: 'Notificações' })
 })

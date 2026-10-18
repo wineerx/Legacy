@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull, lte, or, sql } from 'drizzle-orm'
+import { and, inArray, desc, eq, isNull, lte, or, sql } from 'drizzle-orm'
 import { type Db, newId } from '../db/client'
 import { notifications } from '../db/schema'
 
@@ -29,4 +29,8 @@ export function markShown(db: Db, id: string, now: Date): void {
 }
 export function unreadCount(db: Db, ws: string, now: Date): number {
   return db.select({ n: sql<number>`count(*)` }).from(notifications).where(and(eq(notifications.workspaceId, ws), isNull(notifications.readAt), visible(now))).get()!.n
+}
+
+export function deleteNotifications(db: Db, ws: string, input: { ids?: string[]; all?: boolean }) {
+  return db.delete(notifications).where(and(eq(notifications.workspaceId, ws), input.all ? undefined : inArray(notifications.id, input.ids ?? []))).run().changes
 }

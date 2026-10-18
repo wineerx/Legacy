@@ -1,3 +1,7 @@
+import { refreshProfile, profileMetrics } from '../services/profile-refresh'
+import { profileContentSource } from '@shared/ipc-contract'
+import { repostWarnings } from '../services/repost-check'
+import { deleteNotifications } from '../repos/notifications'
 import { mediaDetails, pendingMedia, deleteMany } from '../services/media-manager'
 import { copyFile, mkdir, readFile, stat } from 'node:fs/promises'
 import { basename, dirname, extname, join, resolve } from 'node:path'
@@ -32,21 +36,32 @@ import { jobDetails } from '../services/job-details'
 import { instagramAccount, connectInstagram, disconnectInstagram, scheduleInstagram, scheduleComposition, verifyInstagram } from '../services/instagram-publishing'
 import type { UpdateStatus } from '@shared/ipc-contract'
 import { achievements } from '../services/achievements'
-import { history } from '../services/publication-history'
+import { history, publicationFeedback, acknowledgePublications } from '../services/publication-history'
+import { createGuestSession } from '../services/guest-session'
+import { profileImportProgress } from '../services/profile-download'
 
 export interface Dialogs { pickVideos(): Promise<string[]>; pickImage(): Promise<string | null>; pickMetricsFile(): Promise<string | null>; saveVideo?(name: string): Promise<string | null>; pickStorageFolder?(): Promise<string | null> }
-export interface HandlerDeps { ctx: Ctx; dialogs: Dialogs; shell: { openPath(p: string): Promise<string> }; workerAlive(): boolean; version: string; onJobsChanged(workspaceId: string): void; vault?: SecretVault; onSecretsChanged?(): void; updates?: { status(): UpdateStatus; check(): Promise<UpdateStatus>; download(): Promise<UpdateStatus>; install(): void } }
+export interface HandlerDeps { session?: ReturnType<typeof createGuestSession>; ctx: Ctx; dialogs: Dialogs; shell: { openPath(p: string): Promise<string> }; workerAlive(): boolean; version: string; buildCommit?: string; buildTime?: string; onJobsChanged(workspaceId: string): void; vault?: SecretVault; onSecretsChanged?(): void; updates?: { status(): UpdateStatus; check(): Promise<UpdateStatus>; download(): Promise<UpdateStatus>; install(): void } }
 
-const profileDto = (p: Profile) => ({ id: p.id, username: p.username, url: p.url, connected: p.connectedAccountId !== null, lastSyncedAt: p.lastSyncedAt })
+const profileDto = (p: Profile, avatarPath: string | null = null) => ({ avatarPath, platform: p.platform, id: p.id, username: p.username, url: p.url, connected: p.connectedAccountId !== null, lastSyncedAt: p.lastSyncedAt })
 const coverDto = (c: CoverTemplate) => ({ id: c.id, name: c.name, kind: c.kind, imagePath: c.imagePath, frameMs: c.frameMs, textJson: c.textJson })
 
 export function buildHandlers(deps: HandlerDeps): Handlers {
   const { ctx } = deps
+  const session = deps.session ?? createGuestSession(() => {})
   const vault = deps.vault ?? { available: () => false, encrypt: () => { throw new Error('Unavailable') }, decrypt: () => { throw new Error('Unavailable') } }
   const now = () => ctx.clock()
   const changed = <T>(workspaceId: string, v: T): T => { deps.onJobsChanged(workspaceId); return v }
   return {
-    'app.bootstrap': () => ({ workspaces: listWorkspaces(ctx.db).map(({ id, name, timeZone }) => ({ id, name, timeZone })), version: deps.version, workerAlive: deps.workerAlive(), dataDir: ctx.dataRoot }),
+    'publications.checkRepost': i => repostWarnings(ctx, i.workspaceId, i.accountId, i),
+    'notifications.delete': i => { requireWorkspace(ctx, i.workspaceId); return changed(i.workspaceId, { deleted: deleteNotifications(ctx.db, i.workspaceId, i) }) },
+    'session.get': () => session.get(),
+    'session.enterGuest': () => session.enter(),
+    'session.exit': () => session.exit(),
+    'profiles.importProgress': i => { requireWorkspace(ctx, i.workspaceId); return profileImportProgress(ctx, i.workspaceId, i.profileId) },
+    'publications.feedback': i => { requireWorkspace(ctx, i.workspaceId); return publicationFeedback(ctx, i.workspaceId) },
+    'publications.acknowledge': i => { requireWorkspace(ctx, i.workspaceId); acknowledgePublications(ctx, i.workspaceId, i.ids); return null },
+    'app.bootstrap': () => ({ workspaces: listWorkspaces(ctx.db).map(({ id, name, timeZone }) => ({ id, name, timeZone })), version: deps.version, buildCommit: deps.buildCommit, buildTime: deps.buildTime, workerAlive: deps.workerAlive(), dataDir: ctx.dataRoot }),
     'dashboard.get': (i) => dashboard(ctx, i.workspaceId),
     'achievements.get': (i) => ({ ...achievements(ctx, i.workspaceId), acknowledged: JSON.parse(getSetting(ctx.db, i.workspaceId, 'acknowledgedAchievements') ?? '[]') }),
     'achievements.acknowledge': (i) => { const unlocked = achievements(ctx, i.workspaceId).challenges.filter(c => c.unlocked).map(c => c.id); const old = JSON.parse(getSetting(ctx.db, i.workspaceId, 'acknowledgedAchievements') ?? '[]') as string[]; setSetting(ctx.db, i.workspaceId, 'acknowledgedAchievements', JSON.stringify([...new Set([...old, ...i.ids.filter(id => unlocked.includes(id))])])); return null },
@@ -69,7 +84,7 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
     'notifications.preferences': ({ workspaceId, ...preferences }) => { requireWorkspace(ctx, workspaceId); setSetting(ctx.db, workspaceId, 'notificationPreferences', JSON.stringify(preferences)); return null },
     'notifications.test': (i) => { requireWorkspace(ctx, i.workspaceId); addNotification(ctx.db, { workspaceId: i.workspaceId, kind: 'info', title: 'Notificações do Legacy', body: 'Esta é uma notificação de teste. O alerta do Windows depende das permissões do sistema e pode levar até 30 segundos.' }, now()); return changed(i.workspaceId, null) },
     'notifications.markAllRead': (i) => { markAllRead(ctx.db, i.workspaceId, now()); return null },
-    'workspaces.create': (i) => { const w = createWorkspace(ctx.db, i); return { id: w.id, name: w.name, timeZone: w.timeZone } },
+    'workspaces.create': (i) => { const w = createWorkspace(ctx.db, i); publicationFeedback(ctx, w.id); return { id: w.id, name: w.name, timeZone: w.timeZone } },
     'library.pickAndImport': async (i) => {
       const paths = await deps.dialogs.pickVideos()
       return paths.length ? changed(i.workspaceId, await importFiles(ctx, i.workspaceId, paths)) : []
@@ -90,10 +105,11 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
       return { path: out }
     },
     'grid.query': (i) => queryGrid(ctx.db, i),
-    'profiles.list': (i) => listProfiles(ctx.db, i.workspaceId).map(profileDto),
+    'profiles.refresh': async (i) => { requireWorkspace(ctx, i.workspaceId); return changed(i.workspaceId, await refreshProfile(ctx, i.workspaceId, i.profileId)) },
+    'profiles.list': (i) => listProfiles(ctx.db, i.workspaceId).map(p => ({ metrics: profileMetrics(ctx, i.workspaceId, p.id), ...profileDto(p, getSetting(ctx.db, i.workspaceId, `profileAvatar.${p.id}`)), contentSource: profileContentSource.catch('posts').parse(getSetting(ctx.db, i.workspaceId, `profileContentSource.${p.id}`)) })),
     'profiles.downloadStatus': (i) => ({ configured: downloadConfigured(ctx, i.workspaceId) }),
     'profiles.download': (i) => changed(i.workspaceId, requestProfileDownload(ctx, i.workspaceId, i.profileId, i.limit)),
-    'profiles.discover': (i) => changed(i.workspaceId, requestProfileDownload(ctx, i.workspaceId, i.profileId, i.limit, true)),
+    'profiles.discover': (i) => changed(i.workspaceId, requestProfileDownload(ctx, i.workspaceId, i.profileId, i.limit, true, i.source)),
     'profiles.downloadSelected': (i) => changed(i.workspaceId, requestSelectedDownloads(ctx, i.workspaceId, i.postIds)),
     'profiles.prepareSelected': (i) => selectedAssets(ctx, i.workspaceId, i.postIds),
     'accounts.instagram': (i) => instagramAccount(ctx, i.workspaceId),

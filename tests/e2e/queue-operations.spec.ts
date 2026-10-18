@@ -9,6 +9,8 @@ test('fila paginada, árvore, falha, cancelamento, realocação e layout menor',
   const app=await electron.launch({executablePath:resolve('node_modules/electron/dist/electron.exe'),args:[resolve('out/main/index.js'),'--user-data-dir='+join(dir,'chromium')],env:{...process.env,LEGACY_DATA_DIR:join(dir,'data'),LEGACY_DISABLE_DESKTOP_NOTIFICATIONS:'1',APIFY_TOKEN:''}})
   try {
     const page=await app.firstWindow()
+  await page.getByRole('button',{name:'Entrar como visitante',exact:true}).click()
+
     await expect(page.getByRole('heading',{name:'Visão geral',exact:true})).toBeVisible()
     const ws=await page.evaluate(async()=>{
       const boot=await window.legacy.invoke('app.bootstrap',{}) as IpcResult<Outputs['app.bootstrap']>
@@ -32,10 +34,11 @@ test('fila paginada, árvore, falha, cancelamento, realocação e layout menor',
     await expect(page.getByText('51 tarefas · Página 1 de 3')).toBeVisible()
     await page.getByRole('button',{name:'Próxima'}).click()
     await expect(page.getByText('51 tarefas · Página 2 de 3')).toBeVisible()
-    await page.getByLabel('Estado',{exact:true}).selectOption('failed')
+    await page.getByLabel('Estado',{exact:true}).click()
+    await page.getByRole('option',{name:'Falhou',exact:true}).click()
     await expect(page.getByRole('article')).toHaveCount(2)
     const failure=page.getByRole('article',{name:'Reel QA 0',exact:true})
-    await failure.locator('summary').click()
+    await failure.getByRole('button', {name:'Andamento e tentativas'}).click()
     await expect(failure.getByText(/Histórico de tentativas: 1/)).toBeVisible()
     await expect(failure.getByText(/confirme no Instagram/)).toBeVisible()
     mkdirSync('docs/screens/qa-queue',{recursive:true})

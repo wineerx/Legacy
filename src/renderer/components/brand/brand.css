@@ -25,7 +25,7 @@
 .mascot-gaze { transform: translate(calc(var(--look-x,0) * 3px),calc(var(--look-y,0) * 2px)); transition: transform 200ms cubic-bezier(.22,1,.36,1); }
 .mascot-shadow { transform: translateX(calc(var(--look-x,0) * -2px)); transition: transform 220ms ease-out; }
 .mascot-sidebar-brand { position: relative; }
-.mascot-status-bubble { position: absolute; top: 48px; left: 4px; z-index: 60; width: 240px; max-width: calc(100vw - 32px); border: 1px solid #ddc29c40; background: #202020; border-radius: 12px; padding: 12px; font-size: 12px; line-height: 1.6; box-shadow: 0 8px 32px #0005; overflow-wrap: anywhere; }
+.mascot-status-bubble { position: absolute; top: 48px; left: 4px; z-index: 60; width: 240px; max-width: calc(100vw - 32px); border: 1px solid var(--color-line); background: var(--color-panel); border-radius: 12px; padding: 12px; font-size: 12px; line-height: 1.6; box-shadow: 0 8px 32px #0005; overflow-wrap: anywhere; }
 .brand-welcome .brand-live-status { margin-top: 14px !important; color: #d8bd96 !important; max-width: 650px; overflow-wrap: anywhere; }
 .legacy-startup { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: radial-gradient(ellipse at center,#dfc6a00a,transparent 55%); }
 .legacy-startup p { color: #aaa7a2; font-size: 13px; max-width: 400px; text-align: center; }
@@ -65,3 +65,10 @@
 @keyframes legacy-sparkle { 0%,100% { opacity: .65; } 50% { opacity: 1; } }
 @media (max-width: 760px) { .brand-playground { grid-template-columns: 1fr; gap: 8px; } .brand-accessories { grid-template-columns: repeat(3,minmax(0,1fr)); } .brand-panel-heading > .legacy-logo { display: none; } .brand-welcome { padding: 16px 20px; gap: 12px; } .brand-welcome h2 { font-size: 21px; } .brand-welcome > svg { width: 96px; height: 96px; } }
 @media (prefers-reduced-motion: reduce) { .legacy-mascot * { animation: none !important; transition: none !important; } .mascot-tilt,.mascot-gaze,.mascot-shadow { transform: none !important; } }
+
+.mascot-status-bubble::before { content: ""; position: absolute; top: -5px; left: 16px; width: 9px; height: 9px; background: var(--color-panel); border-top: 1px solid var(--color-line); border-left: 1px solid var(--color-line); transform: rotate(45deg); }
+
+.mascot-react { display: inline-flex; animation: mascot-reaction .4s ease-out; }
+@keyframes mascot-reaction { 50% { transform: translateY(-2px) rotate(-2deg); } }
+
+@media (prefers-reduced-motion: reduce) { .mascot-react { animation: none !important; } }

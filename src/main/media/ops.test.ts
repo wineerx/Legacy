@@ -53,9 +53,14 @@ describe('ops', () => {
     const out = join(dir, 'b.mp4')
     await overlayBanner(video, banner, out, { startMs: 500, endMs: 2500 })
     const p = await probe(out)
+    expect(p.audioCodec).toBe('aac')
     expect(p.width).toBe(360)
     expect(p.videoCodec).toBe('h264')
-    expect(Math.abs(p.durationMs - 4000)).toBeLessThan(300)
+    expect(Math.abs(p.durationMs - 4000)).toBeLessThan(100)
+    const pixel = join(dir, 'banner-first.rgb')
+    await runTool(ffmpegPaths().ffmpeg, ['-y', '-i', out, '-frames:v', '1', '-vf', 'scale=1:1', '-f', 'rawvideo', '-pix_fmt', 'rgb24', pixel])
+    const [r,g,b] = readFileSync(pixel)
+    expect(r).toBeGreaterThan(g + b)
   })
 
   it('renderVideoVersion insere a capa como primeiro frame e mantém o áudio', async (ctx) => {

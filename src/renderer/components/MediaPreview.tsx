@@ -1,3 +1,4 @@
+import { CollapsibleCard } from './ui'
 import { useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import type { GridItem } from '@shared/types'
@@ -43,7 +44,7 @@ export function MediaPreview({ item, onClose }: { item: GridItem; onClose(): voi
     </section>}
     {d && <><section className="mt-4 border-t border-line pt-3"><h2 className="text-sm font-semibold">Publicações e usos · {d.publicationTotal} confirmado(s)</h2>{d.publications.length ? <ul className="mt-2 divide-y divide-line">{d.publications.map(p => <li key={p.id} className="py-2 text-xs"><div className="flex flex-wrap justify-between gap-2"><span>{p.platform}{p.account ? ` · @${p.account}` : ''}</span><span>{states[p.state] ?? p.state}</span></div><p className="mt-1 text-dim">{at(p.at)}</p>{p.error && <p className="mt-1 text-danger-fg">{p.error}</p>}</li>)}</ul> : <p className="mt-2 text-xs text-dim">Esta mídia ainda não foi utilizada.</p>}
       {d.publicationTotal > 50 && <div className="mt-2 flex gap-2"><Button size="sm" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - 50))}>Anterior</Button><Button size="sm" disabled={offset + 50 >= d.publicationTotal} onClick={() => setOffset(offset + 50)}>Próximas publicações</Button></div>}
-    </section><details className="mt-4 border-t border-line pt-3"><summary className="cursor-pointer text-sm font-semibold">Histórico da mídia</summary><ol className="mt-3 border-l border-line pl-3">{d.timeline.map((event, n) => <li key={n} className="mb-3 text-xs"><time className="text-dim">{at(event.at)}</time><p>{event.label}</p></li>)}</ol></details></>}
+    </section><CollapsibleCard className="mt-4" title={<>Histórico da mídia</>}><ol className="border-l border-line pl-3">{d.timeline.map((event, n) => <li key={n} className="mb-3 text-xs"><time className="text-dim">{at(event.at)}</time><p>{event.label}</p></li>)}</ol></CollapsibleCard></>}
     {!d && !!item.publishedAccounts?.length && <p className="mt-2 text-xs">Já publicado por: {item.publishedAccounts.map(a => `@${a}`).join(', ')}</p>}
   </Modal>
 }

@@ -29,6 +29,13 @@
       "when": 1791230921306,
       "tag": "0003_dark_morg",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "6",
+      "when": 1791251125649,
+      "tag": "0004_publication_post_optional",
+      "breakpoints": true
     }
   ]
 }

@@ -10,7 +10,7 @@ export function allowedUrl(input: string, api = false): URL {
   let url: URL
   try { url = new URL(input) } catch { throw new AppError('invalid_input', 'URL de download inválida.') }
   const h = url.hostname
-  const allowed = api ? h === 'api.apify.com' : ['cdninstagram.com', 'fbcdn.net'].some((d) => h.endsWith(`.${d}`))
+  const allowed = api ? h === 'api.apify.com' : ['cdninstagram.com', 'fbcdn.net', 'tiktokcdn.com', 'tiktokcdn-us.com', 'tiktokcdn-eu.com'].some((d) => h.endsWith(`.${d}`)) || (!api && /^v[0-9]+[a-z0-9-]*\.tiktok\.com$/.test(h))
   if (url.protocol !== 'https:' || url.username || url.password || url.port || !allowed) {
     throw new AppError('forbidden', 'Host de download não permitido.')
   }

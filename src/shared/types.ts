@@ -1,4 +1,4 @@
-export type Origin = 'pc' | 'ig_own' | 'ig_third_party' | 'link_ref'
+export type Origin = 'pc' | 'ig_own' | 'ig_third_party' | 'tiktok_third_party' | 'link_ref'
 export type GridMetric = 'views' | 'likes' | 'comments'
 export type SortKey = GridMetric | 'postedAt' | 'importedAt' | 'durationMs'
 export type SortDir = 'asc' | 'desc'
@@ -21,6 +21,7 @@ export interface GridItem {
   metrics: Record<GridMetric, number | null>
   badges: Badge[]
   publishedAccounts?: string[]
+  sourcePlatform?: string | null
   sourceProfile?: string | null
   status?: MediaState
   sizeBytes?: number
@@ -42,6 +43,8 @@ export interface GridQuery {
   workspaceId: string
   source: 'library' | 'remote'
   profileId?: string
+  assetId?: string
+  publicationJobId?: string
   sortBy: SortKey
   sortDir: SortDir
   text?: string
@@ -103,7 +106,7 @@ export interface CoverTextSpec {
   background: string | null
 }
 export interface QueuePageResult {
-  items: (JobView & { batchId: string | null; account: string | null })[]
+  items: (JobView & { publishedVideo?: { assetId: string | null; name: string } | null; batchId: string | null; account: string | null })[]
   total: number
   page: number
   pageSize: number

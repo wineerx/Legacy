@@ -1,7 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { call, ApiError } from '../../lib/api'
 import { useWorkspace } from '../../lib/workspace'
-import { Button, SettingRow, Toggle, useToast } from '../../components/ui'
+import { Button, SettingRow, Toggle, Select, useToast } from '../../components/ui'
 import type { PageProps } from '../../routes'
 import { IntegrationPanel } from './IntegrationPanel'
 import { UpdatePanel } from './UpdatePanel'
@@ -17,7 +17,7 @@ function useBoolSetting(workspaceId: string, key: Key) {
 }
 
 export function SettingsPage(_: PageProps) {
-  const { workspace, dataDir } = useWorkspace()
+  const { workspace, workspaces, setWorkspaceId, dataDir, buildCommit, buildTime } = useWorkspace()
   const tray = useBoolSetting(workspace.id, 'minimizeToTray')
   const strip = useBoolSetting(workspace.id, 'stripMetadataDefault')
   const qc = useQueryClient()
@@ -32,6 +32,7 @@ export function SettingsPage(_: PageProps) {
     <div className="mx-auto flex max-w-3xl flex-col gap-6 p-8">
       <header><h1 className="text-xl font-semibold">Geral</h1><p className="text-sm text-dim">Comportamento do app e padrões do workspace {workspace.name}.</p></header>
       <section className="rounded-card border border-line bg-panel px-6">
+        {workspaces.length > 1 && <><SettingRow title="Workspace" description="Troque o conjunto de contas, vídeos e tarefas." control={<Select label="Workspace ativo" value={workspace.id} onChange={e => setWorkspaceId(e.target.value)}>{workspaces.map(w => <option key={w.id} value={w.id}>{w.name}</option>)}</Select>} /><div className="border-t border-line" /></>}
         <SettingRow title="Manter na bandeja ao fechar" description="Fechar a janela deixa o Legacy rodando na bandeja para a fila e os lembretes continuarem." control={<Toggle label="Manter na bandeja ao fechar" checked={tray.value} onChange={tray.set} />} />
         <div className="border-t border-line" />
         <SettingRow title="Remover metadados opcionais por padrão" description="Localização, dispositivo e título embutidos saem dos vídeos exportados. Dá para mudar em cada lote." control={<Toggle label="Remover metadados opcionais por padrão" checked={strip.value} onChange={strip.set} />} />
@@ -49,6 +50,8 @@ export function SettingsPage(_: PageProps) {
         <h2 className="font-semibold">Sobre esta versão</h2>
         <ul className="mt-2 list-disc space-y-1 pl-5 text-dim">
           <li>Versão: {window.legacy.version}.</li>
+          {buildCommit && <li className="break-all">Commit: <code>{buildCommit}</code></li>}
+          {buildTime && <li>Compilação: {new Date(buildTime).toLocaleString('pt-BR')}.</li>}
           <li>Atualizações pelas releases oficiais no GitHub.</li>
           <li>Pasta de dados: {dataDir}</li>
           <li>Fuso do workspace: {workspace.timeZone}.</li>

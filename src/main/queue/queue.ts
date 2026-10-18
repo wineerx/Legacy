@@ -2,7 +2,7 @@ import { and, asc, desc, eq, inArray, isNull, lte, lt, sql, count, ne } from 'dr
 import { AppError } from '@shared/errors'
 import type { JobState, JobType, JobView, QueuePageResult } from '@shared/types'
 import { type Db, newId } from '../db/client'
-import { jobs, jobAttempts } from '../db/schema'
+import { jobs, jobAttempts, publicationHistory, remotePosts, mediaAssets } from '../db/schema'
 
 export interface LeasedJob extends JobView { payload: unknown; attemptId: string }
 
@@ -157,7 +157,12 @@ export function queryJobs(db: Db, input: { workspaceId: string; page: number; pa
   const items = db.select().from(jobs).where(and(base, input.state ? eq(jobs.state,input.state) : undefined))
     .orderBy(desc(jobs.createdAt), desc(jobs.id)).limit(input.pageSize).offset((page-1)*input.pageSize).all().map(r => {
       const payload = JSON.parse(r.payloadJson)
-      return { ...toView(r), batchId: typeof payload.batchId === 'string' ? payload.batchId : null, account: typeof payload.username === 'string' ? payload.username : null }
+      const publication = db.select().from(publicationHistory).where(and(eq(publicationHistory.workspaceId, input.workspaceId), eq(publicationHistory.jobId, r.id))).get()
+      const origin = publication ? JSON.parse(publication.provenanceJson) : null
+      const post = publication?.postId ? db.select().from(remotePosts).where(and(eq(remotePosts.workspaceId, input.workspaceId), eq(remotePosts.id, publication.postId))).get() : null
+      const assetId = post?.assetId ?? origin?.assetId ?? payload.localAssetId
+      const asset = assetId ? db.select().from(mediaAssets).where(and(eq(mediaAssets.workspaceId, input.workspaceId), eq(mediaAssets.id, assetId))).get() : null
+      return { publishedVideo: publication ? { assetId: asset?.id ?? null, name: post?.caption ?? asset?.sourceName ?? origin?.caption ?? origin?.sourceName ?? 'Vídeo publicado' } : null, ...toView(r), batchId: typeof payload.batchId === 'string' ? payload.batchId : null, account: typeof payload.username === 'string' ? payload.username : null }
     })
   return { items, total, page, pageSize: input.pageSize, counts }
 }

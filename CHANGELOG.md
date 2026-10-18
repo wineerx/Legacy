@@ -1,3 +1,40 @@
+# 0.7.5 — atualização de todos os perfis
+
+- Botão de atualizar no cabeçalho Instagram consulta identidade e métricas de todos os perfis, sem importar posts nem iniciar downloads.
+- Um perfil com falha não interrompe os demais; o aviso informa quantos foram atualizados e lista cada falha.
+- Ctrl + clique marca/desmarca vídeos nas grades da Biblioteca e Perfis sem abrir o player nem substituir a seleção anterior.
+- Opção de publicar o Reel também na grade de posts do Instagram; a escolha é persistida na tarefa e enviada como share_to_feed.
+- Preserva todas as revisões da 0.7.4.
+
+# 0.7.4 — novas revisões de perfis e contas
+
+- Importação Todos combina Posts, Reels e Marcados com limite total e checkpoints separados, reutilizados ao tentar novamente.
+- Atualização manual de identidade e métricas do perfil sem importar posts nem iniciar downloads.
+- Seletor de origem por ícones com ToggleGroup Radix; mantém preferência e navegação pelo teclado.
+- Contas conectadas e opções das redes em cards, com desconexão confirmada e TikTok manual.
+- Alinha logos, textos e seleção nos destinos da composição; ajusta o checklist inicial.
+- Centraliza o avatar e reposiciona o badge de notificações na Sidebar compactada.
+- Preserva sessão visitante, fila, publicação local e revisões da 0.7.3.
+
+# 0.7.3 — todas as revisões recentes
+
+- Toasts empilhados com Sonner, mantendo mascote, teclado, pausa ao focar e erros persistentes.
+- Calendário compacto com navegação e dias externos; avatares de perfil na lista e no cabeçalho.
+- Importação Instagram permite Posts, Reels e Marcados, preserva a origem escolhida e busca a foto da conta correta com checkpoint.
+- Menu de perfil simplificado; troca de workspace mantida em Configurações e desconexão Instagram em Contas.
+- Pausa visitante aguarda confirmação do worker; uma entrada atrasada não desfaz a saída. Mascote interrompe animações também pelos eventos reais da janela.
+- Mantém publicação local, histórico e todas as revisões da 0.7.2.
+
+# 0.7.2 — compilação consolidada de revisão
+
+- Reúne entrada visitante, pausa da fila, UI shadcn, importação incremental Instagram/TikTok, notificações e revisão de publicação.
+- Instagram também aceita vídeos importados do computador sem post de origem, mantendo a entrega HTTPS da cópia local e versões editadas.
+- Migração 0004 permite origem remota opcional no histórico e conserva os registros existentes; cópias usadas por outra publicação permanecem protegidas.
+- Versão e commit real aparecem no título e em Configurações; build-info.json acompanha a compilação.
+- Corrige a versão fixa do preload e estabiliza a verificação do badge durante a transição da Sidebar.
+- Inclui o checkbox compacto de Selecionar todas e a remoção da frase de ajuda solicitada.
+- TikTok continua com exportação manual. Esta revisão não publica uma release no GitHub.
+
 # 0.7.1
 
 - Publicação Instagram usa MP4 local preparado e link HTTPS temporário, evitando os contêineres ERROR do CDN de origem.

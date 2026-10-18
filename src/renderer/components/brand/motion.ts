@@ -1,12 +1,18 @@
 import { useEffect, useRef, useSyncExternalStore } from 'react'
 
+let windowVisible = true
+
 function subscribe(listener: () => void) {
+  const unsubscribe = window.legacy?.on('app.visibility', payload => {
+    windowVisible = (payload as { visible?: boolean })?.visible !== false
+    listener()
+  })
   const media = window.matchMedia?.('(prefers-reduced-motion: reduce)')
   document.addEventListener('visibilitychange', listener)
   media?.addEventListener('change', listener)
-  return () => { document.removeEventListener('visibilitychange', listener); media?.removeEventListener('change', listener) }
+  return () => { unsubscribe?.(); document.removeEventListener('visibilitychange', listener); media?.removeEventListener('change', listener) }
 }
-const snapshot = () => document.visibilityState !== 'hidden' && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+const snapshot = () => windowVisible && document.visibilityState !== 'hidden' && !window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
 export function useMascotMotion(interactive: boolean, enabled: boolean) {
   const allowed = useSyncExternalStore(subscribe, snapshot, () => false) && enabled
   const ref = useRef<SVGSVGElement>(null)

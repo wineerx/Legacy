@@ -1,0 +1,18 @@
+.legacy-toaster[data-sonner-toaster] {
+  font-family: inherit;
+  z-index: 50;
+}
+
+.legacy-toaster [data-sonner-toast].legacy-toast {
+  width: var(--width);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  background: var(--color-panel);
+  color: var(--color-fg);
+  box-shadow: 0 20px 25px -5px #0003, 0 8px 10px -6px #0003;
+}
+
+.legacy-toaster [data-sonner-toast][data-expanded=false][data-front=false] > * {
+  opacity: 0;
+  pointer-events: none;
+}

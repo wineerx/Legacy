@@ -10,7 +10,9 @@ test('destinos, calendário, fila real, modal de contas e sidebar acessível',as
  execFileSync(resolve('resources/bin/win32-x64/ffmpeg.exe'),['-y','-v','error','-f','lavfi','-i','testsrc2=size=360x640:rate=30:duration=2','-c:v','libopenh264',video])
  const app=await electron.launch({executablePath:resolve('node_modules/electron/dist/electron.exe'),args:[resolve('out/main/index.js'),'--user-data-dir='+join(dir,'chromium')],env:{...process.env,LEGACY_DATA_DIR:join(dir,'data'),LEGACY_DISABLE_DESKTOP_NOTIFICATIONS:'1',APIFY_TOKEN:''}})
  try{
- const page=await app.firstWindow();await expect(page.getByRole('heading',{name:'Visão geral',exact:true})).toBeVisible()
+ const page=await app.firstWindow()
+  await page.getByRole('button',{name:'Entrar como visitante',exact:true}).click()
+;await expect(page.getByRole('heading',{name:'Visão geral',exact:true})).toBeVisible()
  const seeded=await page.evaluate(async source=>{
   const boot=await window.legacy.invoke('app.bootstrap',{}) as IpcResult<Outputs['app.bootstrap']>;if(!boot.ok)throw Error('boot');const ws=boot.data.workspaces[0].id
   const imported=await window.legacy.invoke('library.importPaths',{workspaceId:ws,paths:[source]}) as IpcResult<Outputs['library.importPaths']>;if(!imported.ok)throw Error('import')
@@ -70,13 +72,14 @@ test('destinos, calendário, fila real, modal de contas e sidebar acessível',as
  await page.getByRole('img',{name:'Prévia da grade do perfil'}).screenshot({path:'docs/screens/qa-publishing/previa-grade.png'})
  await expect(page.getByRole('button',{name:'Revisar lote',exact:true})).toHaveAttribute('aria-disabled','true')
  await page.getByRole('button',{name:'Sem capa',exact:true}).click()
- await page.getByLabel('Data',{exact:true}).fill(new Date(Date.now()+86400000).toISOString().slice(0,10))
- await page.getByRole('button',{name:'18:30',exact:true}).click()
+ await page.getByLabel('Data',{exact:true}).click()
+ await page.getByRole('button',{name:new RegExp(`, ${new Date(Date.now()+86400000).getDate()} de `)}).click()
+ await page.getByRole('radio',{name:'18:30',exact:true}).click()
  await page.getByRole('button',{name:'Revisar lote',exact:true}).click()
  await expect(page.getByRole('dialog',{name:'Revisar lote'})).toContainText('Instagram — @qa.destino')
  await page.screenshot({path:'docs/screens/qa-publishing/revisar-instagram.png'})
  await page.getByRole('button',{name:'Agendar no Instagram',exact:true}).click()
- // Instagram agenda somente o original online; nenhuma edição é enviada silenciosamente.
+ // Instagram agenda a cópia local sem edições; nenhuma edição é enviada silenciosamente.
  await expect(page.getByRole('heading',{name:'Fila',exact:true})).toBeVisible({timeout:30_000})
  const queued=await page.evaluate(async ws=>{const result=await window.legacy.invoke('jobs.list',{workspaceId:ws}) as IpcResult<Outputs['jobs.list']>;if(!result.ok)throw Error('jobs');const job=result.data.find(j=>j.type==='publish_instagram');if(!job)throw Error('No publication job');await window.legacy.invoke('jobs.cancel',{workspaceId:ws,id:job.id});return {type:job.type,state:job.state,label:job.label,edit:result.data.some(j=>j.type==='apply_banner'),tiktok:result.data.some(j=>j.type==='export_tiktok')}},seeded.ws)
  expect(queued).toMatchObject({type:'publish_instagram',state:'queued',label:'Publicar reel em @qa.destino',edit:false,tiktok:false})
@@ -84,7 +87,8 @@ test('destinos, calendário, fila real, modal de contas e sidebar acessível',as
  await page.getByRole('link',{name:'Biblioteca',exact:true}).hover()
  await expect(page.getByRole('tooltip',{name:'Biblioteca',exact:true})).toBeVisible()
  await page.getByRole('button',{name:'Menu do usuário'}).click()
- await expect(page.getByLabel('Workspace',{exact:true})).toBeVisible()
+ await expect(page.getByRole('button',{name:'Configurações',exact:true})).toBeVisible()
+ await expect(page.getByRole('button',{name:'Sair do Legacy',exact:true})).toBeVisible()
  await page.screenshot({path:'docs/screens/qa-publishing/sidebar-recolhida.png'})
  }finally{await app.close()}
 })

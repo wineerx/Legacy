@@ -29,7 +29,7 @@ export async function call<C extends Channel>(channel: C, input: Input<C>): Prom
   }
 }
 
-export function onEvent(name: 'jobs.changed' | 'app.navigate', cb: (payload: unknown) => void): () => void {
+export function onEvent(name: 'jobs.changed' | 'app.navigate' | 'app.visibility', cb: (payload: unknown) => void): () => void {
   return window.legacy.on(name, cb)
 }
 

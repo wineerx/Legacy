@@ -20,16 +20,21 @@ const parent = (process as NodeJS.Process & { parentPort?: { postMessage(m: unkn
 const notify = (e: WorkerEvent) => parent?.postMessage(e)
 
 let stopping = false
+let paused = process.env.LEGACY_WORKER_PAUSED === '1'
 let credentialsReady: () => void = () => {}
 const ready = process.env.LEGACY_MANAGED_SECRETS === '1' ? new Promise<void>((resolve) => { credentialsReady = resolve }) : Promise.resolve()
 parent?.on('message', (e) => {
-  const data = e.data as { type?: string; secrets?: SecretMap }
+  const data = e.data as { type?: string; secrets?: SecretMap; paused?: boolean; requestId?: number }
   if (data?.type === 'stop') {
     stopping = true; credentialsReady()
     // The supervisor kills the worker 5 s after 'stop'; release tunnels and copies now instead of after the current job.
     beginShutdown()
     void releaseAll().catch((err) => console.error('[worker] release', err))
     closeAllTunnels()
+  }
+  if (data?.type === 'pause') {
+    paused = data.paused === true
+    if (data.requestId !== undefined) parent?.postMessage({ type: 'pause-applied', requestId: data.requestId })
   }
   if (data?.type === 'credentials') { secrets = data.secrets ?? {}; credentialsReady() }
 })
@@ -43,9 +48,11 @@ let lastRecover = Date.now()
 async function loop(): Promise<void> {
   await ready
   while (!stopping) {
+    // Give parent pause messages a turn between jobs, including jobs with synchronous handlers.
+    await new Promise<void>(resolve => setImmediate(resolve))
     let worked = false
     try {
-      worked = await processNext(ctx, notify)
+      if (!paused) worked = await processNext(ctx, notify)
     } catch (e) {
       console.error('[worker]', e)
     }

@@ -12,8 +12,9 @@ import { leaseNext, listJobs } from '../queue/queue'
 import type { Ctx } from '../context'
 import { makeTestVideo } from '../media/test-fixtures'
 import { apifyJson, downloadVideo, downloadPreview } from './download-http'
-import { fetchProfile, requestProfileDownload, runReelDownload, requestSelectedDownloads } from './profile-download'
+import { profileImportProgress, fetchProfile, requestProfileDownload, runReelDownload, requestSelectedDownloads } from './profile-download'
 import { setVideoStorage } from './storage'
+import { setSetting } from '../repos/settings'
 
 vi.mock('./download-http', async (original) => ({ ...await original<typeof import('./download-http')>(), apifyJson: vi.fn(), downloadVideo: vi.fn(), downloadPreview: vi.fn() }))
 let ctx: Ctx
@@ -26,6 +27,9 @@ beforeEach(async () => {
   ctx = { db: memDb(), dataRoot: await mkdtemp(join(tmpdir(), 'legacy-download-')), clock: () => new Date('2026-10-05T12:00:00Z') }
   ws = createWorkspace(ctx.db, { name: 'A', timeZone: 'UTC' }).id
   profileId = addProfileFromUrl(ctx, ws, 'https://instagram.com/example/').id
+  const avatarPath = join(ctx.dataRoot, 'cached-avatar.jpg')
+  await writeFile(avatarPath, 'cached avatar')
+  setSetting(ctx.db, ws, `profileAvatar.${profileId}`, avatarPath)
 })
 afterEach(() => vi.unstubAllEnvs())
 
@@ -123,4 +127,128 @@ describe('downloads de perfil', () => {
     await expect(fetchProfile(ctx, job)).rejects.toThrow(/Nenhum post/)
     expect(ctx.db.select().from(jobs).where(eq(jobs.type, 'download_reel')).all()).toHaveLength(0)
   })
+})
+
+it('progresso real preserva runId, resultados ignorados e falhas de prévia', async () => {
+  requestProfileDownload(ctx, ws, profileId, 100, true)
+  const job = leaseNext(ctx.db, ctx.clock(), 60000)!
+  const sample = { ...reel, displayUrl: 'https://scontent.cdninstagram.com/thumb.jpg' }
+  vi.mocked(apifyJson).mockResolvedValueOnce({ data: { id: 'run1', status: 'READY' } })
+    .mockImplementationOnce(async () => {
+      expect(profileImportProgress(ctx, ws, profileId)?.progress).toMatchObject({ phase: 'searching', total: null, percent: null })
+      return { data: { id: 'run1', status: 'SUCCEEDED', defaultDatasetId: 'ds1' } }
+    }).mockResolvedValueOnce([sample, { invalid: true }])
+  vi.mocked(downloadPreview).mockRejectedValueOnce(new Error('expired preview'))
+  await fetchProfile(ctx, job)
+  const result = profileImportProgress(ctx, ws, profileId)!
+  expect(result.progress).toEqual({ phase: 'done', total: 2, processed: 2, imported: 1, skipped: 1, previewFailures: 1, percent: 100 })
+  expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id, job.id)).get()!.resultJson!).runId).toBe('run1')
+  const other = createWorkspace(ctx.db, { name: 'Other', timeZone: 'UTC' }).id
+  expect(() => profileImportProgress(ctx, other, profileId)).toThrow(/Perfil não encontrado/)
+})
+
+it('atualização incremental reutiliza ID e não baixa outra prévia ou abre outro Actor no checkpoint', async () => {
+  requestProfileDownload(ctx,ws,profileId,100,true)
+  const job=leaseNext(ctx.db,ctx.clock(),60000)!
+  const sample={...reel,id:'remote1',displayUrl:'https://scontent.cdninstagram.com/thumb.jpg'}
+  vi.mocked(apifyJson).mockResolvedValueOnce({data:{id:'run1',status:'READY'}}).mockResolvedValueOnce({data:{id:'run1',status:'SUCCEEDED',defaultDatasetId:'ds1'}}).mockResolvedValueOnce([sample])
+  await fetchProfile(ctx,job)
+  vi.mocked(apifyJson).mockResolvedValueOnce({data:{id:'run1',status:'SUCCEEDED',defaultDatasetId:'ds1'}}).mockResolvedValueOnce([{...sample,caption:'Atualizada'}])
+  await fetchProfile(ctx,job)
+  expect(ctx.db.select().from(remotePosts).all()).toHaveLength(1)
+  expect(ctx.db.select().from(remotePosts).all()[0].caption).toBe('Atualizada')
+  expect(downloadPreview).toHaveBeenCalledTimes(1)
+  expect(vi.mocked(apifyJson).mock.calls.filter(c=>c[0].includes('actors/'))).toHaveLength(1)
+  expect(profileImportProgress(ctx,ws,profileId)?.progress).toMatchObject({imported:0,skipped:1,percent:100})
+})
+it('importa TikTok com metadados e avatar na grade, sem baixar vídeos automaticamente', async () => {
+  const profile=addProfileFromUrl(ctx,ws,'https://www.tiktok.com/@example')
+  requestProfileDownload(ctx,ws,profile.id,100,true)
+  const job=leaseNext(ctx.db,ctx.clock(),60000)!
+  vi.mocked(apifyJson).mockResolvedValueOnce({data:{id:'run2',status:'READY'}}).mockResolvedValueOnce({data:{id:'run2',status:'SUCCEEDED',defaultDatasetId:'ds2'}}).mockResolvedValueOnce([{id:'123456789',webVideoUrl:'https://www.tiktok.com/@example/video/123456789',text:'TikTok',playCount:123,diggCount:12,commentCount:3,createTime:1720000000,videoMeta:{duration:12,downloadAddr:'https://v16-webapp-prime.tiktok.com/video/a',coverUrl:'https://p16.tiktokcdn.com/cover.jpg'},authorMeta:{avatar:'https://p16.tiktokcdn.com/avatar.jpg'}}])
+  await fetchProfile(ctx,job)
+  expect(apifyJson).toHaveBeenCalledWith('actors/clockworks~tiktok-profile-scraper/runs?timeout=600','test-token',expect.objectContaining({profiles:['example'],shouldDownloadVideos:false}))
+  expect(ctx.db.select().from(remotePosts).all()[0]).toMatchObject({caption:'TikTok',remoteId:'123456789',views:123,durationMs:12000})
+  expect(downloadPreview).toHaveBeenCalledTimes(2)
+  expect(listJobs(ctx.db,ws).filter(j=>j.type==='download_reel')).toHaveLength(0)
+})
+
+it('Todos combina as três origens, remove duplicatas e respeita o limite total', async () => {
+  requestProfileDownload(ctx, ws, profileId, 2, true, 'all')
+  const job = leaseNext(ctx.db, ctx.clock(), 60000)!
+  for (const [index, url] of ['https://www.instagram.com/p/POSTAA/', 'https://www.instagram.com/reel/REELAA/', 'https://www.instagram.com/p/TAGGED/'].entries()) {
+    vi.mocked(apifyJson).mockResolvedValueOnce({data:{id:`run${index}`,status:'READY'}})
+      .mockResolvedValueOnce({data:{id:`run${index}`,status:'SUCCEEDED',defaultDatasetId:`ds${index}`}})
+      .mockResolvedValueOnce([{...reel,url}])
+  }
+  await fetchProfile(ctx, job)
+  const inputs = vi.mocked(apifyJson).mock.calls.filter(call => call[0].includes('instagram-scraper/runs')).map(call => call[2])
+  expect(inputs).toEqual(['posts','reels','mentions'].map(resultsType=>({directUrls:['https://www.instagram.com/example/'],resultsType,resultsLimit:2})))
+  expect(ctx.db.select().from(remotePosts).all()).toHaveLength(2)
+  // Retrying reuses all three remote runs instead of creating new billable runs.
+  vi.mocked(apifyJson).mockClear()
+  for (let index=0; index<3; index++) {
+    vi.mocked(apifyJson).mockResolvedValueOnce({data:{id:`run${index}`,status:'SUCCEEDED',defaultDatasetId:`ds${index}`}}).mockResolvedValueOnce([reel])
+  }
+  await fetchProfile(ctx,job)
+  expect(vi.mocked(apifyJson).mock.calls.some(call=>call[0].includes('actors/'))).toBe(false)
+  expect(profileImportProgress(ctx,ws,profileId)?.progress?.total).toBe(1)
+})
+
+ it.each([['posts', 'posts'], ['reels', 'reels'], ['tagged', 'mentions']] as const)('busca a origem %s e preserva a preferência', async (source, resultsType) => {
+  const queued = requestProfileDownload(ctx, ws, profileId, 10, true, source)
+  expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id, queued.id)).get()!.payloadJson)).toMatchObject({ source })
+  const job = leaseNext(ctx.db, ctx.clock(), 60000)!
+  responses()
+  await fetchProfile(ctx, job)
+  expect(apifyJson).toHaveBeenCalledWith(expect.stringContaining('instagram-scraper/runs'), 'test-token', { directUrls: ['https://www.instagram.com/example/'], resultsType, resultsLimit: 10 })
+  expect(listJobs(ctx.db, ws).filter(j => j.type === 'download_reel')).toHaveLength(0)
+  ctx.db.update(jobs).set({ state: 'done' }).where(eq(jobs.id, job.id)).run()
+  const next = requestProfileDownload(ctx, ws, profileId, 10, true)
+  expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id, next.id)).get()!.payloadJson)).toMatchObject({ source })
+ })
+
+it('busca foto da conta em details sem usar o autor de um post marcado', async () => {
+  setSetting(ctx.db, ws, `profileAvatar.${profileId}`, 'missing-avatar.jpg')
+  requestProfileDownload(ctx, ws, profileId, 10, true, 'tagged')
+  const job = leaseNext(ctx.db, ctx.clock(), 60000)!
+  vi.mocked(apifyJson)
+    .mockResolvedValueOnce({ data: { id: 'run1', status: 'READY' } })
+    .mockResolvedValueOnce({ data: { id: 'run1', status: 'SUCCEEDED', defaultDatasetId: 'ds1' } })
+    .mockResolvedValueOnce([{ ...reel, ownerProfilePicUrl: 'https://scontent.cdninstagram.com/other.jpg' }])
+    .mockResolvedValueOnce({ data: { id: 'avatar1', status: 'READY' } })
+    .mockResolvedValueOnce({ data: { id: 'avatar1', status: 'SUCCEEDED', defaultDatasetId: 'avatarDs' } })
+    .mockResolvedValueOnce([{ username: 'example', profilePicUrlHD: 'https://scontent.cdninstagram.com/account.jpg' }])
+  await fetchProfile(ctx, job)
+  expect(apifyJson).toHaveBeenCalledWith(expect.stringContaining('instagram-scraper/runs'), 'test-token', { directUrls: ['https://www.instagram.com/example/'], resultsType: 'details', resultsLimit: 1 })
+  expect(downloadPreview).toHaveBeenCalledWith('https://scontent.cdninstagram.com/account.jpg', expect.stringContaining(`profile-${profileId}.jpg`))
+  expect(downloadPreview).not.toHaveBeenCalledWith('https://scontent.cdninstagram.com/other.jpg', expect.anything())
+  expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id, job.id)).get()!.resultJson!)).toMatchObject({ avatarRunId: 'avatar1', avatarChecked: true })
+  expect(ctx.db.select().from(remotePosts).all()).toHaveLength(1)
+})
+it('falha da foto preserva os posts e registra o erro no checkpoint', async () => {
+  setSetting(ctx.db, ws, `profileAvatar.${profileId}`, 'missing-avatar.jpg')
+  requestProfileDownload(ctx, ws, profileId, 10, true)
+  const job = leaseNext(ctx.db, ctx.clock(), 60000)!
+  responses()
+  vi.mocked(apifyJson).mockRejectedValueOnce(new Error('avatar unavailable'))
+  await fetchProfile(ctx, job)
+  expect(ctx.db.select().from(remotePosts).all()).toHaveLength(1)
+  expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id, job.id)).get()!.resultJson!)).toMatchObject({ avatarError: 'avatar unavailable', progress: { phase: 'done' } })
+})
+
+
+it('Todos preserva a criação sem confirmação de uma fonte sem repetir chamadas pagas', async () => {
+  requestProfileDownload(ctx, ws, profileId, 2, true, 'all')
+  const job = leaseNext(ctx.db, ctx.clock(), 60000)!
+  vi.mocked(apifyJson).mockResolvedValueOnce({ data: { id: 'run1', status: 'SUCCEEDED' } })
+    .mockResolvedValueOnce({ data: { id: 'run1', status: 'SUCCEEDED', defaultDatasetId: 'ds1' } })
+    .mockResolvedValueOnce([reel])
+    .mockRejectedValueOnce(new Error('network'))
+  await expect(fetchProfile(ctx, job)).rejects.toThrow('network')
+  vi.mocked(apifyJson).mockClear()
+  vi.mocked(apifyJson).mockResolvedValueOnce({ data: { id: 'run1', status: 'SUCCEEDED', defaultDatasetId: 'ds1' } })
+    .mockResolvedValueOnce([reel])
+  await expect(fetchProfile(ctx, job)).rejects.toThrow('sem confirmação')
+  expect(vi.mocked(apifyJson).mock.calls.some(call => call[0].startsWith('actors/'))).toBe(false)
 })
