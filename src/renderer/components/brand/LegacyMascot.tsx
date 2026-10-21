@@ -22,6 +22,29 @@ const colors: Partial<Record<MascotState, string>> = {
   dizzy: '#e8b2d6', proud: '#b7dfcf', upload: '#b0cdf1', downloading: '#a4d4f1', publishing: '#a4c8ef',
   warning: '#ecc891', rate_limit: '#efb27c', waiting: '#ddd1b6', offline: '#b8bdc9', notification: '#d5c4a5',
 }
+const ink = '#2a2620'
+// Squircle: flat sides with soft corners, a little wider at the base.
+const body = 'M80 38 C118 38 131 45 132 85 C131 125 118 132 80 132 C42 132 29 125 28 85 C29 45 42 38 80 38Z'
+
+function Eye({ cx, state }: { cx: number; state: MascotState }) {
+  const surprised = state === 'surprised'
+  return <g>
+    <ellipse cx={cx} cy="88" rx="14" ry={surprised ? 17 : 15.5} fill="#fffdf8" stroke={ink} strokeWidth="2.5" />
+    {state === 'dizzy'
+      ? <path d={`M${cx} 88 m-1 0 a2 2 0 1 1 3 2 a5 5 0 1 1 -7 -6 a8 8 0 1 1 9 11`} fill="none" stroke={ink} strokeWidth="2.2" />
+      : <g className="mascot-pupil" stroke="none"><circle cx={cx} cy="89" r={surprised ? 5.5 : 7.5} fill="#221f1b" /><circle cx={cx - 2.6} cy="85.8" r="2.4" fill="#fff" /></g>}
+  </g>
+}
+
+function Mouth({ state, happy, worried, active }: { state: MascotState; happy: boolean; worried: boolean; active: boolean }) {
+  if (happy || state === 'love') return <path d="M70 110 Q80 123 90 110Z" fill={ink} strokeLinejoin="round" />
+  if (state === 'surprised') return <ellipse cx="80" cy="115" rx="4" ry="5" fill={ink} stroke="none" />
+  if (state === 'dizzy') return <path d="M70 114 q5 -4 10 0 t10 0" />
+  if (state === 'sleeping') return <path d="M76 114 H84" />
+  if (worried) return <path d="M72 116 Q80 110 88 116" />
+  if (active) return <path d="M74 113 Q80 116 86 113" />
+  return <path d="M72 111 Q80 118 88 111" />
+}
 
 export function LegacyMascot({ state = 'idle', accessory, size = 96, decorative = false, animated = true, interactive = false }: {
   state?: MascotState; accessory?: MascotAccessory; size?: number; decorative?: boolean; animated?: boolean; interactive?: boolean
@@ -31,36 +54,44 @@ export function LegacyMascot({ state = 'idle', accessory, size = 96, decorative 
   const wear = accessory ?? (state === 'proud' ? 'crown' : preferences.accessory)
   const motion = useMascotMotion(interactive, animated && preferences.motion)
   const happy = ['greeting', 'finished', 'dancing', 'proud'].includes(state)
-  const closed = state === 'sleeping' || state === 'error'
+  const worried = ['error', 'warning', 'rate_limit', 'offline'].includes(state)
   const active = ['working', 'thinking', 'searching', 'publishing', 'downloading', 'upload'].includes(state)
   const badge = active || ['approval', 'question', 'error', 'finished', 'rate_limit', 'warning', 'notification'].includes(state)
   return <svg ref={motion.ref} viewBox="0 0 160 160" width={size} height={size} role={decorative ? undefined : 'img'}
     aria-hidden={decorative || undefined} aria-label={decorative ? undefined : `Legacy: ${mascotStates[state]}`}
     className={`legacy-mascot mascot-${state}`} data-state={state} data-animated={motion.allowed}
-    style={{ '--mascot-tint': colors[state] ?? '#e5e5e8' } as CSSProperties}>
+    style={{ '--mascot-tint': colors[state] ?? '#e6dccb' } as CSSProperties}>
     <defs>
-      <radialGradient id={`${id}-body`} cx="32%" cy="18%" r="90%"><stop stopColor="#fff" /><stop offset=".42" stopColor="#eeeef0" /><stop offset="1" stopColor="var(--mascot-tint)" /></radialGradient>
-      <radialGradient id={`${id}-shine`} cx="50%" cy="0%" r="85%"><stop stopColor="#fff" stopOpacity=".8" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></radialGradient>
+      <radialGradient id={`${id}-body`} cx="32%" cy="18%" r="92%"><stop stopColor="#fffaf2" /><stop offset=".45" stopColor="#efe9df" /><stop offset="1" stopColor="var(--mascot-tint)" /></radialGradient>
+      <radialGradient id={`${id}-shine`} cx="50%" cy="0%" r="85%"><stop stopColor="#fff" stopOpacity=".85" /><stop offset="1" stopColor="#fff" stopOpacity="0" /></radialGradient>
       <radialGradient id={`${id}-aura`}><stop stopColor="var(--mascot-tint)" stopOpacity=".18" /><stop offset="1" stopColor="var(--mascot-tint)" stopOpacity="0" /></radialGradient>
     </defs>
-    <circle cx="80" cy="83" r="77" fill={`url(#${id}-aura)`} />
-    <ellipse className="mascot-shadow" cx="80" cy="139" rx="37" ry="5" fill="#000" opacity=".22" />
+    <circle cx="80" cy="85" r="77" fill={`url(#${id}-aura)`} />
+    <ellipse className="mascot-shadow" cx="80" cy="141" rx="38" ry="5" fill="#000" opacity=".22" />
     <g className="mascot-tilt"><g className="mascot-float">
-      {state === 'greeting' && <g fill="#ececef"><ellipse className="mascot-hand" cx="139" cy="70" rx="10" ry="10" /><ellipse cx="20" cy="114" rx="10" ry="10" /></g>}
+      {state === 'greeting' && <g fill="#efe9df"><ellipse className="mascot-hand" cx="140" cy="72" rx="10" ry="10" /><ellipse cx="20" cy="112" rx="10" ry="10" /></g>}
       <g className="mascot-body">
-        <path d={state === 'upload' ? 'M47 42 Q33 42 33 58 V112 Q33 128 49 128 H111 Q127 128 127 112 V58 Q127 42 111 42Z' : 'M80 39 C116 39 133 48 134 80 C136 117 121 130 80 130 C40 130 25 117 26 84 C26 51 41 39 80 39Z'} fill={`url(#${id}-body)`} stroke="#fff" strokeOpacity=".3" />
-        <path d="M45 60 Q53 45 82 46 Q111 46 119 60 Q82 50 45 60" fill={`url(#${id}-shine)`} />
-        {['love', 'proud', 'greeting'].includes(state) && <g fill="#eea7b9" opacity=".5"><ellipse cx="48" cy="103" rx="9" ry="4" /><ellipse cx="112" cy="103" rx="9" ry="4" /></g>}
-        <g className="mascot-gaze"><g className="mascot-eyes" fill="#242329" stroke="#242329" strokeWidth="4.5" strokeLinecap="round">
-          {happy ? <><path d="M53 95 Q60 81 67 95" fill="none" /><path d="M93 95 Q100 81 107 95" fill="none" /></> : closed ? <><path d="M54 94 Q60 100 66 94" fill="none" /><path d="M94 94 Q100 100 106 94" fill="none" /></> : state === 'dizzy' ? <><path d="M65 96 c-14 10-18-14-4-12 c10 1 7 15 0 11 c-4-2-1-6 1-4 M105 96 c-14 10-18-14-4-12 c10 1 7 15 0 11 c-4-2-1-6 1-4" fill="none" strokeWidth="2.5" /></> : <><ellipse cx="60" cy="93" rx="3.7" ry={state === 'surprised' ? 6.8 : 5} stroke="none" />{state === 'wink' ? <path d="M94 95 Q100 84 107 95" fill="none" /> : <ellipse cx="100" cy="93" rx="3.7" ry={state === 'surprised' ? 6.8 : 5} stroke="none" />}</>}
-        </g></g>
-        {state === 'upload' && <path className="mascot-upload" d="M80 73 V53 M73 60 L80 53 87 60" fill="none" stroke="#6485b7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
-        {state === 'downloading' && <path className="mascot-download" d="M80 52 V72 M73 65 L80 72 87 65" fill="none" stroke="#6485b7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
-        {['waiting', 'rate_limit'].includes(state) && <path d="M76 57 V68 M84 57 V68" stroke="#98744f" strokeWidth="3" strokeLinecap="round" />}
-        {state === 'offline' && <path d="M71 63 Q80 55 89 63 M72 55 L88 71" fill="none" stroke="#818899" strokeWidth="2.5" strokeLinecap="round" />}
-        {wear === 'glasses' && <g fill="none" stroke="#78654f" strokeWidth="3"><circle cx="60" cy="93" r="13" /><circle cx="100" cy="93" r="13" /><path d="M73 92 Q80 86 87 92 M27 88 L47 91 M113 91 L134 88" /></g>}
-        {wear === 'beanie' && <g><path d="M28 63 Q38 27 80 28 Q122 27 132 63Z" fill="#719ed9" /><path d="M40 56 Q80 46 120 56 M56 36 L52 54 M80 30 V51 M103 36 L108 54" fill="none" stroke="#afc9ed" strokeWidth="2" /><rect x="27" y="56" width="106" height="12" rx="6" fill="#a4c5ed" /><circle cx="80" cy="24" r="9" fill="#f0f2f7" /></g>}
-        {wear === 'crown' && <path d="M39 53 L34 28 57 41 79 20 101 41 126 28 120 54 Q80 66 39 53Z" fill="#e5b85f" stroke="#ffe3a5" strokeWidth="3" />}
+        <path d={body} fill={`url(#${id}-body)`} stroke="#fff" strokeOpacity=".35" />
+        <path d="M48 54 Q56 44 80 44 Q104 44 112 54 Q80 48 48 54" fill={`url(#${id}-shine)`} />
+        {(wear === 'none' || wear === 'glasses') && <g className="mascot-ribbon"><path d="M107 37 H120 V63 L113.5 57.5 L107 63Z" fill="#dfc39b" /><path d="M107 37 H120 V41 H107Z" fill="#c9a774" /></g>}
+        {['love', 'proud', 'greeting', 'finished', 'dancing'].includes(state) && <g fill="#eea7b9" opacity=".55"><ellipse cx="42" cy="108" rx="8" ry="4" /><ellipse cx="118" cy="108" rx="8" ry="4" /></g>}
+        <g className="mascot-gaze" fill="none" stroke={ink} strokeLinecap="round">
+          {worried && <path d="M48 70 Q58 69 70 64 M90 64 Q102 69 112 70" strokeWidth="3" />}
+          {(state === 'question' || state === 'approval') && <path d="M50 67 Q59 65 70 67 M90 64 Q101 58 112 63" strokeWidth="3" />}
+          <g className="mascot-eyes" strokeWidth="5">
+            {happy ? <><path d="M48 92 Q60 76 72 92" /><path d="M88 92 Q100 76 112 92" /></>
+              : state === 'sleeping' ? <><path d="M48 88 Q60 97 72 88" /><path d="M88 88 Q100 97 112 88" /></>
+              : <><Eye cx={60} state={state} />{state === 'wink' ? <path d="M88 92 Q100 78 112 92" /> : <Eye cx={100} state={state} />}</>}
+          </g>
+          <g className="mascot-mouth" strokeWidth="3.5"><Mouth state={state} happy={happy} worried={worried} active={active} /></g>
+        </g>
+        {state === 'upload' && <path className="mascot-upload" d="M80 62 V44 M73 51 L80 44 87 51" fill="none" stroke="#6485b7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+        {state === 'downloading' && <path className="mascot-download" d="M80 44 V62 M73 55 L80 62 87 55" fill="none" stroke="#6485b7" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />}
+        {['waiting', 'rate_limit'].includes(state) && <path d="M76 47 V58 M84 47 V58" stroke="#98744f" strokeWidth="3" strokeLinecap="round" />}
+        {state === 'offline' && <path d="M71 54 Q80 46 89 54 M72 46 L88 62" fill="none" stroke="#818899" strokeWidth="2.5" strokeLinecap="round" />}
+        {wear === 'glasses' && <g fill="none" stroke="#78654f" strokeWidth="3"><circle cx="60" cy="88" r="18" /><circle cx="100" cy="88" r="18" /><path d="M78 87 Q80 83 82 87 M28 84 L42 87 M118 87 L132 84" /></g>}
+        {wear === 'beanie' && <g transform="translate(0 -6)"><path d="M28 63 Q38 27 80 28 Q122 27 132 63Z" fill="#719ed9" /><path d="M40 56 Q80 46 120 56 M56 36 L52 54 M80 30 V51 M103 36 L108 54" fill="none" stroke="#afc9ed" strokeWidth="2" /><rect x="27" y="56" width="106" height="12" rx="6" fill="#a4c5ed" /><circle cx="80" cy="24" r="9" fill="#f0f2f7" /></g>}
+        {wear === 'crown' && <path d="M39 51 L34 26 57 39 79 18 101 39 126 26 120 52 Q80 62 39 51Z" fill="#e5b85f" stroke="#ffe3a5" strokeWidth="3" />}
         {wear === 'party' && <g><path d="M62 44 L81 4 106 47Z" fill="#d77eb1" stroke="#f0aed5" strokeWidth="2" /><path d="M72 25 L92 23 M67 36 L99 35" stroke="#ffdb9e" strokeWidth="4" /><circle cx="81" cy="5" r="4" fill="#ffdb9e" /></g>}
         {wear === 'bow' && <g fill="#d982b4" stroke="#eaa2c9" strokeWidth="2"><path d="M101 46 Q78 24 87 54Z M103 46 Q122 28 121 56Z" /><circle cx="103" cy="46" r="5" /></g>}
       </g>

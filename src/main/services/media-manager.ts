@@ -8,7 +8,7 @@ import { jobs, mediaAssets, mediaVersions, publicationHistory, remotePosts, trac
 import { getAsset } from '../repos/assets'
 import { probe } from '../media/probe'
 import { rmSync } from 'node:fs'
-import { deleteAssetRow } from '../repos/assets'
+import { deleteAssetRow, assetInContainer } from '../repos/assets'
 import { storedAssetDir } from './library'
 import { requireWorkspace } from './integrations'
 
@@ -30,7 +30,7 @@ export async function deleteMany(ctx: Ctx, ws: string, ids: string[]) {
         const asset = getAsset(ctx.db, ws, id)
         if (!asset) { result.failed.push(id); return }
         const busy = ctx.db.select({ id: mediaAssets.id }).from(mediaAssets).where(and(eq(mediaAssets.workspaceId, ws), eq(mediaAssets.id, id), hasJob(['queued', 'running']))).get()
-        if (busy) { result.blocked.push(id); return }
+        if (busy || assetInContainer(ctx.db,ws,id)) { result.blocked.push(id); return }
         // Hold the writer lock until disk deletion and row removal finish. A worker
         // cannot acquire a new lease or schedule a reference between the two.
         rmSync(storedAssetDir(ctx, ws, id), { recursive: true, force: true })
@@ -79,5 +79,5 @@ export async function mediaDetails(ctx: Ctx, ws: string, id: string, offset = 0)
     ...publications.map(p => ({ at: p.at, label: `${p.platform}: ${MEDIA_STATE_LABELS[p.state] ?? p.state}${p.account ? ` · @${p.account}` : ''}` }))].sort((a, b) => a.at.localeCompare(b.at))
   return { name: asset.sourceName, sizeBytes: asset.sizeBytes, durationMs: asset.durationMs, width: asset.width, height: asset.height, audioCodec: asset.audioCodec,
     origin: asset.origin, sourceProfile: profile?.username ?? null, permalink: post?.permalink ?? null, importedAt: asset.importedAt, metricsUpdatedAt: post?.metricsUpdatedAt ?? null,
-    publications, publicationTotal, timeline, bannerPath: banner?.filePath ?? null }
+    publications, publicationTotal, timeline, bannerPath: banner && !JSON.parse(banner.paramsJson).pending ? banner.filePath : null }
 }

@@ -1,3 +1,5 @@
+import { ProfileListItem } from './ProfileListItem'
+import { ProfileSidebar } from './ProfileSidebar'
 import { ContentSourcePicker } from './ContentSourcePicker'
 import { useRepostConfirmation } from '../compose/useRepostConfirmation'
 import { CollapsibleCard } from '../../components/ui'
@@ -13,7 +15,8 @@ import {
   UserSearch,
   Download,
   ListOrdered,
-  Grid2X2
+  Archive,
+  X
 } from 'lucide-react'
 import type { SortDir, GridItem } from '@shared/types'
 import { call, ApiError } from '../../lib/api'
@@ -25,8 +28,7 @@ import {
   Input,
   Modal,
   Pills,
-  useToast,
-  cx
+  useToast
 } from '../../components/ui'
 import { ActionIcon } from '../../components/ActionIcon'
 import { MediaPreview } from '../../components/MediaPreview'
@@ -83,6 +85,33 @@ export function ProfilesPage({ navigate }: PageProps) {
   const [activeId, setActiveId] = useState<string | null>(null)
   const active =
     profiles.data?.find((p) => p.id === activeId) ?? profiles.data?.[0] ?? null
+  const [archivedOpen, setArchivedOpen] = useState(false)
+  const archivedProfiles = useQuery({
+    queryKey: ['profiles-archived', workspace.id],
+    queryFn: () => call('profiles.archived', { workspaceId: workspace.id })
+  })
+  const archive = useMutation({
+    mutationFn: ({ profileId, archived }: { profileId: string; archived: boolean }) =>
+      call('profiles.archive', { workspaceId: workspace.id, profileId, archived }),
+    onSuccess: (_, input) => {
+      if (input.archived && active?.id === input.profileId) {
+        setActiveId(null)
+        setSelection(emptySelection())
+        setPreview(null)
+        setProgressOpen(false)
+      }
+      if (!input.archived) setActiveId(input.profileId)
+      void qc.invalidateQueries({ queryKey: ['profiles', workspace.id] })
+      void qc.invalidateQueries({ queryKey: ['profiles-archived', workspace.id] })
+      toast.show({ title: input.archived ? 'Perfil arquivado' : 'Perfil restaurado', body: input.archived ? 'Você pode restaurá-lo em Perfis arquivados.' : undefined })
+    },
+    onError: e => toast.show({ title: 'Não foi possível alterar o perfil', body: e instanceof Error ? e.message : undefined, tone: 'error' })
+  })
+  const profileRefresh = useMutation({
+    mutationFn: (profileId: string) => call('profiles.refresh', { workspaceId: workspace.id, profileId }),
+    onSuccess: () => { void qc.invalidateQueries({ queryKey: ['profiles', workspace.id] }) },
+    onError: e => toast.show({ title: 'Não foi possível carregar as métricas do perfil', body: e instanceof Error ? e.message : undefined, tone: 'error' })
+  })
   const [progressOpen, setProgressOpen] = useState(false)
   const progress = useQuery({
     queryKey: ['profile-import-progress', workspace.id, active?.id],
@@ -264,6 +293,16 @@ export function ProfilesPage({ navigate }: PageProps) {
     Boolean(active)
   )
 
+  const activeFilters = [
+    ...(text ? [{ label: 'Legenda: ' + text, clear: () => setText('') }] : []),
+    ...(hashtag ? [{ label: 'Hashtag: ' + hashtag, clear: () => setHashtag('') }] : []),
+    ...(minViews ? [{ label: 'Views ≥ ' + minViews, clear: () => setMinViews('') }] : []),
+    ...(minLikes ? [{ label: 'Curtidas ≥ ' + minLikes, clear: () => setMinLikes('') }] : []),
+    ...(minComments ? [{ label: 'Comentários ≥ ' + minComments, clear: () => setMinComments('') }] : []),
+    ...(mediaKind !== 'all' ? [{ label: mediaKind === 'videos' ? 'Vídeos/reels' : 'Fotos/carrosséis', clear: () => setMediaKind('all') }] : [])
+  ]
+  const clearFilters = () => { setText(''); setHashtag(''); setMinViews(''); setMinLikes(''); setMinComments(''); setMediaKind('all') }
+
   const knownItems = new Map([...topItems, ...grid.items].map((i) => [i.id, i]))
   const missingVideo = ids.some((id) => !knownItems.get(id)?.assetId)
 
@@ -358,13 +397,15 @@ export function ProfilesPage({ navigate }: PageProps) {
       setUrlError(undefined)
       setActiveId(p.id)
       void qc.invalidateQueries({ queryKey: ['profiles'] })
-      if (downloadStatus.data?.configured)
+      void qc.invalidateQueries({ queryKey: ['profiles-archived', workspace.id] })
+      if (downloadStatus.data?.configured) {
+        if (p.platform === 'instagram') profileRefresh.mutate(p.id)
         discover.mutate({
           profileId: p.id,
           source: p.platform === 'instagram' ? newSource : 'posts',
           limit: Math.min(1000, Math.max(1, Number(discoveryLimit)))
         })
-      else
+      } else
         toast.show({
           title: 'Perfil cadastrado',
           body: 'Configure Apify na Visão geral para carregar a grade.'
@@ -424,7 +465,7 @@ export function ProfilesPage({ navigate }: PageProps) {
 
   return (
     <div className="flex h-full w-full min-w-0 flex-col overflow-hidden xl:flex-row">
-      <aside className="flex w-full shrink-0 flex-col gap-3 overflow-y-auto border-b border-line p-4 xl:w-60 xl:border-r xl:border-b-0">
+      <ProfileSidebar>
         <form
           data-tour="profile-url"
           className="flex flex-col gap-2"
@@ -592,7 +633,7 @@ export function ProfilesPage({ navigate }: PageProps) {
         </form>
         {[...new Set(profiles.data?.map((p) => p.platform) ?? [])].map(
           (platform) => (
-            <section key={platform} aria-label={`Perfis ${platform}`}>
+            <section key={platform} className="w-full min-w-0" aria-label={`Perfis ${platform}`}>
               <div className="mb-2 flex items-center justify-between gap-2">
               <h2 className="text-xs font-medium text-dim">
                 {{
@@ -601,34 +642,31 @@ export function ProfilesPage({ navigate }: PageProps) {
                   youtube: 'YouTube'
                 }[platform] ?? platform}
               </h2>
-              {platform === 'instagram' && <button type="button" aria-label="Atualizar dados de todos os perfis do Instagram" title="Atualizar dados de todos os perfis do Instagram" disabled={refresh.isPending} onClick={() => refresh.mutate()} className="flex size-8 shrink-0 items-center justify-center rounded-ctl text-dim hover:bg-raised hover:text-fg disabled:opacity-50"><RefreshCw size={14} aria-hidden className={refresh.isPending ? 'animate-spin' : undefined} /></button>}
+              {platform === 'instagram' && <button type="button" aria-label="Atualizar dados de todos os perfis do Instagram" title="Atualizar dados de todos os perfis do Instagram" disabled={refresh.isPending || profileRefresh.isPending} onClick={() => refresh.mutate()} className="flex size-8 shrink-0 items-center justify-center rounded-ctl text-dim hover:bg-raised hover:text-fg disabled:opacity-50"><RefreshCw size={14} aria-hidden className={refresh.isPending ? 'animate-spin' : undefined} /></button>}
               </div>
-              <ul className="flex flex-wrap gap-1 xl:flex-col">
+              <ul className="grid min-w-0 grid-cols-1 gap-1 sm:grid-cols-2 xl:grid-cols-1">
                 {profiles.data
                   ?.filter((p) => p.platform === platform)
                   .map((p) => (
-                    <li key={p.id} className={cx("flex min-w-0 items-center rounded-ctl", active?.id === p.id && "bg-raised")}>
-                      <button
-                        type="button"
-                        aria-label={`@${p.username}`}
-                        onClick={() => setActiveId(p.id)}
-                        aria-current={active?.id === p.id}
-                        className={cx(
-                          'flex min-w-0 flex-1 items-center gap-2 rounded-ctl px-2.5 py-1.5 text-left text-sm',
-                          active?.id === p.id
-                            ? 'bg-raised text-fg'
-                            : 'text-dim hover:text-fg'
-                        )}
-                      >
-                        <ProfileAvatar username={p.username} path={p.avatarPath}/><span className="truncate">@{p.username}</span>
-                      </button>
-                    </li>
+                    <ProfileListItem key={p.id} profile={p} active={active?.id === p.id}
+                      disabled={archive.isPending}
+                      onSelect={() => setActiveId(p.id)}
+                      onArchive={() => archive.mutate({ profileId: p.id, archived: true })} />
                   ))}
               </ul>
             </section>
           )
         )}
-      </aside>
+        {!!profiles.data?.length && <p className="text-[11px] text-dim">Arraste um perfil para a direita para arquivar.</p>}
+        {!!archivedProfiles.data?.length && <CollapsibleCard className="archived-profiles" title={<span className="flex items-center gap-2"><Archive size={14} aria-hidden />Perfis arquivados</span>} open={archivedOpen} onOpenChange={setArchivedOpen}>
+          <ul className="flex flex-col gap-2">
+            {archivedProfiles.data.map(p => <li key={p.id} className="flex min-w-0 flex-wrap items-center justify-between gap-2 text-xs">
+              <span className="truncate">@{p.username}</span>
+              <Button size="sm" disabled={archive.isPending} onClick={() => archive.mutate({ profileId: p.id, archived: false })}>Restaurar</Button>
+            </li>)}
+          </ul>
+        </CollapsibleCard>}
+      </ProfileSidebar>
       <section
         data-tour="profiles-content"
         className="flex w-full min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto p-4 xl:w-auto xl:p-6"
@@ -652,6 +690,7 @@ export function ProfilesPage({ navigate }: PageProps) {
                   {' · '}{formatProfileCount(active.metrics?.followingCount)} seguindo
                   {' · '}{formatProfileCount(active.metrics?.reelsCount)} reels
                 </p>
+                {profileRefresh.isPending && profileRefresh.variables === active.id && <p role="status" className="text-xs text-dim">Carregando métricas do perfil…</p>}
                 {active.lastSyncedAt && (
                   <p className="text-xs text-dim">
                     Última busca:{' '}
@@ -691,6 +730,9 @@ export function ProfilesPage({ navigate }: PageProps) {
               >
                 Atualizar grade
               </Button>
+              {active.platform === 'instagram' && <Button size="sm" icon={<RefreshCw size={14} />} loading={profileRefresh.isPending && profileRefresh.variables === active.id}
+                disabled={refresh.isPending || profileRefresh.isPending || !downloadStatus.data?.configured}
+                onClick={() => profileRefresh.mutate(active.id)}>Atualizar métricas</Button>}
               <ActionIcon label="Ver fila" onClick={() => navigate('queue')}>
                 <ListOrdered size={16} />
               </ActionIcon>
@@ -707,91 +749,58 @@ export function ProfilesPage({ navigate }: PageProps) {
                 <FileUp size={16} />
               </ActionIcon>
             </header>
-            <div className="flex flex-wrap items-end gap-2">
-              <Pills<Sort>
-                label="Ordenar"
-                value={sortBy}
-                onChange={setSortBy}
-                options={[
-                  { value: 'views', label: 'Mais vistos' },
-                  { value: 'likes', label: 'Mais curtidos' },
-                  { value: 'comments', label: 'Mais comentados' },
-                  { value: 'postedAt', label: 'Mais recentes' }
-                ]}
-              />
-              <Button
-                size="sm"
-                variant="ghost"
-                icon={<ArrowDownUp size={12} />}
-                onClick={() => setSortDir(sortDir === 'desc' ? 'asc' : 'desc')}
-              >
-                {sortDir === 'desc' ? 'Maior primeiro' : 'Menor primeiro'}
-              </Button>
-              <CollapsibleCard className="w-full" title={<>Filtros avançados</>}>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                  <Input
-                    label="Texto na legenda"
-                    aria-label="Texto na legenda"
-                    placeholder="Texto na legenda"
-                    value={text}
-                    onChange={(e) => setText(e.target.value)}
-                    className="w-40"
-                  />
-                  <Input
-                    label="Hashtag"
-                    aria-label="Hashtag"
-                    placeholder="#hashtag"
-                    value={hashtag}
-                    onChange={(e) => setHashtag(e.target.value)}
-                    className="w-32"
-                  />
-                  <Input
-                    aria-label="Mínimo de views"
-                    placeholder="Mín. views"
-                    type="number"
-                    min={0}
-                    value={minViews}
-                    onChange={(e) =>
-                      setMinViews(e.target.value.replace(/\D/g, ''))
-                    }
-                    className="w-28"
-                  />
-                  <Input
-                    aria-label="Mínimo de curtidas"
-                    placeholder="Mín. curtidas"
-                    type="number"
-                    min={0}
-                    value={minLikes}
-                    onChange={(e) =>
-                      setMinLikes(e.target.value.replace(/\D/g, ''))
-                    }
-                    className="w-28"
-                  />
-                  <Input
-                    aria-label="Mínimo de comentários"
-                    placeholder="Mín. comentários"
-                    type="number"
-                    min={0}
-                    value={minComments}
-                    onChange={(e) =>
-                      setMinComments(e.target.value.replace(/\D/g, ''))
-                    }
-                    className="w-32"
-                  />
-                  <Pills<'all' | 'videos' | 'images'>
-                    label="Tipo de mídia"
-                    value={mediaKind}
-                    onChange={setMediaKind}
-                    options={[
-                      { value: 'all', label: 'Todos' },
-                      { value: 'videos', label: 'Vídeos/reels' },
-                      { value: 'images', label: 'Fotos/carrosséis' }
-                    ]}
-                  />
+            <section aria-label="Filtros dos posts" className="filters-panel shrink-0 overflow-hidden rounded-card border border-line bg-panel">
+              <div className="flex flex-wrap items-end justify-between gap-4 p-4">
+                <div className="flex flex-col gap-2">
+                  <span className="text-xs font-medium text-dim">Ordenar por</span>
+                  <Pills<Sort> label="Ordenar" value={sortBy} onChange={setSortBy} options={[
+                    { value: 'views', label: 'Mais vistos' }, { value: 'likes', label: 'Mais curtidos' },
+                    { value: 'comments', label: 'Mais comentados' }, { value: 'postedAt', label: 'Mais recentes' }
+                  ]} />
+                </div>
+                <Button size="sm" variant="ghost" icon={<ArrowDownUp size={12} />} onClick={() => setSortDir(sortDir === 'desc' ? 'asc' : 'desc')}>
+                  {sortBy === 'postedAt' ? (sortDir === 'desc' ? 'Recentes primeiro' : 'Antigos primeiro') : (sortDir === 'desc' ? 'Maior primeiro' : 'Menor primeiro')}
+                </Button>
+              </div>
+              <CollapsibleCard className="border-x-0 border-b-0 rounded-none" title="Filtros avançados"
+                description="Refine o conteúdo e o desempenho dos posts carregados.">
+                <div className="flex flex-col gap-5">
+                  <fieldset className="min-w-0">
+                    <legend className="mb-3 text-xs font-semibold">Conteúdo</legend>
+                    <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
+                      <Input label="Texto na legenda" placeholder="Buscar palavras na legenda" value={text} onChange={e => setText(e.target.value)} className="w-full" />
+                      <Input label="Hashtag" placeholder="#viagem" value={hashtag} onChange={e => setHashtag(e.target.value)} className="w-full" />
+                    </div>
+                    <div className="mt-4 flex flex-col gap-2">
+                      <span className="text-xs text-dim">Tipo de mídia</span>
+                      <Pills<'all' | 'videos' | 'images'> label="Tipo de mídia" value={mediaKind} onChange={setMediaKind} options={[
+                        { value: 'all', label: 'Todos' }, { value: 'videos', label: 'Vídeos/reels' }, { value: 'images', label: 'Fotos/carrosséis' }
+                      ]} />
+                    </div>
+                  </fieldset>
+                  <fieldset className="min-w-0 border-t border-line pt-4">
+                    <legend className="text-xs font-semibold">Desempenho mínimo</legend>
+                    <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-3">
+                      <Input label="Mínimo de views" placeholder="Sem mínimo" type="number" min={0} value={minViews} onChange={e => setMinViews(e.target.value.replace(/\D/g, ''))} className="w-full" />
+                      <Input label="Mínimo de curtidas" placeholder="Sem mínimo" type="number" min={0} value={minLikes} onChange={e => setMinLikes(e.target.value.replace(/\D/g, ''))} className="w-full" />
+                      <Input label="Mínimo de comentários" placeholder="Sem mínimo" type="number" min={0} value={minComments} onChange={e => setMinComments(e.target.value.replace(/\D/g, ''))} className="w-full" />
+                    </div>
+                  </fieldset>
                 </div>
               </CollapsibleCard>
-            </div>
-            <div className="flex flex-wrap items-center gap-2 rounded-card border border-line bg-panel p-3 text-xs text-dim">
+              <div className="flex flex-wrap items-center gap-2 border-t border-line px-4 py-3 text-xs" aria-live="polite">
+                <span className="text-dim">{grid.total} resultado(s)</span>
+                {activeFilters.length ? <>
+                  {activeFilters.map(filter => <button key={filter.label} type="button" aria-label={'Remover filtro: ' + filter.label} onClick={filter.clear}
+                    className="flex max-w-full items-center gap-1 rounded-ctl border border-line bg-raised px-2 py-1">
+                    <span className="truncate">{filter.label}</span><X size={12} className="shrink-0" aria-hidden />
+                  </button>)}
+                  <Button size="sm" variant="ghost" onClick={clearFilters}>Limpar filtros</Button>
+                </> : <span className="text-dim">Sem filtros aplicados</span>}
+              </div>
+            </section>
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-panel p-4 text-xs text-dim">
+              <div className="flex flex-wrap items-center gap-2">
               <span>{selectionLabel(selection)}</span>
               <Button
                 size="sm"
@@ -807,6 +816,9 @@ export function ProfilesPage({ navigate }: PageProps) {
               >
                 Selecionar página
               </Button>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+              <span>Melhores posts</span>
               <Input
                 aria-label="Quantidade de virais"
                 type="number"
@@ -827,8 +839,10 @@ export function ProfilesPage({ navigate }: PageProps) {
                 }
                 onClick={() => selectTop.mutate()}
               >
-                Selecionar top X
+                Selecionar top {topCount || 'X'}
               </Button>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
               <Button
                 size="sm"
                 disabled={!ids.length || selectedDownload.isPending}
@@ -850,6 +864,7 @@ export function ProfilesPage({ navigate }: PageProps) {
               >
                 Programar selecionados
               </Button>
+              </div>
             </div>
             {grid.isError ? (
               <p className="text-sm text-danger-fg">
@@ -859,8 +874,9 @@ export function ProfilesPage({ navigate }: PageProps) {
             ) : grid.items.length === 0 && !grid.isLoading ? (
               <EmptyState
                 icon={null}
-                title="Nenhum post ainda"
-                body="Adicione links de reels ou importe um CSV com permalink, views, likes e comments."
+                title={activeFilters.length ? 'Nenhum post corresponde aos filtros' : 'Nenhum post ainda'}
+                body={activeFilters.length ? 'Remova ou ajuste os filtros para encontrar outros posts.' : 'Adicione links de reels ou importe um CSV com permalink, views, likes e comments.'}
+                action={activeFilters.length ? <Button onClick={clearFilters}>Limpar filtros</Button> : undefined}
               />
             ) : (
               <MediaGrid

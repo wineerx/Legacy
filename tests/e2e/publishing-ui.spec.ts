@@ -1,6 +1,6 @@
 import type {IpcResult,Outputs} from '../../src/shared/ipc-contract'
 import {test,expect,_electron as electron} from '@playwright/test'
-import {mkdtempSync,mkdirSync} from 'node:fs'
+import {mkdtempSync,mkdirSync,writeFileSync} from 'node:fs'
 import {tmpdir} from 'node:os'
 import {join,resolve} from 'node:path'
 import {execFileSync} from 'node:child_process'
@@ -9,6 +9,8 @@ test('destinos, calendário, fila real, modal de contas e sidebar acessível',as
  const dir=mkdtempSync(join(tmpdir(),'legacy-publishing-ui-'));const video=join(dir,'destino.mp4')
  execFileSync(resolve('resources/bin/win32-x64/ffmpeg.exe'),['-y','-v','error','-f','lavfi','-i','testsrc2=size=360x640:rate=30:duration=2','-c:v','libopenh264',video])
  const app=await electron.launch({executablePath:resolve('node_modules/electron/dist/electron.exe'),args:[resolve('out/main/index.js'),'--user-data-dir='+join(dir,'chromium')],env:{...process.env,LEGACY_DATA_DIR:join(dir,'data'),LEGACY_DISABLE_DESKTOP_NOTIFICATIONS:'1',APIFY_TOKEN:''}})
+ const timings:{action:string;ms:number}[]=[]
+ const measure=async(action:string,run:()=>Promise<unknown>,verify:()=>Promise<unknown>)=>{const start=performance.now();await run();await verify();const ms=performance.now()-start;timings.push({action,ms});expect(ms,`${action}: interaction <500 ms`).toBeLessThan(500)}
  try{
  const page=await app.firstWindow()
   await page.getByRole('button',{name:'Entrar como visitante',exact:true}).click()
@@ -32,9 +34,10 @@ test('destinos, calendário, fila real, modal de contas e sidebar acessível',as
    db.prepare('UPDATE remote_posts SET asset_id=? WHERE workspace_id=? AND id=?').run(input.assetId,input.ws,input.postId)
   }finally{db.close()}
  },{...seeded,db:join(dir,'data','legacy.sqlite')})
+ // The first-steps popover opens over the sidebar after entry; close it before clicking menu links.
+ { const close=page.getByRole('button',{name:'Fechar primeiros passos',exact:true}); if(await close.isVisible()) await close.click() }
  await page.getByRole('link',{name:'Contas',exact:true}).click()
- await page.getByRole('button',{name:'Conectar conta',exact:true}).click()
- await expect(page.getByRole('dialog',{name:'Conectar uma conta'})).toBeVisible()
+ await measure('abrir modal de conta',()=>page.getByRole('button',{name:'Conectar conta',exact:true}).click(),()=>expect(page.getByRole('dialog',{name:'Conectar uma conta'})).toBeVisible())
  mkdirSync('docs/screens/qa-publishing',{recursive:true});await page.screenshot({path:'docs/screens/qa-publishing/conectar-conta.png'})
  await page.getByLabel('Fechar',{exact:true}).click()
  await page.getByRole('link',{name:'Biblioteca',exact:true}).click()
@@ -55,11 +58,10 @@ test('destinos, calendário, fila real, modal de contas e sidebar acessível',as
  await expect(page.getByRole('dialog')).toBeVisible()
  await page.keyboard.press('Escape')
  // Checkbox do card não pode ficar coberto pelos selos.
- await card.getByRole('checkbox').click()
- await expect(card.getByRole('checkbox')).toBeChecked()
+ await measure('selecionar vídeo',()=>card.getByRole('checkbox').click(),()=>expect(card.getByRole('checkbox')).toBeChecked())
  await card.getByRole('checkbox').click()
  await page.getByRole('button',{name:'Selecionar página',exact:true}).click()
- await page.getByRole('button',{name:'Preparar lote',exact:true}).click()
+ await measure('abrir criação de postagem',()=>page.getByRole('button',{name:'Preparar lote',exact:true}).click(),()=>expect(page.getByRole('checkbox',{name:'Instagram — @qa.destino',exact:true})).toBeVisible())
  await page.getByRole('checkbox',{name:'Instagram — @qa.destino',exact:true}).check()
  await expect(page.getByRole('checkbox',{name:'TikTok — exportação manual',exact:true})).not.toBeChecked()
  await page.getByText('Nova capa',{exact:true}).click()
@@ -75,10 +77,9 @@ test('destinos, calendário, fila real, modal de contas e sidebar acessível',as
  await page.getByLabel('Data',{exact:true}).click()
  await page.getByRole('button',{name:new RegExp(`, ${new Date(Date.now()+86400000).getDate()} de `)}).click()
  await page.getByRole('radio',{name:'18:30',exact:true}).click()
- await page.getByRole('button',{name:'Revisar lote',exact:true}).click()
- await expect(page.getByRole('dialog',{name:'Revisar lote'})).toContainText('Instagram — @qa.destino')
+ await measure('abrir revisão de agendamento',()=>page.getByRole('button',{name:'Revisar lote',exact:true}).click(),()=>expect(page.getByRole('dialog',{name:'Revisar lote'})).toContainText('Instagram — @qa.destino'))
  await page.screenshot({path:'docs/screens/qa-publishing/revisar-instagram.png'})
- await page.getByRole('button',{name:'Agendar no Instagram',exact:true}).click()
+ await measure('agendar e abrir fila',()=>page.getByRole('button',{name:'Agendar no Instagram',exact:true}).click(),()=>expect(page.getByRole('heading',{name:'Fila',exact:true})).toBeVisible())
  // Instagram agenda a cópia local sem edições; nenhuma edição é enviada silenciosamente.
  await expect(page.getByRole('heading',{name:'Fila',exact:true})).toBeVisible({timeout:30_000})
  const queued=await page.evaluate(async ws=>{const result=await window.legacy.invoke('jobs.list',{workspaceId:ws}) as IpcResult<Outputs['jobs.list']>;if(!result.ok)throw Error('jobs');const job=result.data.find(j=>j.type==='publish_instagram');if(!job)throw Error('No publication job');await window.legacy.invoke('jobs.cancel',{workspaceId:ws,id:job.id});return {type:job.type,state:job.state,label:job.label,edit:result.data.some(j=>j.type==='apply_banner'),tiktok:result.data.some(j=>j.type==='export_tiktok')}},seeded.ws)
@@ -88,7 +89,8 @@ test('destinos, calendário, fila real, modal de contas e sidebar acessível',as
  await expect(page.getByRole('tooltip',{name:'Biblioteca',exact:true})).toBeVisible()
  await page.getByRole('button',{name:'Menu do usuário'}).click()
  await expect(page.getByRole('button',{name:'Configurações',exact:true})).toBeVisible()
- await expect(page.getByRole('button',{name:'Sair do Legacy',exact:true})).toBeVisible()
+ await expect(page.getByRole('button',{name:'Sair',exact:true})).toBeVisible()
  await page.screenshot({path:'docs/screens/qa-publishing/sidebar-recolhida.png'})
- }finally{await app.close()}
+ }finally{mkdirSync('docs/benchmarks/regression',{recursive:true});writeFileSync('docs/benchmarks/regression/publishing-ui-timings.json',JSON.stringify(timings,null,2));await app.close()}
 })
+

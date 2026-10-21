@@ -14,13 +14,36 @@ import { createWorkspace } from '../repos/workspaces'
 import { addProfileFromUrl } from '../repos/profiles'
 import { addReelLink } from '../repos/remote-posts'
 import { setSetting } from '../repos/settings'
-import { decryptSecret } from './integrations'
+import { decryptSecret, secretSnapshot } from './integrations'
 import { connectInstagram, disconnectInstagram, scheduleInstagram, scheduleComposition, instagramAccount, publishInstagram, InstagramPending, InstagramApiError, verifyInstagram } from './instagram-publishing'
 import {insertAsset} from '../repos/assets'
 import {remotePosts,jobs} from '../db/schema'
 import {eq} from 'drizzle-orm'
 import { history } from './publication-history'
-import { leaseNext } from '../queue/queue'
+import { leaseNext, complete } from '../queue/queue'
+
+it('transmite credenciais de cada destino ao worker e ao provider sem usar a conta padrão',async()=>{
+  const first=instagramAccount(ctx,ws,'12345')!
+  const second=await connectInstagram(ctx,vault,ws,'second-account-token',async()=>({user_id:'67890',username:'second'}))
+  const snapshot=secretSnapshot(ctx,vault)
+  const worker={...ctx,secret:(workspace:string,key:Parameters<NonNullable<Ctx['secret']>>[1])=>snapshot[workspace]?.[key]??null}
+  for(const a of [first,second]) scheduleComposition(ctx,ws,{assetIds:[assetId],accountId:a.id,accountRevision:a.revision,firstAt:'2026-10-05T12:02:00Z',intervalMin:15,captions:{},cleanupAfterPublish:false})
+  ctx.clock=()=>new Date('2026-10-05T12:02:00Z');worker.clock=ctx.clock
+  for(let i=0;i<2;i++) {
+    const job=leaseNext(ctx.db,ctx.clock(),60000)!,id=(job.payload as {accountId:string}).accountId
+    const api=vi.fn().mockResolvedValueOnce({id:'987'}).mockResolvedValueOnce({status_code:'FINISHED'}).mockResolvedValueOnce({id:'456'})
+    const result=await publishInstagram(worker,job,api,deps)
+    expect(api.mock.calls[0][0]).toBe(`${id}/media`)
+    expect(api.mock.calls.every(call=>call[1]===(id==='12345'?'private-token':'second-account-token'))).toBe(true)
+    expect(complete(ctx.db,job,ctx.clock(),result)).toBe(true)
+  }
+})
+
+it.each([429,500,503])('HTTP %s não é erro invalid_input',status=>{
+  const error=new InstagramApiError(status,0)
+  expect(error.retryable).toBe(true)
+  expect(error.code).toBe('internal')
+})
 
 const vault = { available: () => true, encrypt: (s: string) => `protected:${s}`, decrypt: (s: string) => s.slice(10) }
 let ctx: Ctx; let ws: string; let postId: string
@@ -47,6 +70,27 @@ function leased(extra: { shareToFeed?: boolean } = {}) {
   return leaseNext(ctx.db, ctx.clock(), 60000)!
 }
 describe('publicação agendada Instagram', () => {
+  it('quota preserves a finished container and resumes publishing without preparing media again', async () => {
+    const job = leased()
+    const api = vi.fn().mockResolvedValueOnce({ id: '987' }).mockResolvedValueOnce({ status_code: 'FINISHED' })
+      .mockRejectedValueOnce(new InstagramApiError(400, 9, undefined, 2207042))
+    await expect(publishInstagram(ctx, job, api, deps)).rejects.toMatchObject({ publicationLimited: true })
+    expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id, job.id)).get()!.resultJson!)).toMatchObject({ containerId: '987', publishing: false })
+    api.mockResolvedValueOnce({ status_code: 'FINISHED' }).mockResolvedValueOnce({ id: '456' })
+    await publishInstagram(ctx, job, api, deps)
+    expect(deps.prepare).toHaveBeenCalledTimes(1)
+    expect(deps.host.expose).toHaveBeenCalledTimes(1)
+    expect(history(ctx, ws)).toHaveLength(1)
+  })
+  it('an expired quota-deferred container can be replaced; an ambiguous publish remains protected', async () => {
+    const job = leased()
+    ctx.db.update(jobs).set({ resultJson: JSON.stringify({ containerId: '111', hostId: 'cloudflare-quick-tunnel', publicationLimit: { resumeAt: ctx.clock().toISOString() } }) }).where(eq(jobs.id, job.id)).run()
+    const api = vi.fn().mockResolvedValueOnce({ status_code: 'EXPIRED' })
+    await expect(publishInstagram(ctx, job, api, deps)).rejects.toBeInstanceOf(InstagramPending)
+    api.mockResolvedValueOnce({ id: '222' }).mockResolvedValueOnce({ status_code: 'FINISHED' }).mockResolvedValueOnce({ id: '333' })
+    await publishInstagram(ctx, job, api, deps)
+    expect(api).toHaveBeenLastCalledWith('12345/media_publish', 'private-token', { creation_id: '222' })
+  })
   it('usa user_id profissional, nunca o id no escopo do app', async () => {
     const api = vi.fn().mockResolvedValue({ id: '777', user_id: '12345', username: 'destination' })
     const account = await connectInstagram(ctx, vault, ws, 'private-token', api)
@@ -130,6 +174,7 @@ describe('publicação agendada Instagram', () => {
     const pending = await publishInstagram(ctx, job, api, deps).catch(e => e)
     expect(pending).toBeInstanceOf(InstagramPending); expect(pending.retryAfterMs).toBe(15_000)
     ctx.clock = () => new Date('2026-10-05T12:18:00Z')
+    ctx.db.update(jobs).set({leaseUntil:new Date(ctx.clock().getTime()+60000).toISOString()}).where(eq(jobs.id,job.id)).run()
     api.mockResolvedValueOnce({ status_code: 'IN_PROGRESS' })
     await expect(publishInstagram(ctx, job, api, deps)).rejects.toThrow(/link temporário/)
   })
@@ -173,7 +218,8 @@ it('compõe publicação local ou remota com destino fixo e legenda por vídeo',
  const input={assetIds:[asset.id],accountId:account.id,accountRevision:account.revision,firstAt:'2026-10-05T12:02:00Z',intervalMin:60,captions:{[asset.id]:'Legenda própria'},cleanupAfterPublish:false}
  const local=scheduleComposition(ctx,ws,input)
  expect(JSON.parse(ctx.db.select().from(jobs).where(eq(jobs.id,local[0].id)).get()!.payloadJson)).toMatchObject({postId:null,localAssetId:asset.id,caption:'Legenda própria'})
- ctx.db.delete(jobs).where(eq(jobs.id,local[0].id)).run()
+ ctx.db.update(jobs).set({state:'cancelled'}).where(eq(jobs.id,local[0].id)).run()
+ input.firstAt='2026-10-05T13:02:00Z'
  ctx.db.update(remotePosts).set({assetId:asset.id}).where(eq(remotePosts.id,postId)).run()
  expect(()=>scheduleComposition(ctx,ws,{...input,accountId:'000'})).toThrow(/destino mudou/)
  const result=scheduleComposition(ctx,ws,input)
@@ -184,7 +230,7 @@ it('compõe publicação local ou remota com destino fixo e legenda por vídeo',
 
 it('recusa versão editada inexistente antes de criar tarefas Instagram', () => {
  const account=instagramAccount(ctx,ws)!
- expect(()=>scheduleComposition(ctx,ws,{assetIds:['asset-local'],accountId:account.id,accountRevision:account.revision,firstAt:'2026-10-05T12:02:00Z',intervalMin:60,captions:{},cleanupAfterPublish:false,versionIds:{'asset-local':'edited-version'}})).toThrow(/Versão editada/)
+ expect(()=>scheduleComposition(ctx,ws,{assetIds:[assetId],accountId:account.id,accountRevision:account.revision,firstAt:'2026-10-05T12:02:00Z',intervalMin:60,captions:{},cleanupAfterPublish:false,versionIds:{[assetId]:'edited-version'}})).toThrow(/Versão editada/)
  expect(ctx.db.select().from(jobs).all()).toHaveLength(0)
 })
 

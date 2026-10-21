@@ -6,6 +6,7 @@ import { Button } from '../../components/ui'
 import type { PageProps } from '../../routes'
 import { IntegrationPanel } from '../settings/IntegrationPanel'
 import { DashboardWidgets } from './DashboardWidgets'
+import { WelcomeCard, QuotaCard } from './OverviewCards'
 import { useTutorial } from '../tutorial/TutorialProvider'
 import { UpdatePanel } from '../settings/UpdatePanel'
 import { LegacyMascot } from '../../components/brand/LegacyMascot'
@@ -15,13 +16,14 @@ export function OverviewPage({ navigate }: PageProps) {
   const { workspace } = useWorkspace()
   const tutorial = useTutorial()
   const mascot = useMascot()
+  const dashboard = useQuery({ queryKey: ['dashboard', workspace.id], queryFn: () => call('dashboard.get', { workspaceId: workspace.id }), refetchInterval: 5000 })
   const steps = useQuery({ queryKey: ['onboarding', workspace.id], queryFn: () => call('onboarding.status', { workspaceId: workspace.id }) })
   const list = steps.data ?? []
   const done = list.filter((s) => s.done).length
   return (
     <div className="mx-auto flex max-w-6xl flex-col gap-6 p-8">
       <header className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-xl font-semibold">Visão geral</h1><p className="text-sm text-dim">{workspace.name}</p></div><div className="flex gap-2"><Button onClick={() => tutorial.start('app')}>Tour do Legacy</Button><Button onClick={() => navigate('tutorial')}>Guias e legendas</Button></div></header>
-      <section className="brand-welcome"><div><p className="brand-eyebrow">SEU CONTEÚDO. SEU LEGADO.</p><h2>Grandes ideias começam aqui.</h2><p>Organize, crie e publique. O Legacy acompanha você.</p><p className="brand-live-status" aria-live="polite">{mascot.message}</p></div><LegacyMascot state={mascot.state} size={164} interactive decorative /></section>
+      {dashboard.data ? <div className="grid gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(280px,1fr)]"><WelcomeCard data={dashboard.data} status={mascot.message} mascotState={mascot.state} navigate={navigate} /><QuotaCard data={dashboard.data} navigate={navigate} /></div> : <p role="status" className="text-sm text-dim">Carregando visão geral…</p>}
       <DashboardWidgets navigate={navigate} />
       <IntegrationPanel />
       <section className="rounded-card border border-line bg-panel p-6">

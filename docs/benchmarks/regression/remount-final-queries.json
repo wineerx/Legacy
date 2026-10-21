@@ -1,0 +1,104 @@
+[
+  {
+    "size": 25,
+    "ms": 13.199999928474426,
+    "ok": true,
+    "items": 25,
+    "total": 1420,
+    "queryCount": 8,
+    "dbMs": 6.381199999999808,
+    "sql": [
+      {
+        "sql": "select \"state\", count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and not exists(select 1 from settings where workspace_id = \"jobs\".\"workspace_id\" and key = 'jobHidden.' || \"jobs\".\"id\" and value = 'true')) group by \"jobs\".\"state\"",
+        "op": "all",
+        "ms": 1.2508000000000266
+      },
+      {
+        "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and not exists(select 1 from settings where workspace_id = \"jobs\".\"workspace_id\" and key = 'jobHidden.' || \"jobs\".\"id\" and value = 'true')) order by \"jobs\".\"created_at\" desc, \"jobs\".\"id\" desc limit ?",
+        "op": "all",
+        "ms": 4.013200000000097
+      },
+      {
+        "sql": "select \"job_id\", \"workspace_id\", \"account_id\", \"username\", \"post_id\", \"asset_sha\", \"media_id\", \"provenance_json\", \"published_at\", \"cleanup_state\" from \"publication_history\" where (\"publication_history\".\"job_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"publication_history\".\"workspace_id\" in (?))",
+        "op": "all",
+        "ms": 0.12599999999997635
+      },
+      {
+        "sql": "select \"id\", \"workspace_id\", \"profile_id\", \"remote_id\", \"permalink\", \"media_product_type\", \"caption\", \"posted_at\", \"duration_ms\", \"thumbnail_path\", \"asset_id\", \"views\", \"likes\", \"comments\", \"metrics_source\", \"metrics_updated_at\", \"favorite\" from \"remote_posts\" where (\"remote_posts\".\"workspace_id\" in (?) and (\"remote_posts\".\"id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) or \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)))",
+        "op": "all",
+        "ms": 0.6747000000000298
+      },
+      {
+        "sql": "select \"id\", \"workspace_id\", \"platform\", \"username\", \"url\", \"connected_account_id\", \"last_synced_at\", \"created_at\" from \"tracked_profiles\" where (\"tracked_profiles\".\"workspace_id\" in (?) and \"tracked_profiles\".\"id\" in (?))",
+        "op": "all",
+        "ms": 0.025799999999890133
+      },
+      {
+        "sql": "select \"id\", \"workspace_id\", \"origin\", \"source_name\", \"file_path\", \"sha256\", \"size_bytes\", \"duration_ms\", \"width\", \"height\", \"video_codec\", \"audio_codec\", \"thumbnail_path\", \"validation_json\", \"favorite\", \"rights_note\", \"imported_at\" from \"media_assets\" where (\"media_assets\".\"workspace_id\" in (?) and \"media_assets\".\"id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))",
+        "op": "all",
+        "ms": 0.10279999999988831
+      },
+      {
+        "sql": "select \"id\", \"job_id\", \"started_at\", \"finished_at\", \"outcome\", \"error_code\", \"error_message\" from \"job_attempts\" where (\"job_attempts\".\"job_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"job_attempts\".\"id\" = (select latest.id from job_attempts latest where latest.job_id = \"job_attempts\".\"job_id\" order by latest.started_at desc, latest.id desc limit 1))",
+        "op": "all",
+        "ms": 0.1674000000000433
+      },
+      {
+        "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" in (?) and \"settings\".\"key\" in (?))",
+        "op": "all",
+        "ms": 0.0204999999998563
+      }
+    ]
+  },
+  {
+    "size": 100,
+    "ms": 24.600000023841858,
+    "ok": true,
+    "items": 100,
+    "total": 1420,
+    "queryCount": 8,
+    "dbMs": 7.210499999999911,
+    "sql": [
+      {
+        "sql": "select \"state\", count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and not exists(select 1 from settings where workspace_id = \"jobs\".\"workspace_id\" and key = 'jobHidden.' || \"jobs\".\"id\" and value = 'true')) group by \"jobs\".\"state\"",
+        "op": "all",
+        "ms": 1.1043999999999414
+      },
+      {
+        "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and not exists(select 1 from settings where workspace_id = \"jobs\".\"workspace_id\" and key = 'jobHidden.' || \"jobs\".\"id\" and value = 'true')) order by \"jobs\".\"created_at\" desc, \"jobs\".\"id\" desc limit ?",
+        "op": "all",
+        "ms": 4.588799999999992
+      },
+      {
+        "sql": "select \"job_id\", \"workspace_id\", \"account_id\", \"username\", \"post_id\", \"asset_sha\", \"media_id\", \"provenance_json\", \"published_at\", \"cleanup_state\" from \"publication_history\" where (\"publication_history\".\"job_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"publication_history\".\"workspace_id\" in (?))",
+        "op": "all",
+        "ms": 0.18599999999992178
+      },
+      {
+        "sql": "select \"id\", \"workspace_id\", \"profile_id\", \"remote_id\", \"permalink\", \"media_product_type\", \"caption\", \"posted_at\", \"duration_ms\", \"thumbnail_path\", \"asset_id\", \"views\", \"likes\", \"comments\", \"metrics_source\", \"metrics_updated_at\", \"favorite\" from \"remote_posts\" where (\"remote_posts\".\"workspace_id\" in (?) and (\"remote_posts\".\"id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) or \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)))",
+        "op": "all",
+        "ms": 0.703899999999976
+      },
+      {
+        "sql": "select \"id\", \"workspace_id\", \"platform\", \"username\", \"url\", \"connected_account_id\", \"last_synced_at\", \"created_at\" from \"tracked_profiles\" where (\"tracked_profiles\".\"workspace_id\" in (?) and \"tracked_profiles\".\"id\" in (?))",
+        "op": "all",
+        "ms": 0.01890000000003056
+      },
+      {
+        "sql": "select \"id\", \"workspace_id\", \"origin\", \"source_name\", \"file_path\", \"sha256\", \"size_bytes\", \"duration_ms\", \"width\", \"height\", \"video_codec\", \"audio_codec\", \"thumbnail_path\", \"validation_json\", \"favorite\", \"rights_note\", \"imported_at\" from \"media_assets\" where (\"media_assets\".\"workspace_id\" in (?) and \"media_assets\".\"id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))",
+        "op": "all",
+        "ms": 0.1472999999998592
+      },
+      {
+        "sql": "select \"id\", \"job_id\", \"started_at\", \"finished_at\", \"outcome\", \"error_code\", \"error_message\" from \"job_attempts\" where (\"job_attempts\".\"job_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"job_attempts\".\"id\" = (select latest.id from job_attempts latest where latest.job_id = \"job_attempts\".\"job_id\" order by latest.started_at desc, latest.id desc limit 1))",
+        "op": "all",
+        "ms": 0.44250000000010914
+      },
+      {
+        "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" in (?) and \"settings\".\"key\" in (?))",
+        "op": "all",
+        "ms": 0.018700000000080763
+      }
+    ]
+  }
+]

@@ -37,10 +37,11 @@ export function useMascotMotion(interactive: boolean, enabled: boolean) {
       if (element.dataset.visible === 'false') return
       const rect = element.getBoundingClientRect()
       const dx = lastX - rect.left - rect.width / 2, dy = lastY - rect.top - rect.height / 2
-      if (Math.abs(dx) > rect.width / 2 + 100 || Math.abs(dy) > rect.height / 2 + 100) { reset(); return }
-      const x = Math.max(-1, Math.min(1, dx / (rect.width / 2 + 60)))
-      element.style.setProperty('--look-x', String(x))
-      element.style.setProperty('--look-y', String(Math.max(-1, Math.min(1, dy / (rect.height / 2 + 60)))))
+      // Follow the cursor anywhere in the window: direction from the angle, reach eases in over ~240px.
+      const reach = Math.max(Math.hypot(dx, dy), 240)
+      const x = dx / reach
+      element.style.setProperty('--look-x', x.toFixed(3))
+      element.style.setProperty('--look-y', (dy / reach).toFixed(3))
       light?.setAttribute('cx', `${32 + x * 4}%`)
     }
     const move = (event: PointerEvent) => { lastX = event.clientX; lastY = event.clientY; if (!frame) frame = requestAnimationFrame(draw) }

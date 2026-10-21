@@ -3,6 +3,9 @@ import { ffmpegPaths } from './ffmpeg-bin'
 import { runTool } from './run'
 import { h264Candidates } from './encoders'
 import { probe } from './probe'
+import { watermarkGeometry, type ContainerVisualSnapshot } from '@shared/container-visual'
+import { fitRect, type VisualLayout } from '@shared/visual-layout'
+import { mediaElement } from '@shared/visual-raster'
 
 const ff = (args: string[], timeoutMs?: number) => runTool(ffmpegPaths().ffmpeg, ['-y', '-hide_banner', '-v', 'error', ...args], { timeoutMs })
 const seconds = (ms: number) => (ms / 1000).toFixed(3)
@@ -62,8 +65,8 @@ export const COVER_FRAME_MS = 33
  * opcionalmente, a capa como primeiro frame. O primeiro frame contém a capa/banner e pode ser escolhido como miniatura
  * pela plataforma; a API Instagram recebe thumb_offset=0 para essa referência.
  */
-export async function renderVideoVersion(input: string, out: string, opts: { banner?: { png: string; window: BannerWindow }; coverPng?: string }): Promise<void> {
-  if (!opts.banner && !opts.coverPng) throw new AppError('invalid_input', 'Nada a aplicar no vídeo.')
+export async function renderVideoVersion(input: string, out: string, opts: { banner?: { png: string; window: BannerWindow; firstFrame?: boolean }; coverPng?: string; watermark?: { png: string; width: number; height: number; spec: NonNullable<ContainerVisualSnapshot['watermark']> } }): Promise<void> {
+  if (!opts.banner && !opts.coverPng && !opts.watermark) throw new AppError('invalid_input', 'Nada a aplicar no vídeo.')
   if (opts.banner) assertWindow(opts.banner.window)
   const p = await probe(input)
   const encoder = await detectH264Encoder()
@@ -76,7 +79,7 @@ export async function renderVideoVersion(input: string, out: string, opts: { ban
     args.push('-i', opts.banner.png)
     const b = `[${next++}:v]`
     const { startMs, endMs } = opts.banner.window
-    chains.push(`${b}scale=${w}:${h}[bn]`, `${main}[bn]overlay=0:0:enable='eq(n,0)+between(t,${seconds(startMs)},${seconds(endMs)})'[ov]`)
+    chains.push(`${b}scale=${w}:${h}[bn]`, `${main}[bn]overlay=0:0:enable='${opts.banner.firstFrame === false ? '' : 'eq(n,0)+'}between(t,${seconds(startMs)},${seconds(endMs)})'[ov]`)
     main = '[ov]'
   }
   chains.push(`${main}scale=${w}:${h},setsar=1,format=yuv420p[main]`)
@@ -87,17 +90,54 @@ export async function renderVideoVersion(input: string, out: string, opts: { ban
     chains.push(`${c}scale=${w}:${h}:force_original_aspect_ratio=increase,crop=${w}:${h},setsar=1,format=yuv420p,trim=end_frame=1,setpts=PTS-STARTPTS[cover]`, `[cover][main]concat=n=2:v=1:a=0[v]`)
     video = '[v]'
   }
+  if (opts.watermark) {
+    const watermark = opts.watermark
+    const geometry = watermarkGeometry(w, h, watermark, watermark.spec)
+    args.push('-i', watermark.png)
+    chains.push(`[${next++}:v]scale=${geometry.width}:${geometry.height},format=rgba,colorchannelmixer=aa=${watermark.spec.opacityPct / 100}[wm]`, `${video}[wm]overlay=${geometry.x}:${geometry.y}:format=auto,format=yuv420p[watermarked]`)
+    video = '[watermarked]'
+  }
   const audio = p.audioCodec
     ? opts.coverPng
       ? ['-filter_complex', `${chains.join(';')};[0:a]adelay=delays=${COVER_FRAME_MS}:all=1[a]`, '-map', video, '-map', '[a]', '-c:a', 'aac', '-b:a', '192k']
       : ['-filter_complex', chains.join(';'), '-map', video, '-map', '0:a', '-c:a', 'copy']
     : ['-filter_complex', chains.join(';'), '-map', video]
-  await ff([...args, ...audio, ...encoderArgs(encoder, String(Math.max(8_000_000, Math.ceil(p.sizeBytes * 8 / Math.max(0.001, p.durationMs / 1000))))), '-fps_mode', 'vfr', '-map_metadata', '0', '-movflags', '+faststart', out])
+  // concat uses a microsecond time base. Media Foundation accepts the simple
+  // detection fixture but cannot initialize against that VFR composition.
+  const timing = encoder === 'h264_mf' ? ['-fps_mode', 'cfr', '-r', '30', '-enc_time_base', '1:30'] : ['-fps_mode', 'vfr']
+  await ff([...args, ...audio, ...encoderArgs(encoder, String(Math.max(8_000_000, Math.ceil(p.sizeBytes * 8 / Math.max(0.001, p.durationMs / 1000))))), ...timing, '-map_metadata', '0', '-movflags', '+faststart', out])
 }
 
 export async function overlayBanner(input: string, bannerPng: string, out: string, window: BannerWindow): Promise<void> {
   assertWindow(window)
   await renderVideoVersion(input, out, { banner: { png: bannerPng, window } })
+}
+
+/** Raster layers use exactly the preview's Canvas painter; FFmpeg only places the moving media. */
+export async function renderComposition(input:string,out:string,layout:VisualLayout,raster:{background:string;layers:{id:string;path:string}[];mask?:string;mediaBorder?:string}){
+  const p=await probe(input),encoder=await detectH264Encoder(),args=['-i',input,'-loop','1','-i',raster.background]
+  const chains=[`[1:v]format=rgba,setsar=1[background]`];let current='[background]',next=2,seq=0
+  for(const element of layout.elements){
+    if(!element.visible)continue
+    const label=`[layer${seq++}]`
+    if(element.type==='media' && !element.imageData){
+      const geometry=fitRect(p.displayWidth,p.displayHeight,element),w=Math.max(1,Math.round(element.width)),h=Math.max(1,Math.round(element.height))
+      const rw=Math.max(1,Math.round(geometry.width)),rh=Math.max(1,Math.round(geometry.height)),ox=Math.round(geometry.x-element.x),oy=Math.round(geometry.y-element.y)
+      // Independent rounding can push the offset 1 px past the box; clamp so crop/pad always fit.
+      const clamp=(v:number,max:number)=>Math.min(Math.max(0,v),Math.max(0,max))
+      const adjust=element.fit==='cover'?`crop=${Math.min(w,rw)}:${Math.min(h,rh)}:${clamp(-ox,rw-w)}:${clamp(-oy,rh-h)},pad=${w}:${h}:0:0:color=black@0`:`pad=${w}:${h}:${clamp(ox,w-rw)}:${clamp(oy,h-rh)}:color=black@0`
+      chains.push(`[0:v]scale=${rw}:${rh},format=rgba,${adjust},setsar=1[moving]`)
+      if(raster.mask){args.push('-i',raster.mask);chains.push(`[${next++}:v]format=gray[mask]`,`[moving]split[rgba][alpha]`,`[alpha]alphaextract[originalAlpha]`,`[originalAlpha][mask]blend=all_mode=multiply[combinedAlpha]`,`[rgba][combinedAlpha]alphamerge,colorchannelmixer=aa=${element.opacity/100}[masked]`)}
+      chains.push(`${current}${raster.mask?'[masked]':'[moving]'}overlay=${Math.round(element.x)}:${Math.round(element.y)}:format=auto${label}`);current=label
+      if(raster.mediaBorder){args.push('-i',raster.mediaBorder);const border=`[border${seq++}]`;chains.push(`${current}[${next++}:v]overlay=0:0:format=auto${border}`);current=border}
+    }else{
+      const layer=raster.layers.find(v=>v.id===element.id);if(!layer)continue;args.push('-i',layer.path)
+      const enable=element.type==='banner'?`:enable='between(t,${seconds(element.startMs)},${seconds(element.endMs)})'`:''
+      chains.push(`${current}[${next++}:v]overlay=0:0:format=auto${enable}${label}`);current=label
+    }
+  }
+  chains.push(`${current}format=yuv420p[composed]`)
+  await ff([...args,'-filter_complex',chains.join(';'),'-map','[composed]','-map','0:a?','-c:a','copy',...encoderArgs(encoder),'-t',seconds(p.durationMs),'-r','30','-map_metadata','0','-movflags','+faststart',out])
 }
 
 export async function mergeAudio(video: string, audio: string, out: string): Promise<void> {

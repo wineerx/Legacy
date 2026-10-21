@@ -22,6 +22,10 @@ vi.mock('../services/media-host/registry', () => ({
 }))
 vi.mock('../services/media-host/tunnel', () => ({ closeAllTunnels: vi.fn() }))
 vi.mock('../services/publish-tmp', () => ({ sweepPublishTmp: vi.fn() }))
+vi.mock('../services/versions',()=>({sweepProcessedCache:vi.fn().mockResolvedValue(undefined),migrateLegacyPublicationRecipes:vi.fn()}))
+vi.mock('../repos/workspaces',()=>({listWorkspaces:()=>[]}))
+vi.mock('../pipeline-config',()=>({pipelineConfig:{workerConcurrency:1}}))
+vi.mock('../media/run',()=>({stopMediaTools:vi.fn()}))
 
 it('pausar durante uma publicação permite confirmação e impede a próxima tarefa até retomar', async () => {
   const port = Object.assign(new EventEmitter(), { postMessage: vi.fn() })

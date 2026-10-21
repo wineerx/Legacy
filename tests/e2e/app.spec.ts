@@ -14,13 +14,20 @@ test.beforeAll(async () => {
   execFileSync(resolve('resources/bin/win32-x64/ffmpeg.exe'), ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=360x640:rate=30:duration=4', '-f', 'lavfi', '-i', 'sine=frequency=440:duration=4', '-c:v', 'libopenh264', '-c:a', 'aac', '-shortest', video])
   app = await electron.launch({
     executablePath: resolve('node_modules/electron/dist/electron.exe'),
-    args: [resolve('out/main/index.js')],
+    // Own Chromium profile: never share (or lock) the default profile of an app the user has open.
+    args: [resolve('out/main/index.js'), '--user-data-dir=' + join(dataDir, 'chromium')],
     env: { ...process.env, APIFY_TOKEN: '', LEGACY_DISABLE_DESKTOP_NOTIFICATIONS: '1', LEGACY_DATA_DIR: join(dataDir, 'data') }
   })
   page = await app.firstWindow()
   await page.getByRole('button',{name:'Entrar como visitante',exact:true}).click()
-
+  // IPC is gated until the guest session is active; the shell heading marks that point.
+  await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible()
 })
+/** The first-steps popover opens over the sidebar after entry; close it before navigating by clicks. */
+async function closeFirstSteps() {
+  const close = page.getByRole('button', { name: 'Fechar primeiros passos', exact: true })
+  if (await close.isVisible()) await close.click()
+}
 test.afterAll(async () => { await app.close() })
 
 test('abre na visão geral com checklist', async () => {
@@ -230,6 +237,7 @@ test('desafios têm progresso real e filtros avançados recolhem', async () => {
 })
 
 test('card tem métricas horizontais e fila permite ver arquivo e origem', async () => {
+  await closeFirstSteps()
   await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
   await page.evaluate(async (path) => { const boot = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }; await window.legacy.invoke('library.importPaths', { workspaceId: boot.data.workspaces[0].id, paths: [path] }) }, video)
   const metrics = page.getByTestId('card-metrics').first()
@@ -237,14 +245,19 @@ test('card tem métricas horizontais e fila permite ver arquivo e origem', async
   const ys = await metrics.locator('[role="img"]').evaluateAll(nodes => nodes.map(n => Math.round(n.getBoundingClientRect().top)))
   expect(new Set(ys).size).toBe(1)
   await page.getByRole('link', { name: 'Fila', exact: true }).click()
+  // The queue moved per-row actions into a menu.
+  await page.getByRole('button', { name: /^Ações (de|da tarefa) / }).first().click()
   await page.getByRole('button', { name: 'Ver tarefa' }).first().click()
   await expect(page.getByRole('dialog')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Abrir arquivo', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Abrir mídia', exact: true }).first()).toBeVisible()
   await page.screenshot({ path: 'docs/screens/qa-0.4/tarefa-detalhes.png' })
-  await page.keyboard.press('Escape')
+  // The sheet focuses its close button, whose tooltip takes the first Escape; close explicitly.
+  await page.getByRole('button', { name: 'Fechar detalhes', exact: true }).click()
+  await expect(page.getByRole('dialog')).toBeHidden()
 })
 
 test('Biblioteca mantém áudio AAC, detalhes e preferência de lista/banner', async () => {
+  await closeFirstSteps()
   await page.evaluate(async path => { const boot = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }; await window.legacy.invoke('library.importPaths', { workspaceId: boot.data.workspaces[0].id, paths: [path] }) }, video)
   await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
   await page.getByRole('button', { name: 'Abrir clip.mp4', exact: true }).click()
@@ -270,6 +283,7 @@ test('Biblioteca mantém áudio AAC, detalhes e preferência de lista/banner', a
 })
 
 test('divisor de Perfis mantém altura com 1, 10, 100 e 1000 reels', async () => {
+  await closeFirstSteps()
   await page.setViewportSize({ width: 1440, height: 900 })
   const ws = await page.evaluate(async () => { const r = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }; return r.data.workspaces[0].id })
   const metricsFile = join(dataDir, 'metrics-layout.json')

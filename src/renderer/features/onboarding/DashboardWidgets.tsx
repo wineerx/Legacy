@@ -34,7 +34,9 @@ export function DashboardWidgets({ navigate }: PageProps) {
       </tr>)}</tbody></table></div>}
     </section>
     <section className="rounded-card border border-line bg-panel p-5"><div className="flex items-center justify-between"><h2 className="font-semibold">Atividade recente</h2><Button size="sm" onClick={() => navigate('queue')}>Abrir fila</Button></div>
-      {!data.recent.length ? <p className="mt-3 text-sm text-dim">Nenhuma tarefa registrada.</p> : <ul className="mt-3 divide-y divide-line">{data.recent.map((j) => <li key={j.id} className="flex items-center justify-between gap-4 py-2 text-sm"><span className="min-w-0 truncate" title={j.label}>{j.label}</span><span className={`shrink-0 text-xs ${j.state === 'failed' ? 'text-danger-fg' : 'text-dim'}`}>{stateLabel[j.state]}</span></li>)}</ul>}
+      {!data.recent.length ? <p className="mt-3 text-sm text-dim">Nenhuma tarefa registrada.</p> : <ul className="mt-3 divide-y divide-line">{data.recent.map((j) => <li key={j.id} className="flex items-center justify-between gap-4 py-2 text-sm">
+        <span className="min-w-0"><span className="block truncate font-medium" title={j.media ?? j.label}>{j.media ?? j.label}</span>{j.media && <span className="block truncate text-xs text-dim">{j.label}</span>}</span>
+        <span className="flex shrink-0 items-center gap-3 text-xs"><span className="tabular-nums text-dim">{new Date(j.state === 'queued' ? j.runAt : j.updatedAt).toLocaleString('pt-BR', { timeZone: workspace.timeZone, day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })}</span><span className={j.state === 'failed' ? 'text-danger-fg' : j.state === 'done' ? 'text-ok' : 'text-dim'}>{stateLabel[j.state]}</span></span></li>)}</ul>}
     </section>
   </div>
 }

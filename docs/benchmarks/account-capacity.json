@@ -1,0 +1,124 @@
+{
+  "fixture": "HTTP delay 1 ms; media preparation and transfer mocked; real SQLite claims/checkpoints/credentials/history; no external API",
+  "config": {
+    "workerConcurrency": 2,
+    "mediaConcurrency": 1,
+    "uploadConcurrency": 2,
+    "providerConcurrency": 2,
+    "accountConcurrency": 1,
+    "maxRetries": 24,
+    "leaseMs": 60000,
+    "jobTimeoutMs": 600000,
+    "pollMs": 15000,
+    "confirmationTimeoutMs": 3600000,
+    "cacheTtlMs": 86400000,
+    "circuitFailures": 5,
+    "circuitCooldownMs": 60000
+  },
+  "results": [
+    {
+      "accountCount": 1,
+      "jobsPerAccount": 200,
+      "total": 200,
+      "enqueueMs": 367.7255,
+      "elapsedMs": 9356.065100000002,
+      "jobsPerHour": 76955.42862351394,
+      "jobMs": {
+        "p50": 44.771200000000135,
+        "p90": 45.71759999999995,
+        "p95": 46.23359999999957,
+        "p99": 52.42569999999978,
+        "max": 107.45749999999998
+      },
+      "completionMs": {
+        "p50": 4756.6603,
+        "p90": 8437.2726,
+        "p95": 8903.9621,
+        "p99": 9261.885100000001,
+        "max": 9354.8747
+      },
+      "peakActive": 1,
+      "httpCalls": 600,
+      "credentialMismatches": 0,
+      "failed": 0
+    },
+    {
+      "accountCount": 3,
+      "jobsPerAccount": 200,
+      "total": 600,
+      "enqueueMs": 1191.3022,
+      "elapsedMs": 7473.142,
+      "jobsPerHour": 289035.0537966494,
+      "jobMs": {
+        "p50": 17.995699999999488,
+        "p90": 29.897499999999127,
+        "p95": 35.00930000000153,
+        "p99": 46.425900000002,
+        "max": 82.0716999999986
+      },
+      "completionMs": {
+        "p50": 3957.986499999999,
+        "p90": 6804.394700000001,
+        "p95": 7163.310799999999,
+        "p99": 7412.538099999998,
+        "max": 7472.157999999999
+      },
+      "peakActive": 2,
+      "httpCalls": 1800,
+      "credentialMismatches": 0,
+      "failed": 0
+    },
+    {
+      "accountCount": 5,
+      "jobsPerAccount": 200,
+      "total": 1000,
+      "enqueueMs": 2402.828699999998,
+      "elapsedMs": 17555.276599999997,
+      "jobsPerHour": 205066.54962075624,
+      "jobMs": {
+        "p50": 24.507900000000518,
+        "p90": 30.649700000001758,
+        "p95": 40.34899999999834,
+        "p99": 63.924699999999575,
+        "max": 2402.0646999999954
+      },
+      "completionMs": {
+        "p50": 7531.668599999997,
+        "p90": 12718.138899999998,
+        "p95": 13304.546999999999,
+        "p99": 17479.676099999997,
+        "max": 17554.2707
+      },
+      "peakActive": 2,
+      "httpCalls": 3000,
+      "credentialMismatches": 0,
+      "failed": 0
+    },
+    {
+      "accountCount": 10,
+      "jobsPerAccount": 200,
+      "total": 2000,
+      "enqueueMs": 19563.760199999997,
+      "elapsedMs": 31338.362299999993,
+      "jobsPerHour": 229750.35935429216,
+      "jobMs": {
+        "p50": 25.52169999999751,
+        "p90": 39.32700000000477,
+        "p95": 43.46219999999448,
+        "p99": 62.47159999998985,
+        "max": 137.06260000000475
+      },
+      "completionMs": {
+        "p50": 17074.6241,
+        "p90": 29038.086500000005,
+        "p95": 30191.04699999999,
+        "p99": 31094.939599999998,
+        "max": 31312.076
+      },
+      "peakActive": 2,
+      "httpCalls": 6000,
+      "credentialMismatches": 0,
+      "failed": 0
+    }
+  ]
+}

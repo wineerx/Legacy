@@ -1,6 +1,12 @@
 # Arquitetura
 
+## Containers de publicação — 2026-10-09
+
+`publication_containers` e `publication_container_items` persistem plano, ordem e vínculo com jobs independentes, por workspace e destino. O [PR 01](pr01-containers.md) documenta serviço/repositório, contratos IPC, adaptadores e gates de pausa/cancelamento que permitem reconciliação remota sem novos envios. Lotes legados continuam sem conversão automática; nenhuma tela nova foi criada.
+
 ## Visão geral
+
+A [entrega PR 02](pr02-library-container-drafts.md) acrescenta o fluxo Biblioteca → Container rascunho → revisão ao renderer, usando os contratos existentes. O editor carrega todos os itens antes de enviar a substituição atômica com revisão; prévias usam o arquivo local e não processam mídia nem criam jobs.
 
 ```
 Renderer (React)  ──IPC tipado (contextBridge + zod)──►  Main process
@@ -48,3 +54,7 @@ Pasta de dados: `%APPDATA%/Legacy` ou `LEGACY_DATA_DIR`. `legacy.sqlite` (WAL) n
 `webhooks.ts` registra um outbox na fila de jobs, na transação de conclusão/falha da tarefa de origem. Jobs `webhook_delivery` não produzem novos webhooks. Preferências controlam notificações da aplicação; `reminders.ts` agrupa alertas nativos por workspace.
 
 `TutorialProvider` gerencia tours com Radix Dialog e destaques em data-tour. `TutorialPage` oferece plano salvo e referências. `CaptionRibbon` é reutilizado no editor, nos perfis e no guia; o serviço `captions.ts` ordena somente legendas com a métrica escolhida presente.
+
+## Configuração visual por Container (PR 03)
+
+O snapshot visual persistido no Container contém watermark, banner e capa opcionais. Rascunhos permanecem sem processamento. O agendamento salva receitas JIT na mesma transação dos jobs, referenciando o snapshot congelado por hash. Overrides individuais têm prioridade por camada e o original permanece intacto. O Sheet da Biblioteca compõe uma prévia local sem FFmpeg e usa `containers.previewOverrides` para consultar receitas individuais. Veja [contratos, limites e validação do PR 03](pr03-container-visual.md).

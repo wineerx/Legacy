@@ -1,0 +1,41 @@
+{
+  "scenario": "Repeated publications of the identical original/banner/options: actual copies on disk, no hard links. Measures logical file sizes, not allocated physical blocks. Unique media/configurations are not represented.",
+  "inputBytes": 301850,
+  "derivativeBytes": 832241,
+  "freeBeforeBytes": 14740570112,
+  "elapsedMs": 20035.5561,
+  "samples": [
+    {
+      "publications": 100,
+      "eagerFiles": 100,
+      "eagerBytes": 83224100,
+      "jitCacheFiles": 1,
+      "jitCacheBytes": 832241,
+      "incrementalCopyMs": 101.41550000000007
+    },
+    {
+      "publications": 500,
+      "eagerFiles": 500,
+      "eagerBytes": 416120500,
+      "jitCacheFiles": 1,
+      "jitCacheBytes": 832241,
+      "incrementalCopyMs": 416.6223
+    },
+    {
+      "publications": 1000,
+      "eagerFiles": 1000,
+      "eagerBytes": 832241000,
+      "jitCacheFiles": 1,
+      "jitCacheBytes": 832241,
+      "incrementalCopyMs": 1168.0642
+    },
+    {
+      "publications": 5000,
+      "eagerFiles": 5000,
+      "eagerBytes": 4161205000,
+      "jitCacheFiles": 1,
+      "jitCacheBytes": 832241,
+      "incrementalCopyMs": 18349.1435
+    }
+  ]
+}

@@ -85,6 +85,18 @@ describe('ops', () => {
     expect(['h264_mf', 'h264_nvenc', 'h264_qsv', 'h264_amf', 'libopenh264']).toContain(enc)
   })
 
+  it('processa capa em vídeo vertical com timestamps fracionários e áudio', async () => {
+    const irregular = join(dir, 'fractional.mp4'), cover = join(dir, 'fractional-cover.png'), out = join(dir, 'fractional-cover.mp4')
+    await runTool(ffmpegPaths().ffmpeg, ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=720x1280:rate=29801/1000:duration=2', '-f', 'lavfi', '-i', 'sine=frequency=440:duration=2', '-c:v', 'libopenh264', '-c:a', 'aac', irregular])
+    await extractFrame(irregular, 0, cover)
+    await renderVideoVersion(irregular, out, {coverPng: cover})
+    const result = await probe(out, true)
+    expect(result).toMatchObject({width:720,height:1280,videoCodec:'h264',audioCodec:'aac'})
+    expect(Math.abs(result.durationMs - 2033)).toBeLessThan(150)
+    // Decode the complete result, rather than just trusting container metadata.
+    await runTool(ffmpegPaths().ffmpeg, ['-v', 'error', '-i', out, '-f', 'null', '-'])
+  })
+
   it('overlayBanner rejeita janela inválida', async () => {
     await expect(overlayBanner(video, video, join(dir, 'x.mp4'), { startMs: NaN, endMs: 1000 })).rejects.toBeInstanceOf(AppError)
   })

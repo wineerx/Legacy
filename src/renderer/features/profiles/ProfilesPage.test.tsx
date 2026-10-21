@@ -7,6 +7,58 @@ import { ProfilesPage } from './ProfilesPage'
 const profile = { platform: 'instagram', id: 'p1', username: 'zanon.boss', url: 'https://www.instagram.com/zanon.boss/', connected: false, lastSyncedAt: null }
 
 describe('ProfilesPage', () => {
+  it('consulta métricas automaticamente ao importar sem bloquear a busca de posts', async () => {
+    let finish!: (value: unknown) => void
+    const metrics = new Promise(resolve => { finish = resolve })
+    const invoke = mockBridge({
+      'profiles.list': () => [], 'profiles.add': () => profile,
+      'profiles.downloadStatus': () => ({ configured: true }),
+      'profiles.refresh': () => metrics,
+      'profiles.discover': () => ({ id: 'job1' })
+    })
+    renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+    await userEvent.type(await screen.findByLabelText('Link do perfil'), profile.url)
+    await userEvent.click(screen.getByRole('button', { name: 'Importar perfil' }))
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith('profiles.refresh', { workspaceId: WS_ID, profileId: profile.id }))
+    expect(invoke).toHaveBeenCalledWith('profiles.discover', { workspaceId: WS_ID, profileId: profile.id, source: 'posts', limit: 100 })
+    finish({ postsCount: 421 })
+  })
+
+  it('mostra e remove filtros ativos mesmo com o painel fechado', async () => {
+    const invoke = mockBridge({ 'profiles.list': () => [profile], 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
+    renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+    const toggle = await screen.findByRole('button', { name: 'Filtros avançados' })
+    await userEvent.click(toggle)
+    await userEvent.type(screen.getByLabelText('Texto na legenda'), 'viagem')
+    await userEvent.type(screen.getByLabelText('Mínimo de curtidas'), '100')
+    await userEvent.click(toggle)
+    expect(screen.getByRole('button', { name: 'Remover filtro: Legenda: viagem' })).toBeInTheDocument()
+    expect(screen.getByText('Nenhum post corresponde aos filtros')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Remover filtro: Legenda: viagem' }))
+    await waitFor(() => expect(invoke).toHaveBeenLastCalledWith('grid.query', expect.objectContaining({ text: undefined, minLikes: 100 })))
+    await userEvent.click(within(screen.getByRole('region', { name: 'Filtros dos posts' })).getByRole('button', { name: 'Limpar filtros' }))
+    expect(await screen.findByText('Sem filtros aplicados')).toBeInTheDocument()
+    await waitFor(() => expect(invoke).toHaveBeenLastCalledWith('grid.query', expect.objectContaining({ minLikes: undefined })))
+  })
+
+  it('arquiva o perfil ativo e permite restaurar pelo painel de arquivados', async () => {
+    let archived = false
+    const invoke = mockBridge({
+      'profiles.list': () => archived ? [] : [profile],
+      'profiles.archived': () => archived ? [profile] : [],
+      'profiles.archive': input => { archived = input.archived; return null },
+      'grid.query': () => ({ items: [], total: 0, loadedNote: '' })
+    })
+    renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Opções de @zanon.boss' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Arquivar @zanon.boss' }))
+    expect(await screen.findByText('Acompanhe um perfil')).toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('button', { name: 'Perfis arquivados' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Restaurar' }))
+    expect(await screen.findByRole('heading', { name: '@zanon.boss' })).toBeInTheDocument()
+    expect(invoke).toHaveBeenCalledWith('profiles.archive', { workspaceId: WS_ID, profileId: profile.id, archived: false })
+  })
+
   it('mantém atualização girando e continua os demais perfis após uma falha', async () => {
     let fail!: (error: unknown) => void
     const first = new Promise((_, reject) => { fail = reject })

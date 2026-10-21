@@ -18,11 +18,13 @@ export function Select({
   value,
   defaultValue,
   onChange,
+  portalContainer,
   ...props
 }: SelectHTMLAttributes<HTMLSelectElement> & {
   label: string
   error?: string
   children: ReactNode
+  portalContainer?: HTMLElement | null
 }) {
   const auto = useId()
   const id = props.id ?? auto
@@ -79,7 +81,7 @@ export function Select({
             <ChevronDown size={14} />
           </RadixSelect.Icon>
         </RadixSelect.Trigger>
-        <RadixSelect.Portal>
+        <RadixSelect.Portal container={portalContainer}>
           <RadixSelect.Content
             position="popper"
             sideOffset={6}
@@ -89,6 +91,7 @@ export function Select({
               <ChevronUp size={14} />
             </RadixSelect.ScrollUpButton>
             <RadixSelect.Viewport>
+              <RadixSelect.Group>
               {options.map((o) => (
                 <RadixSelect.Item
                   key={o.value}
@@ -102,6 +105,7 @@ export function Select({
                   </RadixSelect.ItemIndicator>
                 </RadixSelect.Item>
               ))}
+              </RadixSelect.Group>
             </RadixSelect.Viewport>
             <RadixSelect.ScrollDownButton className="grid place-items-center">
               <ChevronDown size={14} />

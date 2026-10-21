@@ -36,6 +36,62 @@
       "when": 1791251125649,
       "tag": "0004_publication_post_optional",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "6",
+      "when": 1791331200000,
+      "tag": "0005_pipeline_isolation",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1791331200001,
+      "tag": "0006_scheduler_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "6",
+      "when": 1791412008844,
+      "tag": "0007_regression_library_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "6",
+      "when": 1791518497129,
+      "tag": "0008_flimsy_arachne",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "6",
+      "when": 1791525032629,
+      "tag": "0009_nebulous_avengers",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "6",
+      "when": 1791545040653,
+      "tag": "0010_provider_quota_snapshots",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "6",
+      "when": 1791549460574,
+      "tag": "0011_container_adjustments",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "6",
+      "when": 1792361660994,
+      "tag": "0012_trial_reels",
+      "breakpoints": true
     }
   ]
 }

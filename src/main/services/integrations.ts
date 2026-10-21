@@ -1,3 +1,4 @@
+import { rememberDiagnosticSecret } from '../diagnostics'
 import { randomUUID } from 'node:crypto'
 import { isIP } from 'node:net'
 import { AppError } from '@shared/errors'
@@ -5,8 +6,10 @@ import type { Ctx } from '../context'
 import { getSetting, setSetting } from '../repos/settings'
 import { listWorkspaces } from '../repos/workspaces'
 import { apifyJson } from './download-http'
+import { eq } from 'drizzle-orm'
+import { settings } from '../db/schema'
 
-export type SecretKey = 'apifyToken' | 'webhookSecret' | 'instagramToken'
+export type SecretKey = 'apifyToken' | 'webhookSecret' | 'instagramToken' | `instagramToken:${string}` | `tiktokAccessToken:${string}` | `tiktokRefreshToken:${string}`
 export type SecretMap = Record<string, Partial<Record<SecretKey, string>>>
 export interface SecretVault { available(): boolean; encrypt(value: string): string; decrypt(value: string): string }
 export type WebhookEvent = 'job.done' | 'job.failed'
@@ -19,17 +22,20 @@ export function requireWorkspace(ctx: Ctx, ws: string): void {
 export function getSecret(ctx: Ctx, ws: string, key: SecretKey): string | null {
   const saved = ctx.secret?.(ws, key)
   // An unreadable stored token must not silently fall back to another account.
-  if (saved) return saved
+  if (saved) return rememberDiagnosticSecret(saved)!
   if (getSetting(ctx.db, ws, `secret.${key}`)) return null
-  return key === 'apifyToken' ? process.env.APIFY_TOKEN?.trim() || null : null
+  return rememberDiagnosticSecret(key === 'apifyToken' ? process.env.APIFY_TOKEN?.trim() || null : null) ?? null
 }
 export function decryptSecret(ctx: Ctx, vault: SecretVault, ws: string, key: SecretKey): string | null {
   const value = getSetting(ctx.db, ws, `secret.${key}`)
   if (!value) return null
-  try { return vault.decrypt(value) } catch { return null }
+  try { return rememberDiagnosticSecret(vault.decrypt(value)) ?? null } catch { return null }
 }
 export function secretSnapshot(ctx: Ctx, vault: SecretVault): SecretMap {
   return Object.fromEntries(listWorkspaces(ctx.db).map((w) => [w.id, {
+    ...Object.fromEntries(ctx.db.select().from(settings).where(eq(settings.workspaceId,w.id)).all()
+      .filter(r => /^secret\.(instagramToken:\d+|tiktokAccessToken:[\w-]+|tiktokRefreshToken:[\w-]+)$/.test(r.key))
+      .map(r => { const key=r.key.slice(7) as SecretKey; return [key,decryptSecret(ctx,vault,w.id,key) ?? undefined] })),
     apifyToken: decryptSecret(ctx, vault, w.id, 'apifyToken') ?? undefined,
     webhookSecret: decryptSecret(ctx, vault, w.id, 'webhookSecret') ?? undefined,
     instagramToken: decryptSecret(ctx, vault, w.id, 'instagramToken') ?? undefined
@@ -37,6 +43,7 @@ export function secretSnapshot(ctx: Ctx, vault: SecretVault): SecretMap {
 }
 export function saveSecret(ctx: Ctx, vault: SecretVault, ws: string, key: SecretKey, value: string): void {
   requireWorkspace(ctx, ws)
+  rememberDiagnosticSecret(value)
   if (value && !vault.available()) throw new AppError('forbidden', 'A proteção de credenciais do sistema está indisponível.')
   try { setSetting(ctx.db, ws, `secret.${key}`, value ? vault.encrypt(value) : '') }
   catch { throw new AppError('internal', 'Não foi possível proteger e salvar a credencial.') }

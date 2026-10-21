@@ -21,6 +21,7 @@ import {
   Toggle,
   Checkbox,
   DatePicker,
+  TimePicker,
   DeliveryTime,
   deliveryError,
   useToast
@@ -58,16 +59,17 @@ function withOverride(
 export function ComposePage({ navigate }: PageProps) {
   const { workspace } = useWorkspace()
   const toast = useToast()
+  const [destinationAccountId,setDestinationAccountId]=useState<string>()
+  const accounts=useQuery({queryKey:['instagram-accounts',workspace.id],queryFn:()=>call('accounts.instagramList',{workspaceId:workspace.id})})
   const account = useQuery({
-    queryKey: ['instagram-account', workspace.id],
-    queryFn: () => call('accounts.instagram', { workspaceId: workspace.id })
+    queryKey: ['instagram-account', workspace.id,destinationAccountId],
+    queryFn: () => call('accounts.instagram', { workspaceId: workspace.id,accountId:destinationAccountId })
   })
   const [instagram, setInstagram] = useState(false)
   // TikTok não tem conta conectada: só entra no lote quando marcado.
   const [tiktok, setTiktok] = useState(false)
   const [delivery, setDelivery] = useState('')
   const [interval, setInterval] = useState(60)
-  const [cleanup, setCleanup] = useState(false)
   const [shareToFeed, setShareToFeed] = useState(true)
   const [ids] = useState(() => peekComposeSelection())
   const assets = useQuery({
@@ -262,7 +264,7 @@ export function ComposePage({ navigate }: PageProps) {
                 }
               : undefined
             versionIds[it.id] = (
-              await call('versions.prepareVideo', {
+              await call('versions.planVideo', {
                 workspaceId: workspace.id,
                 assetId: it.id,
                 banner: bannerInput,
@@ -286,7 +288,7 @@ export function ComposePage({ navigate }: PageProps) {
           captions: Object.fromEntries(
             items.map((i, k) => [i.id, captions[k]])
           ),
-          cleanupAfterPublish: cleanup,
+          cleanupAfterPublish: false,
           shareToFeed,
           versionIds: edited ? versionIds : undefined
         })
@@ -450,6 +452,11 @@ export function ComposePage({ navigate }: PageProps) {
               Conectar uma conta
             </Button>
           )}
+          {!!accounts.data?.length && <label className="text-sm">Conta de destino
+            <select aria-label="Conta de destino Instagram" className="ml-2 rounded border border-line bg-panel p-2" value={destinationAccountId ?? account.data?.id ?? ''} onChange={e=>setDestinationAccountId(e.target.value)}>
+              {accounts.data.map(a=><option key={a.id} value={a.id}>@{a.username}</option>)}
+            </select>
+          </label>}
           <Checkbox
             className="publication-destination"
             label="TikTok — exportação manual"
@@ -486,12 +493,7 @@ export function ComposePage({ navigate }: PageProps) {
                 }
               />
             )}
-            <Checkbox
-              label="Apagar a cópia após publicação confirmada"
-              description="O histórico permanece; arquivos em uso são mantidos."
-              checked={cleanup}
-              onChange={(e) => setCleanup(e.target.checked)}
-            />
+            <p className="text-sm text-dim">Os temporários são removidos após confirmação. O vídeo original e o histórico são preservados; o cache de edição expira automaticamente.</p>
           </section>
         )}
         <section className="flex flex-col gap-3 rounded-card border border-line bg-panel p-4">
@@ -538,12 +540,11 @@ export function ComposePage({ navigate }: PageProps) {
                 value={remind.startDate}
                 onChange={(value) => setRemind({ ...remind, startDate: value })}
               />
-              <Input
+              <TimePicker
                 label="Hora"
-                type="time"
                 value={remind.startTime}
-                onChange={(e) =>
-                  setRemind({ ...remind, startTime: e.target.value })
+                onChange={(value) =>
+                  setRemind({ ...remind, startTime: value })
                 }
               />
               {items.length > 1 && (

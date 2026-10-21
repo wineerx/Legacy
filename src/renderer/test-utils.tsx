@@ -15,11 +15,13 @@ export function mockBridge(handlers: Partial<Record<Channel, (input: any) => unk
     'session.enterGuest': () => ({ entered: true, email: 'guest@legacy.com', mode: 'development' }),
     'session.exit': () => ({ entered: false, email: 'guest@legacy.com', mode: 'development' }),
     'profiles.importProgress': () => null,
+    'profiles.archived': () => [],
     'publications.feedback': () => [],
     'accounts.instagram': () => null,
     'settings.get': () => null,
     'library.pending': () => [],
     'onboarding.status': () => [],
+    'jobs.health': () => ({ paused: false, workerId: 'worker-local-01', alive: true, healthy: true, heartbeat: new Date().toISOString(), busy: false, running: 0, capacity: 1, completedLastMinute: 0, oldestWaitMs: 0, waitingOver10Min: 0, stalled: 0, attention: 0, networkLatencyMs: null }),
     'app.bootstrap': () => ({ workspaces: [{ id: WS_ID, name: 'Meu workspace', timeZone: 'America/Sao_Paulo' }], version: 't', workerAlive: true, dataDir: 'C:\\Users\\teste\\AppData\\Roaming\\Legacy' }),
     ...handlers
   }

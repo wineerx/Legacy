@@ -6,7 +6,7 @@ describe('selection', () => {
     let s = toggleId(emptySelection(), 'a')
     s = selectPage(s, ['b', 'c'])
     expect(selectionCount(s)).toBe(3)
-    expect(selectionLabel(s)).toBe('3 selecionados (nesta página)')
+    expect(selectionLabel(s)).toBe('3 selecionados')
     s = toggleId(s, 'a')
     expect(isSelected(s, 'a')).toBe(false)
   })

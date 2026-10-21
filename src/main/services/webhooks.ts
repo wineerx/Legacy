@@ -1,6 +1,6 @@
 import { createHmac, randomUUID } from 'node:crypto'
 import { resolve4 } from 'node:dns/promises'
-import { request } from 'node:https'
+import { diagnosticRequest as request } from '../diagnostics'
 import { z } from 'zod'
 import { AppError } from '@shared/errors'
 import type { Ctx } from '../context'

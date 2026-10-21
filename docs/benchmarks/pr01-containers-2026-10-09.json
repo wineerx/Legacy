@@ -1,0 +1,9 @@
+{
+  "items": 1000,
+  "scheduledMs": 2110.7678,
+  "queryMs": 3.9934000000002925,
+  "claimMs": 3.4299000000000888,
+  "provider": "mock; no network",
+  "runtime": "Electron",
+  "measuredAt": "2026-10-09T04:22:53.654Z"
+}

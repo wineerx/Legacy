@@ -115,20 +115,15 @@ test('publicação identificada, Biblioteca exata, balão, badges e exclusão co
       { path: join(root, 'data', 'legacy.sqlite'), ws }
     )
     await page.getByRole('link', { name: 'Fila', exact: true }).click()
-    const published = page.getByRole('article', {
-      name: 'Publicação QA',
-      exact: true
-    })
-    await expect(published).toContainText('Publicado A.mp4')
-    await published
-      .getByRole('button', { name: 'Andamento e tentativas' })
-      .click()
-    await expect(
-      published.getByText('Publicação confirmada pela API.', { exact: true })
-    ).toHaveClass(/text-ok/)
-    await published
-      .getByRole('button', { name: 'Ver vídeo na Biblioteca' })
-      .click()
+    // The queue is a table with per-row actions and a details sheet (redesign before the Container PRs).
+    const published = page.getByRole('row').filter({ hasText: 'A.mp4' })
+    await expect(published).toHaveCount(1)
+    await published.getByRole('button', { name: /^Ações (de|da tarefa) / }).click()
+    await page.getByRole('button', { name: 'Ver tarefa', exact: true }).click()
+    await expect(page.getByRole('dialog').getByText('Publicação confirmada', { exact: true })).toBeVisible()
+    await page.getByRole('button', { name: 'Fechar detalhes', exact: true }).click()
+    await published.getByRole('button', { name: /^Ações (de|da tarefa) / }).click()
+    await page.getByRole('button', { name: 'Ver vídeo na Biblioteca', exact: true }).click()
     await expect(page.getByRole('article')).toHaveCount(1)
     await expect(page.getByRole('article')).toContainText('Publicado A.mp4')
     await page.getByRole('button', { name: 'Limpar filtro do vídeo' }).click()

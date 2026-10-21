@@ -1,0 +1,41 @@
+{
+  "counts": {
+    "edicao": 13,
+    "publicacao_recusada": 2,
+    "conta_alterada": 1
+  },
+  "source": {
+    "width": 720,
+    "height": 1280,
+    "frameRate": "29801/1000",
+    "timeBase": "1/29801",
+    "audio": "aac"
+  },
+  "results": [
+    {
+      "encoder": "h264_mf_cfr",
+      "status": 0,
+      "message": [
+        ""
+      ],
+      "output": {
+        "duration": "2.000000",
+        "streams": [
+          {
+            "type": "video",
+            "codec": "h264",
+            "width": 720,
+            "height": 1280,
+            "frameRate": "30/1"
+          },
+          {
+            "type": "audio",
+            "codec": "aac",
+            "frameRate": "0/0"
+          }
+        ]
+      }
+    }
+  ],
+  "artifacts": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-encoder-diagnostic-1mj7MM"
+}

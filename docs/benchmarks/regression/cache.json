@@ -1,0 +1,275 @@
+[
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 4.758499999999913,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\original.mp4",
+      "bytes": 304317
+    },
+    "id": "d918f8cc-fb36-4216-8a3a-33ec414e1b0c",
+    "timestamp": "2026-10-19T03:22:00.688Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 3.9319000000000415,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\original.mp4",
+      "bytes": 304317
+    },
+    "id": "02dcecfb-297c-4784-9151-335c1b994481",
+    "timestamp": "2026-10-19T03:22:00.688Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 4.517599999999675,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\versions\\cover-2d77a415-b0ff-49ea-8c3c-0c997a427b91.png",
+      "bytes": 57529
+    },
+    "id": "5316cb96-4787-434b-bd9a-639c755c6084",
+    "timestamp": "2026-10-19T03:22:00.688Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 5.197599999999966,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\versions\\cover-2d77a415-b0ff-49ea-8c3c-0c997a427b91.png",
+      "bytes": 57529
+    },
+    "id": "3d9270b3-4bd6-44ad-be6a-6f324811c6d6",
+    "timestamp": "2026-10-19T03:22:00.689Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache miss",
+    "metadata": {
+      "operation": "cache miss",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\workspaces\\b12c8175-947f-40cf-b7be-30bca366ddcc\\cache\\processed\\693b8297d19872c408f0166346c5b15785e2e4d4a375f9cad1bae60d6429b4ef.mp4"
+    },
+    "id": "356ee852-139e-422a-bf29-6b318e46ee95",
+    "timestamp": "2026-10-19T03:22:00.690Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 3.038800000000265,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\workspaces\\b12c8175-947f-40cf-b7be-30bca366ddcc\\cache\\processed\\693b8297d19872c408f0166346c5b15785e2e4d4a375f9cad1bae60d6429b4ef.ce6226d1-e6fa-488d-950a-9c93836c318d.partial.mp4",
+      "bytes": 860550
+    },
+    "id": "00557466-1811-4df8-973a-e4f07aa9ee2f",
+    "timestamp": "2026-10-19T03:22:01.500Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 0.985700000000179,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\versions\\cover-2d77a415-b0ff-49ea-8c3c-0c997a427b91.png",
+      "bytes": 57529
+    },
+    "id": "2152ec27-7fb0-4d11-8ec8-540028bd740a",
+    "timestamp": "2026-10-19T03:22:01.504Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 1.5264999999999418,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\original.mp4",
+      "bytes": 304317
+    },
+    "id": "8a0a0449-bd1b-494d-8666-81fb2d55ee04",
+    "timestamp": "2026-10-19T03:22:01.504Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 3.4768999999996595,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\workspaces\\b12c8175-947f-40cf-b7be-30bca366ddcc\\cache\\processed\\693b8297d19872c408f0166346c5b15785e2e4d4a375f9cad1bae60d6429b4ef.mp4",
+      "bytes": 860550
+    },
+    "id": "f85bc6cf-b554-4921-842e-eefc8c0c23a4",
+    "timestamp": "2026-10-19T03:22:01.509Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache hit",
+    "duration": 124.9657000000002,
+    "metadata": {
+      "operation": "cache hit/probe",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\workspaces\\b12c8175-947f-40cf-b7be-30bca366ddcc\\cache\\processed\\693b8297d19872c408f0166346c5b15785e2e4d4a375f9cad1bae60d6429b4ef.mp4"
+    },
+    "id": "36e85d2b-0f65-4e32-8487-9e0b798a5de6",
+    "timestamp": "2026-10-19T03:22:01.634Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 1.345600000000104,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\versions\\cover-2d77a415-b0ff-49ea-8c3c-0c997a427b91.png",
+      "bytes": 57529
+    },
+    "id": "f7947d8d-8904-4b3d-987c-362313ff34e2",
+    "timestamp": "2026-10-19T03:22:01.637Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 2.015100000000075,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\original.mp4",
+      "bytes": 304317
+    },
+    "id": "00f55ed6-8f01-4d04-8050-590e0be8154e",
+    "timestamp": "2026-10-19T03:22:01.637Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 0.34700000000020736,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\workspaces\\b12c8175-947f-40cf-b7be-30bca366ddcc\\cache\\processed\\693b8297d19872c408f0166346c5b15785e2e4d4a375f9cad1bae60d6429b4ef.mp4",
+      "bytes": 9
+    },
+    "id": "00fc9a4a-c196-4f78-8f79-56a77aef7219",
+    "timestamp": "2026-10-19T03:22:01.638Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache miss",
+    "metadata": {
+      "operation": "cache miss",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\workspaces\\b12c8175-947f-40cf-b7be-30bca366ddcc\\cache\\processed\\693b8297d19872c408f0166346c5b15785e2e4d4a375f9cad1bae60d6429b4ef.mp4"
+    },
+    "id": "75036878-4e5a-461c-87f2-47b3b19d2710",
+    "timestamp": "2026-10-19T03:22:01.638Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 2.693399999999656,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\workspaces\\b12c8175-947f-40cf-b7be-30bca366ddcc\\cache\\processed\\693b8297d19872c408f0166346c5b15785e2e4d4a375f9cad1bae60d6429b4ef.e7e94c47-7998-4789-aaa1-565bd21a8387.partial.mp4",
+      "bytes": 860550
+    },
+    "id": "2f88bedc-ef9c-4935-8e1c-b834d632366f",
+    "timestamp": "2026-10-19T03:22:02.209Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 1.3428000000003522,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\versions\\cover-2d77a415-b0ff-49ea-8c3c-0c997a427b91.png",
+      "bytes": 57529
+    },
+    "id": "51686c65-73b9-4307-bcfb-0406693c27d9",
+    "timestamp": "2026-10-19T03:22:02.928Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 2.1060999999999694,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\original.mp4",
+      "bytes": 304317
+    },
+    "id": "bdaa212b-4a49-430a-99ba-4582a7164b11",
+    "timestamp": "2026-10-19T03:22:02.929Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 12.487200000000485,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\versions\\banner-0031fe79-dbd1-4a49-9388-1ffaa75ca5f7.png",
+      "bytes": 57529
+    },
+    "id": "0a739626-fcee-402a-83ea-61f6856621ab",
+    "timestamp": "2026-10-19T03:22:02.939Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache miss",
+    "metadata": {
+      "operation": "cache miss",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\workspaces\\b12c8175-947f-40cf-b7be-30bca366ddcc\\cache\\processed\\2f1c65a75041f6666bdde2a0393b7575d34a5d649280794d0429582cf110130b.mp4"
+    },
+    "id": "6c67041b-f6ac-4f0b-aaa7-101874efaf1b",
+    "timestamp": "2026-10-19T03:22:02.940Z"
+  },
+  {
+    "workspaceId": "b12c8175-947f-40cf-b7be-30bca366ddcc",
+    "source": "media",
+    "level": "DEBUG",
+    "message": "Cache: hash/read",
+    "duration": 2.132300000000214,
+    "metadata": {
+      "operation": "hash/read",
+      "file": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-resilience-kvvhyM\\workspaces\\b12c8175-947f-40cf-b7be-30bca366ddcc\\cache\\processed\\2f1c65a75041f6666bdde2a0393b7575d34a5d649280794d0429582cf110130b.e8a97eae-9883-4715-af35-f7fe436c3efa.partial.mp4",
+      "bytes": 693860
+    },
+    "id": "e539f89c-9b01-42ff-97b5-55d25be46131",
+    "timestamp": "2026-10-19T03:22:03.501Z"
+  }
+]

@@ -32,9 +32,14 @@ export default defineConfig({
     }
   },
   preload: {
-    define: buildDefine,
+    define: {...buildDefine, '__LEGACY_PERF_DEBUG__': JSON.stringify(process.env.LEGACY_PERF_DEBUG === '1')},
     resolve: { alias },
     build: { externalizeDeps: true, rollupOptions: { output: { format: 'cjs', entryFileNames: '[name].cjs' } } }
   },
-  renderer: { resolve: { alias }, plugins: [react(), tailwindcss()] }
+  renderer: {
+    build: {rollupOptions:{input:{index:resolve('src/renderer/index.html'),visual:resolve('src/renderer/visual-renderer.html')}}},
+    define: {'__LEGACY_PERF_DEBUG__': JSON.stringify(process.env.LEGACY_PERF_DEBUG === '1')},
+    resolve: { alias: {...alias, ...(process.env.LEGACY_PERF_DEBUG === '1' ? {'react-dom/client': 'react-dom/profiling'} : {})} },
+    plugins: [react(), tailwindcss()]
+  }
 })

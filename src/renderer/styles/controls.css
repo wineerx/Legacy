@@ -1,5 +1,5 @@
-.ds-field { width:100%; min-width:0; color:var(--color-fg); background:var(--color-panel); border:1px solid var(--color-line); border-radius:var(--radius-ctl,8px); padding:8px 12px; font:inherit; font-size:14px; transition:border-color 150ms,background 150ms; }
-.ds-field:hover:not(:disabled) { border-color:var(--color-line-strong); }
+.ds-field { width:100%; min-width:0; color:var(--color-fg); background:var(--color-panel); border:1px solid var(--color-control-border); border-radius:var(--radius-ctl,8px); padding:8px 12px; font:inherit; font-size:14px; transition:border-color 150ms,background 150ms; }
+.ds-field:hover:not(:disabled) { border-color:var(--color-dim); }
 .ds-field:focus-visible { border-color:var(--color-fg); outline:2px solid var(--color-line-strong); outline-offset:2px; }
 .ds-field:disabled,.ds-button:disabled { opacity:.5; cursor:not-allowed; }
 .ds-field[aria-invalid=true] { border-color:var(--color-danger); }

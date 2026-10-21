@@ -6,6 +6,7 @@ import { PanelLeftClose, PanelLeftOpen, Search } from 'lucide-react'
 import { NAV, type PageKey } from '../routes'
 import { cx, Tooltip } from './ui'
 import { SidebarUser } from './SidebarUser'
+import { AccountSwitcher } from './AccountSwitcher'
 import { LegacyLogo } from './brand/LegacyMascot'
 import { useMascot } from './brand/MascotProvider'
 
@@ -37,6 +38,7 @@ export function Sidebar({ current, onNavigate, unread, collapsed, onToggle }: Pr
         <button type="button" aria-label="Interagir com o mascote Legacy" aria-expanded={showStatus} onMouseEnter={mascot.react} onClick={() => { mascot.react(); setReaction(value => value + 1) }} onKeyDown={event => { if (event.key === 'Escape') setShowStatus(false) }} className={cx('mb-4 mt-1 flex rounded-ctl', collapsed ? 'justify-center' : 'px-1')}><span key={reaction} className={reaction ? 'mascot-react' : undefined}><LegacyLogo compact={collapsed} state={mascot.state} interactive /></span></button></Popover.Trigger>
         <Popover.Portal><Popover.Content side="right" align="start" sideOffset={8} className="ds-dropdown w-60" aria-label="Status da fila"><div role="status"><span aria-hidden className="mb-2 flex gap-1">{[0,1,2].map(n=><i key={n} className="size-1 rounded-full bg-dim"/>)}</span><p>{mascot.message}</p><div className="my-2"><Progress value={mascot.progress} label="Tarefas concluídas"/></div><p className="mt-1 text-dim">{mascot.running} em execução · {mascot.queued} na fila</p></div><Popover.Arrow className="fill-panel"/></Popover.Content></Popover.Portal></Popover.Root>
       </div>
+      <AccountSwitcher collapsed={collapsed} onNavigate={onNavigate} />
       <div className="mb-2 flex items-center gap-1">
         {!collapsed && (
           <label className="flex h-8 flex-1 items-center gap-2 rounded-ctl bg-raised px-2.5 text-dim">
@@ -49,7 +51,7 @@ export function Sidebar({ current, onNavigate, unread, collapsed, onToggle }: Pr
         </button></Tooltip>
       </div>
       <div className="flex flex-1 flex-col gap-0.5">{items.map(link)}</div>
-      {!collapsed && <FirstSteps navigate={onNavigate} />}
+      <FirstSteps navigate={onNavigate} collapsed={collapsed} />
       <div className="border-t border-line pt-2"><SidebarUser collapsed={collapsed} current={current} navigate={onNavigate}/></div>
     </nav>
   )

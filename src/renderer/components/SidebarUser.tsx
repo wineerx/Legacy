@@ -1,6 +1,6 @@
 import * as Popover from '@radix-ui/react-popover'
 import { useState } from 'react'
-import { UserRound, ChevronsUpDown, Settings, LogOut } from 'lucide-react'
+import { UserRound, MoreVertical, Settings, LogOut } from 'lucide-react'
 import { useQuery } from '@tanstack/react-query'
 import { useWorkspace } from '../lib/workspace'
 import { useSession } from '../lib/session'
@@ -97,7 +97,7 @@ export function SidebarUser({
   }
   const trigger = (
     <Popover.Trigger
-      className={`flex w-full items-center gap-2 rounded-ctl py-2 text-left hover:bg-raised ${collapsed ? 'justify-center px-0' : 'px-2'}`}
+      className={`flex min-w-0 w-full items-center gap-2 rounded-ctl bg-raised py-2 text-left hover:bg-panel data-[state=open]:bg-panel ${collapsed ? 'justify-center px-0' : 'px-2'}`}
       aria-label="Menu do usuário"
     >
       <UserAvatar key={profile.photo} name={name} photo={profile.photo} />
@@ -109,7 +109,7 @@ export function SidebarUser({
               guest@legacy.com
             </span>
           </span>
-          <ChevronsUpDown size={14} />
+          <MoreVertical size={14} className="shrink-0 text-dim" aria-hidden />
         </>
       )}
     </Popover.Trigger>
@@ -122,39 +122,47 @@ export function SidebarUser({
           <Popover.Content
             side="right"
             align="end"
-            sideOffset={8}
-            className="ds-dropdown"
+            sideOffset={16}
+            collisionPadding={16}
+            aria-label="Menu da conta"
+            className="ds-dropdown sidebar-user-menu"
           >
-            <div className="border-b border-line p-2">
-              <strong className="text-sm">{name}</strong>
-              <p className="text-xs text-dim">guest@legacy.com</p>
+            <div className="flex min-w-0 items-center gap-2.5 border-b border-line px-3 py-3">
+              <UserAvatar key={profile.photo} name={name} photo={profile.photo} />
+              <div className="min-w-0 flex-1">
+                <strong className="block truncate text-xs">{name}</strong>
+                <p className="truncate text-[11px] text-dim">guest@legacy.com</p>
+              </div>
             </div>
+            <div className="flex flex-col p-1">
             <Popover.Close asChild>
               <button
-                className="flex w-full gap-2 rounded-ctl p-2 text-sm hover:bg-raised"
+                className="flex h-8 w-full items-center gap-2.5 rounded-ctl px-2 text-xs hover:bg-raised"
                 onClick={() => {
                   setDraft(profile)
                   setError('')
                   setEdit(true)
                 }}
               >
-                <UserRound size={16} />
+                <UserRound size={14} className="shrink-0" aria-hidden />
                 Editar perfil local
               </button>
             </Popover.Close>
             <Popover.Close asChild>
               <button
                 aria-current={current === 'settings' ? 'page' : undefined}
-                className="flex w-full gap-2 rounded-ctl p-2 text-sm hover:bg-raised aria-[current=page]:bg-raised"
+                className="flex h-8 w-full items-center gap-2.5 rounded-ctl px-2 text-xs hover:bg-raised aria-[current=page]:bg-raised"
                 onClick={() => navigate('settings')}
               >
-                <Settings size={16} />
+                <Settings size={14} className="shrink-0" aria-hidden />
                 Configurações
               </button>
             </Popover.Close>
+            </div>
+            <div className="border-t border-line p-1">
             <Popover.Close asChild>
               <button
-                className="flex w-full gap-2 rounded-ctl border-t border-line p-2 text-sm text-red-400 hover:bg-raised hover:text-red-300"
+                className="flex h-9 w-full items-center gap-2.5 rounded-ctl px-2 text-xs text-danger-icon hover:bg-raised"
                 onClick={() =>
                   void exit().catch((e) =>
                     toast.show({
@@ -165,10 +173,11 @@ export function SidebarUser({
                   )
                 }
               >
-                <LogOut size={16} />
-                Sair do Legacy
+                <LogOut size={14} className="shrink-0 text-danger-icon" aria-hidden />
+                Sair
               </button>
             </Popover.Close>
+            </div>
           </Popover.Content>
         </Popover.Portal>
       </Popover.Root>

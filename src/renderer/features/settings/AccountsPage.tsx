@@ -1,16 +1,18 @@
 import { useState } from 'react'
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Camera as Instagram, Video, Link2, AtSign, MoreHorizontal } from 'lucide-react'
+import { Camera as Instagram, Video, Link2, AtSign } from 'lucide-react'
 import { AccountConnectionCard } from './AccountConnectionCard'
+import { ConnectedAccountsTable } from './ConnectedAccountsTable'
 import { call } from '../../lib/api'
 import { useWorkspace } from '../../lib/workspace'
-import { Button, Input, Modal, Badge, Spinner, Dropdown, DropdownClose } from '../../components/ui'
+import { Button, Input, Modal, Badge, Spinner } from '../../components/ui'
 import type { PageProps } from '../../routes'
 
 export function AccountsPage({navigate}: PageProps) {
  const {workspace}=useWorkspace();const qc=useQueryClient()
  const [open,setOpen]=useState(false);const [platform,setPlatform]=useState<'instagram'|'tiktok'|null>(null);const [token,setToken]=useState('');const [error,setError]=useState('');const [disconnectOpen,setDisconnectOpen]=useState(false)
  const account=useQuery({queryKey:['instagram-account',workspace.id],queryFn:()=>call('accounts.instagram',{workspaceId:workspace.id})})
+ const accounts=useQuery({queryKey:['instagram-accounts',workspace.id],queryFn:()=>call('accounts.instagramList',{workspaceId:workspace.id})})
  const done=()=>{void qc.invalidateQueries();setError('');setToken('')}
  const fail=(e:unknown)=>setError(e instanceof Error ? e.message : 'Não foi possível confirmar a conexão. Tente novamente.')
  const connect=useMutation({mutationFn:()=>call('accounts.connectInstagram',{workspaceId:workspace.id,token}),onSuccess:done,onError:fail})
@@ -25,16 +27,12 @@ export function AccountsPage({navigate}: PageProps) {
    <Button icon={<Link2 size={16}/>} onClick={()=>{setError('');setPlatform(null);setOpen(true)}}>Conectar conta</Button>
  </header>
  <section aria-labelledby="connected-accounts-heading" className="grid gap-3">
-   <h2 id="connected-accounts-heading" className="text-sm font-semibold">Contas conectadas</h2>
-   {account.isLoading ? <div role="status" className="flex items-center gap-2 rounded-card border border-line/60 p-4 text-sm text-dim"><Spinner/> Carregando contas…</div> : account.isError ? <div role="alert" className="rounded-card border border-line/60 p-4 text-sm text-danger-fg">Não foi possível consultar a conta. <button onClick={()=>void account.refetch()} className="underline">Tentar novamente</button></div> : account.data ? <div className="flex flex-wrap items-center gap-3 rounded-card border border-line/60 p-4">
-     <span className="flex h-10 w-10 items-center justify-center rounded-full border border-line/60" aria-hidden="true"><Instagram size={22}/></span>
-     <div className="min-w-0 flex-1"><div className="flex flex-wrap items-center gap-2"><h3 className="font-semibold">Instagram</h3><Badge tone="success">Conectado</Badge></div><p className="mt-1 break-all text-sm text-dim">@{account.data.username}</p><p className="mt-1 text-xs text-dim">Verificada em {new Date(account.data.validatedAt).toLocaleString('pt-BR',{timeZone:workspace.timeZone})}</p></div>
-     <Button size="sm" onClick={showInstagram}>Gerenciar</Button>
-     <Dropdown trigger={<button type="button" aria-label="Opções da conta Instagram" className="flex h-8 w-8 items-center justify-center rounded-ctl text-dim hover:bg-raised hover:text-fg"><MoreHorizontal size={18}/></button>}>
-       <DropdownClose asChild><button type="button" onClick={showInstagram}>Gerenciar conexão</button></DropdownClose>
-       <DropdownClose asChild><button type="button" className="text-danger-fg" onClick={()=>{setError('');setDisconnectOpen(true)}}>Desconectar conta</button></DropdownClose>
-     </Dropdown>
-   </div> : <div className="rounded-card border border-dashed border-line/60 p-5"><p className="text-sm">Nenhuma conta conectada</p><p className="mt-1 text-sm text-dim">Escolha uma rede abaixo para começar.</p></div>}
+   <div className="flex items-end justify-between gap-2"><div><h2 id="connected-accounts-heading" className="text-sm font-semibold">Contas conectadas</h2><p className="mt-1 text-xs text-dim">A conta ativa é o destino padrão de novas publicações; troque pela tabela ou pelo seletor da barra lateral.</p></div>{!!accounts.data?.length && <Badge>{accounts.data.length} conta(s)</Badge>}</div>
+   {account.isLoading || accounts.isLoading ? <div role="status" className="flex items-center gap-2 rounded-card border border-line/60 p-4 text-sm text-dim"><Spinner/> Carregando contas…</div>
+     : account.isError || accounts.isError ? <div role="alert" className="rounded-card border border-line/60 p-4 text-sm text-danger-fg">Não foi possível consultar as contas. <button onClick={()=>{void account.refetch();void accounts.refetch()}} className="underline">Tentar novamente</button></div>
+     : accounts.data?.length || account.data ? <ConnectedAccountsTable accounts={accounts.data?.length ? accounts.data : [account.data!]} activeId={account.data?.id ?? null} onManage={showInstagram} onError={fail} onChanged={()=>setError('')} />
+     : <div className="rounded-card border border-dashed border-line/60 p-5"><p className="text-sm">Nenhuma conta conectada</p><p className="mt-1 text-sm text-dim">Escolha uma rede abaixo para começar.</p></div>}
+   {error && !open && <p role="alert" className="text-xs text-danger-fg">{error}</p>}
  </section>
  <section aria-labelledby="available-networks-heading" className="grid gap-3">
    <div><h2 id="available-networks-heading" className="text-sm font-semibold">Redes sociais</h2><p className="mt-1 text-sm text-dim">Veja as opções disponíveis para cada plataforma.</p></div>

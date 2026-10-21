@@ -7,6 +7,7 @@ import { ensureDefaultWorkspace, listWorkspaces } from './repos/workspaces'
 import { getSetting } from './repos/settings'
 import { listJobs } from './queue/queue'
 import { startWorker } from './supervisor'
+import { createVisualRenderer } from './ipc/visual-renderer'
 import { publicationFeedback } from './services/publication-history'
 import { createGuestSession } from './services/guest-session'
 import { createDispatcher } from './ipc/dispatcher'
@@ -104,17 +105,21 @@ if (gotLock) {
   })
 
   for (const workspace of listWorkspaces(db)) publicationFeedback(ctx, workspace.id)
-  const worker = startWorker({ initiallyPaused: true, dbPath: join(dataRoot, 'legacy.sqlite'), dataRoot, migrationsDir, ffmpegDir, credentials: () => secretSnapshot(ctx, vault), onEvent: (e) => send(EVENTS.jobsChanged, e) })
+  const visualRenderer=createVisualRenderer()
+  ctx.renderVisual=visualRenderer.render
+  const worker = startWorker({ renderVisual:visualRenderer.render, initiallyPaused: true, dbPath: join(dataRoot, 'legacy.sqlite'), dataRoot, migrationsDir, ffmpegDir, credentials: () => secretSnapshot(ctx, vault), onEvent: (e) => send(EVENTS.jobsChanged, e) })
+  app.once('will-quit',()=>visualRenderer.dispose())
 
   const session = createGuestSession(paused => worker.setPaused(paused))
   const updates = setupUpdates(electronUpdater.autoUpdater, app.isPackaged, () => listWorkspaces(db).some(w => listJobs(db, w.id, ['running']).length > 0), () => { quitting = true })
   const dispatch = createDispatcher(buildHandlers({
     updates, session,
     buildCommit: process.env.LEGACY_BUILD_COMMIT, buildTime: process.env.LEGACY_BUILD_TIME,
-    ctx, vault, onSecretsChanged: () => worker.updateSecrets(), version: process.env.LEGACY_APP_VERSION ?? app.getVersion(), workerAlive: () => worker.isAlive(),
+    ctx, vault, onSecretsChanged: () => worker.updateSecrets(), version: process.env.LEGACY_APP_VERSION ?? app.getVersion(), workerAlive: () => worker.isAlive(), workerPaused: () => worker.isPaused(), pauseWorker: paused => worker.setPaused(paused),
     onJobsChanged: (workspaceId) => send(EVENTS.jobsChanged, { workspaceId }),
     shell: { openPath: (p) => shell.openPath(p) },
     dialogs: {
+      saveDiagnostic: async name => (await dialog.showSaveDialog(win!, { title: 'Exportar diagnóstico Legacy', defaultPath: name, filters: [{ name: 'Diagnóstico JSON', extensions: ['json'] }] })).filePath ?? null,
       saveVideo: async name => (await dialog.showSaveDialog(win!, { title: 'Salvar cópia do vídeo', defaultPath: name, filters: [{ name: 'Vídeos', extensions: ['mp4', 'mov', 'm4v'] }] })).filePath ?? null,
       pickStorageFolder: async () => (await dialog.showOpenDialog(win!, { title: 'Escolher pasta para vídeos', properties: ['openDirectory', 'createDirectory'] })).filePaths[0] ?? null,
       pickVideos: async () => (await dialog.showOpenDialog(win!, { title: 'Importar vídeos', properties: ['openFile', 'multiSelections'], filters: [{ name: 'Vídeos', extensions: ['mp4', 'mov', 'm4v'] }] })).filePaths,
@@ -165,3 +170,4 @@ if (gotLock) {
   })
   })
 }
+

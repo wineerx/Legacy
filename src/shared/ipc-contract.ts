@@ -1,13 +1,22 @@
+import type { DiagnosticEvent } from './diagnostics'
 import { z } from 'zod'
+import { templateInput, type TemplateDetail, type TemplatePage } from './visual-templates'
+import { containerDraftInput, containerState, type ContainerDetail, type ContainerPage } from './publication-containers'
+import type { VisualPreviewOverrides } from './container-visual'
 import type { AchievementSummary } from './achievements'
+import type { QuotaProjection } from './quota'
+import type { PeakWindow, DistributionPlan } from './peak-windows'
+import type { ContainerWindowView } from './container-window'
+import type { AgendaResult } from './agenda'
 import type { AppErrorCode } from './errors'
-import type { MediaDetails, GridPage, JobView, QueuePageResult, DashboardSummary, IntegrationStatus } from './types'
+import type { MediaDetails, GridPage, JobView, QueuePageResult, QueueContext, JobState, JobType, DashboardSummary, IntegrationStatus } from './types'
 
 export const profileContentSource = z.enum(['posts', 'reels', 'tagged', 'all'])
 export type ProfileContentSource = z.infer<typeof profileContentSource>
 const ws = z.uuid()
 export interface UpdateStatus { state: 'idle' | 'checking' | 'available' | 'current' | 'downloading' | 'downloaded' | 'error' | 'unsupported'; version: string | null; progress: number; message: string }
 const id = z.string().min(1).max(64)
+const containerMutation = z.object({ workspaceId: ws, containerId: z.uuid(), expectedRevision: z.number().int().min(1) })
 const png = z.instanceof(Uint8Array).refine((b) => b.byteLength <= 20 * 1024 * 1024, 'Imagem acima de 20 MB.')
 const coverText = z.object({
   text: z.string().max(120), position: z.enum(['top', 'center', 'bottom']),
@@ -15,8 +24,31 @@ const coverText = z.object({
   background: z.string().regex(/^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})?$/).nullable()
 })
 
+const templateRef = z.object({ workspaceId: ws, templateId: z.uuid() })
+const templateMutation = templateRef.extend({ expectedRevision: z.number().int().positive() })
 export const contract = {
+  'templates.create': z.object({workspaceId:ws, requestId:z.uuid(), input:templateInput}),
+  'templates.saveVersion': templateMutation.extend({requestId:z.uuid(), input:templateInput}),
+  'templates.get': templateRef.extend({version:z.number().int().positive().optional()}),
+  'templates.query': z.object({workspaceId:ws, status:z.enum(['active','archived','all']).default('active'), text:z.string().max(120).default(''), page:z.number().int().positive().default(1), pageSize:z.number().int().min(1).max(100).default(20)}),
+  'templates.duplicate': templateRef.extend({requestId:z.uuid(), version:z.number().int().positive().optional()}),
+  'templates.archive': templateMutation.extend({archived:z.boolean()}),
+  'templates.delete': templateMutation,
+  'containers.applyTemplate': containerMutation.extend({draft:containerDraftInput, templateId:z.uuid(), templateVersion:z.number().int().positive()}),
+  'containers.create': z.object({ workspaceId: ws, requestId: z.uuid(), draft: containerDraftInput }),
+  'containers.updateDraft': containerMutation.extend({ draft: containerDraftInput }),
+  'containers.get': z.object({ workspaceId: ws, containerId: z.uuid(), page: z.number().int().min(1).max(1000000).default(1), pageSize: z.number().int().min(1).max(100).default(50) }),
+  'containers.query': z.object({ workspaceId: ws, page: z.number().int().min(1).max(1000000).default(1), pageSize: z.number().int().min(1).max(100).default(50), state: containerState.optional(), states: z.array(containerState).min(1).max(7).optional(), destinationAccountId: z.string().regex(/^\d+$/).optional() }),
+  'containers.schedule': containerMutation,
+  'containers.previewOverrides': z.object({ workspaceId: ws, assetId: id, recipeVersionId: id.optional() }),
+  'containers.pause': containerMutation,
+  'containers.resume': containerMutation,
+  'containers.cancel': containerMutation,
   'app.bootstrap': z.object({}),
+  'diagnostics.snapshot': z.object({ workspaceId: ws }),
+  'diagnostics.pipeline': z.object({ workspaceId: ws }),
+  'diagnostics.export': z.object({ workspaceId: ws }),
+  'diagnostics.queue': z.object({ workspaceId: ws, page: z.number().int().min(1).max(1000000) }),
   'notifications.delete': z.object({ workspaceId: ws, ids: z.array(id).max(1000).optional(), all: z.boolean().optional() }).refine(v => v.all || Boolean(v.ids?.length), 'Selecione notificações.'),
   'publications.checkRepost': z.object({ workspaceId: ws, accountId: z.string().min(1), postIds: z.array(id).max(1000).optional(), assetIds: z.array(id).max(1000).optional() }),
   'session.get': z.object({}),
@@ -70,12 +102,26 @@ export const contract = {
   'profiles.discover': z.object({ workspaceId: ws, profileId: id, limit: z.number().int().min(1).max(1000), source: profileContentSource.optional() }),
   'profiles.downloadSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
   'profiles.prepareSelected': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100) }),
-  'accounts.instagram': z.object({ workspaceId: ws }),
+  'accounts.instagram': z.object({ workspaceId: ws, accountId: z.string().regex(/^\d+$/).optional() }),
+  'accounts.instagramList': z.object({ workspaceId: ws }),
+  'accounts.setDefault': z.object({ workspaceId: ws, accountId: z.string().regex(/^\d+$/) }),
+  'scheduler.windows.get': z.object({ workspaceId: ws }),
+  'scheduler.windows.save': z.object({ workspaceId: ws, windows: z.array(z.unknown()).max(12) }),
+  'agenda.range': z.object({ workspaceId: ws, from: z.iso.datetime(), to: z.iso.datetime(), accountId: z.string().regex(/^\d+$/).optional() }).refine(v => Date.parse(v.to) > Date.parse(v.from) && Date.parse(v.to) - Date.parse(v.from) <= 62 * 86_400_000, 'Intervalo da agenda inválido.'),
+  'containers.window.get': z.object({ workspaceId: ws, containerId: z.uuid() }),
+  'containers.window.adjust': z.object({ workspaceId: ws, containerId: z.uuid(), expectedRevision: z.number().int().positive(), kind: z.enum(['keep', 'reduce', 'move']), slots: z.array(z.object({ jobId: z.string().min(1).max(64), at: z.iso.datetime() })).max(1000) }),
+  'containers.distribution.plan': z.object({ workspaceId: ws, containerIds: z.array(z.uuid()).min(1).max(50), fromDate: z.iso.date() }),
+  'containers.distribution.apply': z.object({ workspaceId: ws, fromDate: z.iso.date(), items: z.array(z.object({ containerId: z.uuid(), expectedRevision: z.number().int().positive(), start: z.iso.datetime() })).min(1).max(50) }),
+  'quota.get': z.object({ workspaceId: ws, accountId: z.string().regex(/^\d+$/), slots: z.array(z.iso.datetime()).max(1000).default([]) }),
+  'quota.refresh': z.object({ workspaceId: ws, accountId: z.string().regex(/^\d+$/), slots: z.array(z.iso.datetime()).max(1000).default([]) }),
+  'publications.schedule': z.object({ workspaceId:ws,batchId:z.uuid(),items:z.array(z.object({media:id,provider:z.literal('instagram'),destinationAccount:z.string().regex(/^\d+$/),accountRevision:z.string().min(1),publishAt:z.iso.datetime(),caption:z.string().max(2200),versionId:id.optional(),shareToFeed:z.boolean().default(true),allowRepost:z.boolean().default(false)})).min(1).max(1000) }),
   'compose.scheduleInstagram': z.object({ workspaceId: ws, assetIds: z.array(id).min(1).max(100), accountId: z.string().regex(/^\d+$/), accountRevision: z.string().min(1), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), captions: z.record(z.string(),z.string().max(2200)), allowRepost: z.boolean().optional(), cleanupAfterPublish: z.boolean().default(false), shareToFeed: z.boolean().default(true), versionIds: z.record(id, id).optional() }),
-  'accounts.verifyInstagram': z.object({ workspaceId: ws }),
+  'accounts.verifyInstagram': z.object({ workspaceId: ws, accountId: z.string().regex(/^\d+$/).optional() }),
   'accounts.connectInstagram': z.object({ workspaceId: ws, token: z.string().trim().min(20).max(4096).regex(/^[A-Za-z0-9_.-]+$/) }),
-  'accounts.disconnectInstagram': z.object({ workspaceId: ws }),
+  'accounts.disconnectInstagram': z.object({ workspaceId: ws, accountId: z.string().regex(/^\d+$/).optional() }),
   'profiles.scheduleInstagram': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), caption: z.string().max(2200).optional(), allowRepost: z.boolean().optional(), cleanupAfterPublish: z.boolean().default(false), shareToFeed: z.boolean().default(true) }),
+  'profiles.archive': z.object({ workspaceId: ws, profileId: id, archived: z.boolean() }),
+  'profiles.archived': z.object({ workspaceId: ws }),
   'profiles.add': z.object({ workspaceId: ws, url: z.string().min(1).max(300) }),
   'profiles.addReel': z.object({ workspaceId: ws, profileId: id, url: z.string().min(1).max(300) }),
   'profiles.importMetricsFile': z.object({ workspaceId: ws, profileId: id }),
@@ -86,13 +132,17 @@ export const contract = {
   'versions.saveCover': z.object({ workspaceId: ws, assetId: id, templateId: id, png }),
   'versions.requestBanner': z.object({ workspaceId: ws, assetId: id, png, startMs: z.number().int().min(0), endMs: z.number().int().positive() }),
   'versions.prepareVideo': z.object({ workspaceId: ws, assetId: id, banner: z.object({ png, startMs: z.number().int().min(0), endMs: z.number().int().positive() }).optional(), coverVersionId: id.optional() }).refine((i) => i.banner || i.coverVersionId, 'Escolha uma capa ou um banner.'),
+  'versions.planVideo': z.object({ workspaceId: ws, assetId: id, banner: z.object({ png, startMs: z.number().int().min(0), endMs: z.number().int().positive() }).optional(), coverVersionId: id.optional() }).refine((i) => i.banner || i.coverVersionId, 'Escolha uma capa ou um banner.'),
   'export.tiktok': z.object({
     workspaceId: ws, assetIds: z.array(id).min(1).max(100), captions: z.record(z.string(), z.string().max(4000)),
     stripMetadata: z.boolean(), remindAt: z.array(z.iso.datetime().nullable())
   }).refine((v) => v.remindAt.length === v.assetIds.length, { message: 'Lembretes e vídeos não conferem.', path: ['remindAt'] }),
   'export.openFolder': z.object({ workspaceId: ws, path: z.string().min(1) }),
   'jobs.list': z.object({ workspaceId: ws }),
-  'jobs.query': z.object({ workspaceId: ws, page: z.number().int().min(1).max(1000000), pageSize: z.number().int().min(5).max(100), search: z.string().max(160), state: z.enum(['queued','running','done','failed','cancelled']).optional(), type: z.enum(['make_thumbnail','apply_banner','export_tiktok','fetch_profile','download_reel','webhook_delivery','publish_instagram']).optional(), batchId: id.optional() }),
+  'jobs.query': z.object({ workspaceId: ws, page: z.number().int().min(1).max(1000000), pageSize: z.number().int().min(5).max(100), search: z.string().max(160), state: z.enum(['queued','running','done','failed','cancelled']).optional(), type: z.enum(['make_thumbnail','apply_banner','export_tiktok','fetch_profile','download_reel','webhook_delivery','publish_instagram']).optional(), batchId: id.optional(), platform: z.enum(['instagram','tiktok','local','webhook']).optional(), source: z.string().max(160).optional(), destination: z.string().max(160).optional(), worker: z.literal('worker-local-01').optional(), priority: z.number().int().min(0).max(2).optional(), from: z.iso.datetime().optional(), to: z.iso.datetime().optional(), error: z.string().max(160).optional(), retries: z.boolean().optional(), attention: z.boolean().optional(), sort: z.enum(['created','scheduled','priority']).optional() }),
+  'jobs.health': z.object({ workspaceId: ws }),
+  'jobs.pause': z.object({ workspaceId: ws, paused: z.boolean() }),
+  'jobs.bulk': z.object({ workspaceId: ws, items: z.array(z.object({ id, updatedAt: z.iso.datetime() })).min(1).max(100), action: z.enum(['cancel','retry','run_now','priority','remove','recover']), priority: z.number().int().min(0).max(2).optional() }),
   'jobs.tail': z.object({ workspaceId: ws, id }),
   'jobs.reschedule': z.object({ workspaceId: ws, id, runAt: z.iso.datetime(), expectedUpdatedAt: z.iso.datetime() }),
   'jobs.details': z.object({ workspaceId: ws, id }),
@@ -125,6 +175,25 @@ export interface NotificationDto { id: string; kind: 'info' | 'error' | 'manual_
 export interface OnboardingStepDto { key: string; label: string; done: boolean; disabledReason?: string }
 
 export interface Outputs {
+  'templates.create': TemplateDetail
+  'templates.saveVersion': TemplateDetail
+  'templates.get': TemplateDetail
+  'templates.query': TemplatePage
+  'templates.duplicate': TemplateDetail
+  'templates.archive': TemplateDetail
+  'templates.delete': { deleted: boolean }
+  'containers.applyTemplate': ContainerDetail
+  'containers.create': ContainerDetail
+  'containers.updateDraft': ContainerDetail
+  'containers.get': ContainerDetail
+  'containers.query': ContainerPage
+  'containers.schedule': { detail: ContainerDetail; jobs: JobView[] }
+  'containers.previewOverrides': VisualPreviewOverrides
+  'containers.pause': ContainerDetail
+  'containers.resume': ContainerDetail
+  'containers.cancel': ContainerDetail
+  'diagnostics.pipeline': import('./pipeline').PipelineSnapshot
+  'publications.schedule': JobView[]
   'notifications.delete': { deleted: number }
   'publications.checkRepost': { id: string; name: string; reason: string }[]
   'session.get': GuestSessionDto
@@ -133,6 +202,9 @@ export interface Outputs {
   'profiles.importProgress': { jobId: string; state: string; error: string | null; progress: ImportProgress | null } | null
   'publications.feedback': { jobId: string; username: string }[]
   'publications.acknowledge': null
+  'diagnostics.export': { saved: boolean },
+  'diagnostics.queue': QueuePageResult
+  'diagnostics.snapshot': { events: DiagnosticEvent[]; workerAlive: boolean; heartbeat: string | null; stages: Record<string, string>; retryCount: number; failedJobs: JobView[] },
   'app.bootstrap': { workspaces: WorkspaceDto[]; version: string; buildCommit?: string; buildTime?: string; workerAlive: boolean; dataDir: string }
   'dashboard.get': DashboardSummary
   'achievements.get': AchievementSummary & { acknowledged: string[] }
@@ -172,11 +244,24 @@ export interface Outputs {
   'profiles.downloadSelected': JobView[]
   'profiles.prepareSelected': string[]
   'accounts.instagram': { id: string; username: string; revision: string; validatedAt: string } | null
+  'accounts.instagramList': { id: string; username: string; revision: string; validatedAt: string }[]
+  'accounts.setDefault': { id: string; username: string; revision: string; validatedAt: string }
+  'scheduler.windows.get': { windows: PeakWindow[]; timeZone: string }
+  'scheduler.windows.save': { windows: PeakWindow[]; timeZone: string }
+  'agenda.range': AgendaResult
+  'containers.window.get': ContainerWindowView
+  'containers.window.adjust': ContainerWindowView
+  'containers.distribution.plan': DistributionPlan
+  'containers.distribution.apply': DistributionPlan
+  'quota.get': QuotaProjection
+  'quota.refresh': QuotaProjection
   'compose.scheduleInstagram': JobView[]
   'accounts.verifyInstagram': { id: string; username: string; revision: string; validatedAt: string }
   'accounts.connectInstagram': { id: string; username: string; revision: string; validatedAt: string }
   'accounts.disconnectInstagram': null
   'profiles.scheduleInstagram': JobView[]
+  'profiles.archive': null
+  'profiles.archived': ProfileDto[]
   'profiles.add': ProfileDto
   'profiles.addReel': { id: string; permalink: string }
   'profiles.importMetricsFile': { upserted: number; rows: { line: number; permalink?: string; error?: string }[] } | null
@@ -187,13 +272,17 @@ export interface Outputs {
   'versions.saveCover': { versionId: string }
   'versions.requestBanner': JobView
   'versions.prepareVideo': { versionId: string; job: JobView }
+  'versions.planVideo': { versionId: string }
   'export.tiktok': JobView
   'export.openFolder': null
   'jobs.list': JobView[]
   'jobs.query': QueuePageResult
+  'jobs.health': { paused: boolean; workerId: string; alive: boolean; healthy: boolean; heartbeat: string | null; busy: boolean; running: number; capacity: number; completedLastMinute: number; oldestWaitMs: number; waitingOver10Min: number; stalled: number; attention: number; networkLatencyMs: number | null }
+  'jobs.bulk': { changed: string[]; skipped: { id: string; reason: string }[] }
+  'jobs.pause': null
   'jobs.tail': { runAt: string; ahead: number }
   'jobs.reschedule': boolean
-  'jobs.details': { attempts: { startedAt: string; finishedAt: string | null; outcome: string | null; errorMessage: string | null }[]; attemptTotal: number; batchId: string | null; account: string | null; checkpoint: string | null; confirmedPublished?: boolean; publishedVideo?: { assetId: string | null; name: string } | null; label: string; runAt: string; error: string | null; files: { id: string; name: string; filePath: string; thumbnailPath: string | null }[]; originUrl: string | null; folders: string[] }
+  'jobs.details': { id?: string; state?: JobState; type?: JobType; createdAt?: string; updatedAt?: string; context?: QueueContext; logs?: DiagnosticEvent[]; attempts: { startedAt: string; finishedAt: string | null; outcome: string | null; errorCode?: string | null; errorMessage: string | null }[]; attemptTotal: number; batchId: string | null; account: string | null; checkpoint: string | null; confirmedPublished?: boolean; publishedVideo?: { assetId: string | null; name: string } | null; label: string; runAt: string; error: string | null; files: { id: string; name: string; filePath: string; thumbnailPath: string | null }[]; originUrl: string | null; folders: string[] }
   'library.saveCopy': { saved: boolean }
   'library.openAsset': null
   'updates.status': UpdateStatus

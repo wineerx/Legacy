@@ -1,0 +1,382 @@
+[
+  {
+    "at": "2026-10-07T23:33:07.869Z",
+    "metrics": [
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 4.979489,
+          "percentCPUUsage": 1.6835921478227913,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 68916,
+        "type": "Browser",
+        "creationTime": 1791415970916.251,
+        "memory": {
+          "workingSetSize": 240688,
+          "peakWorkingSetSize": 301800,
+          "privateBytes": 171652
+        },
+        "integrityLevel": "medium",
+        "sandboxed": false
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 8.826456,
+          "percentCPUUsage": 0.31639408099688476,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 34320,
+        "type": "GPU",
+        "creationTime": 1791415971627.758,
+        "serviceName": "GPU",
+        "memory": {
+          "workingSetSize": 200992,
+          "peakWorkingSetSize": 202220,
+          "privateBytes": 324516
+        },
+        "integrityLevel": "low",
+        "sandboxed": true
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 0.087502,
+          "percentCPUUsage": 0,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 15064,
+        "type": "Utility",
+        "creationTime": 1791415971635.199,
+        "serviceName": "network.mojom.NetworkService",
+        "name": "Network Service",
+        "memory": {
+          "workingSetSize": 53976,
+          "peakWorkingSetSize": 53984,
+          "privateBytes": 12692
+        },
+        "integrityLevel": "medium",
+        "sandboxed": false
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 0.790984,
+          "percentCPUUsage": 0,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 21400,
+        "type": "Utility",
+        "creationTime": 1791415971679.857,
+        "serviceName": "node.mojom.NodeService",
+        "name": "Legacy worker",
+        "memory": {
+          "workingSetSize": 273860,
+          "peakWorkingSetSize": 273860,
+          "privateBytes": 303468
+        },
+        "integrityLevel": "medium",
+        "sandboxed": false
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 19.400472,
+          "percentCPUUsage": 2.737818303470704,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 22572,
+        "type": "Tab",
+        "creationTime": 1791415971717.396,
+        "memory": {
+          "workingSetSize": 267756,
+          "peakWorkingSetSize": 444432,
+          "privateBytes": 160712
+        },
+        "integrityLevel": "untrusted",
+        "sandboxed": true
+      }
+    ]
+  },
+  {
+    "at": "2026-10-07T23:33:12.879Z",
+    "metrics": [
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 5.046601,
+          "percentCPUUsage": 0.11162309952824638,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 68916,
+        "type": "Browser",
+        "creationTime": 1791415970916.251,
+        "memory": {
+          "workingSetSize": 244660,
+          "peakWorkingSetSize": 301800,
+          "privateBytes": 175864
+        },
+        "integrityLevel": "medium",
+        "sandboxed": false
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 8.838013,
+          "percentCPUUsage": 0.019221911908457595,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 34320,
+        "type": "GPU",
+        "creationTime": 1791415971627.758,
+        "serviceName": "GPU",
+        "memory": {
+          "workingSetSize": 151892,
+          "peakWorkingSetSize": 202220,
+          "privateBytes": 301540
+        },
+        "integrityLevel": "low",
+        "sandboxed": true
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 0.087502,
+          "percentCPUUsage": 0,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 15064,
+        "type": "Utility",
+        "creationTime": 1791415971635.199,
+        "serviceName": "network.mojom.NetworkService",
+        "name": "Network Service",
+        "memory": {
+          "workingSetSize": 53976,
+          "peakWorkingSetSize": 53984,
+          "privateBytes": 12692
+        },
+        "integrityLevel": "medium",
+        "sandboxed": false
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 0.801159,
+          "percentCPUUsage": 0.016923248055464742,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 21400,
+        "type": "Utility",
+        "creationTime": 1791415971679.857,
+        "serviceName": "node.mojom.NodeService",
+        "name": "Legacy worker",
+        "memory": {
+          "workingSetSize": 274020,
+          "peakWorkingSetSize": 274020,
+          "privateBytes": 303648
+        },
+        "integrityLevel": "medium",
+        "sandboxed": false
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 19.426274,
+          "percentCPUUsage": 0.04291416627863958,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 22572,
+        "type": "Tab",
+        "creationTime": 1791415971717.396,
+        "memory": {
+          "workingSetSize": 240860,
+          "peakWorkingSetSize": 444432,
+          "privateBytes": 161652
+        },
+        "integrityLevel": "untrusted",
+        "sandboxed": true
+      }
+    ]
+  },
+  {
+    "at": "2026-10-07T23:33:17.890Z",
+    "metrics": [
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 5.155821,
+          "percentCPUUsage": 0.1815752190556559,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 68916,
+        "type": "Browser",
+        "creationTime": 1791415970916.251,
+        "memory": {
+          "workingSetSize": 247148,
+          "peakWorkingSetSize": 301800,
+          "privateBytes": 178312
+        },
+        "integrityLevel": "medium",
+        "sandboxed": false
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 8.843586,
+          "percentCPUUsage": 0.009264785953354287,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 34320,
+        "type": "GPU",
+        "creationTime": 1791415971627.758,
+        "serviceName": "GPU",
+        "memory": {
+          "workingSetSize": 149024,
+          "peakWorkingSetSize": 202220,
+          "privateBytes": 299516
+        },
+        "integrityLevel": "low",
+        "sandboxed": true
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 0.087502,
+          "percentCPUUsage": 0,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 15064,
+        "type": "Utility",
+        "creationTime": 1791415971635.199,
+        "serviceName": "network.mojom.NetworkService",
+        "name": "Network Service",
+        "memory": {
+          "workingSetSize": 53976,
+          "peakWorkingSetSize": 53984,
+          "privateBytes": 12692
+        },
+        "integrityLevel": "medium",
+        "sandboxed": false
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 0.824922,
+          "percentCPUUsage": 0.039503373621022554,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 21400,
+        "type": "Utility",
+        "creationTime": 1791415971679.857,
+        "serviceName": "node.mojom.NodeService",
+        "name": "Legacy worker",
+        "memory": {
+          "workingSetSize": 274060,
+          "peakWorkingSetSize": 274060,
+          "privateBytes": 303736
+        },
+        "integrityLevel": "medium",
+        "sandboxed": false
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 19.451856,
+          "percentCPUUsage": 0.042527057428849546,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 22572,
+        "type": "Tab",
+        "creationTime": 1791415971717.396,
+        "memory": {
+          "workingSetSize": 241692,
+          "peakWorkingSetSize": 444432,
+          "privateBytes": 162580
+        },
+        "integrityLevel": "untrusted",
+        "sandboxed": true
+      }
+    ]
+  },
+  {
+    "at": "2026-10-07T23:33:22.908Z",
+    "metrics": [
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 5.335947,
+          "percentCPUUsage": 0.29919954330235926,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 68916,
+        "type": "Browser",
+        "creationTime": 1791415970916.251,
+        "memory": {
+          "workingSetSize": 152600,
+          "peakWorkingSetSize": 301800,
+          "privateBytes": 82716
+        },
+        "integrityLevel": "medium",
+        "sandboxed": false
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 8.849819,
+          "percentCPUUsage": 0.010353425723165109,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 34320,
+        "type": "GPU",
+        "creationTime": 1791415971627.758,
+        "serviceName": "GPU",
+        "memory": {
+          "workingSetSize": 148216,
+          "peakWorkingSetSize": 202220,
+          "privateBytes": 299504
+        },
+        "integrityLevel": "low",
+        "sandboxed": true
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 0.088554,
+          "percentCPUUsage": 0.0017474500186106749,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 15064,
+        "type": "Utility",
+        "creationTime": 1791415971635.199,
+        "serviceName": "network.mojom.NetworkService",
+        "name": "Network Service",
+        "memory": {
+          "workingSetSize": 53940,
+          "peakWorkingSetSize": 53984,
+          "privateBytes": 12628
+        },
+        "integrityLevel": "medium",
+        "sandboxed": false
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 0.902238,
+          "percentCPUUsage": 0.12842819871029623,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 21400,
+        "type": "Utility",
+        "creationTime": 1791415971679.857,
+        "serviceName": "node.mojom.NodeService",
+        "name": "Legacy worker",
+        "memory": {
+          "workingSetSize": 99844,
+          "peakWorkingSetSize": 274608,
+          "privateBytes": 92456
+        },
+        "integrityLevel": "medium",
+        "sandboxed": false
+      },
+      {
+        "cpu": {
+          "cumulativeCPUUsage": 19.645471,
+          "percentCPUUsage": 0.3216090021219234,
+          "idleWakeupsPerSecond": 0
+        },
+        "pid": 22572,
+        "type": "Tab",
+        "creationTime": 1791415971717.396,
+        "memory": {
+          "workingSetSize": 235508,
+          "peakWorkingSetSize": 444432,
+          "privateBytes": 155852
+        },
+        "integrityLevel": "untrusted",
+        "sandboxed": true
+      }
+    ]
+  }
+]

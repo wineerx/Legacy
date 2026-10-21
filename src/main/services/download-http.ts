@@ -1,5 +1,5 @@
 import { resolve4 } from 'node:dns/promises'
-import { request } from 'node:https'
+import { diagnosticRequest as request } from '../diagnostics'
 import { createWriteStream } from 'node:fs'
 import { rm } from 'node:fs/promises'
 import { Transform } from 'node:stream'

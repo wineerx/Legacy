@@ -12,6 +12,7 @@ import { getAsset, latestVersion } from '../repos/assets'
 import { addNotification } from '../repos/notifications'
 import { stripMetadata } from '../media/ops'
 import type { Validation } from '../media/validate'
+import { materializeVersion } from './versions'
 
 export interface ExportPayload { assetIds: string[]; captions: Record<string, string>; stripMetadata: boolean; remindAt: (string | null)[] }
 
@@ -54,7 +55,8 @@ export async function runTiktokExport(ctx: Ctx, ws: string, payload: ExportPaylo
     if (!asset) throw new AppError('not_found', 'Vídeo não encontrado.')
     const folder = join(root, `${day}-${String(i + 1).padStart(2, '0')}-${id.slice(0, 8)}`)
     await mkdir(folder, { recursive: true })
-    const source = latestVersion(ctx.db, ws, id, 'banner')?.filePath ?? asset.filePath
+    const edited=latestVersion(ctx.db,ws,id,'banner')
+    const source = edited ? await materializeVersion(ctx,ws,id,edited.id) : asset.filePath
     const videoOut = join(folder, 'video.mp4')
     if (payload.stripMetadata) await stripMetadata(source, videoOut)
     else await copyFile(source, videoOut)

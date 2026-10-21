@@ -1,0 +1,1540 @@
+{
+  "before": {
+    "heap": {
+      "usedSize": 14116632,
+      "totalSize": 15212544,
+      "embedderHeapUsedSize": 11017240,
+      "backingStorageSize": 2444588
+    },
+    "listeners": {
+      "document": 5,
+      "window": 13,
+      "ipc": {
+        "app.visibility": 2,
+        "app.navigate": 2,
+        "jobs.changed": 3
+      }
+    }
+  },
+  "samples": [
+    {
+      "cycle": 1,
+      "elapsedMs": 1658,
+      "heap": {
+        "usedSize": 14708608,
+        "totalSize": 15798272,
+        "embedderHeapUsedSize": 11393984,
+        "backingStorageSize": 2441773
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 2,
+      "elapsedMs": 18551,
+      "heap": {
+        "usedSize": 15047944,
+        "totalSize": 16846848,
+        "embedderHeapUsedSize": 11570080,
+        "backingStorageSize": 2444572
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 3,
+      "elapsedMs": 35120,
+      "heap": {
+        "usedSize": 15178428,
+        "totalSize": 16846848,
+        "embedderHeapUsedSize": 11928512,
+        "backingStorageSize": 2453358
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 4,
+      "elapsedMs": 52157,
+      "heap": {
+        "usedSize": 15255728,
+        "totalSize": 17108992,
+        "embedderHeapUsedSize": 11781440,
+        "backingStorageSize": 2453399
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 5,
+      "elapsedMs": 68770,
+      "heap": {
+        "usedSize": 15314540,
+        "totalSize": 16584704,
+        "embedderHeapUsedSize": 10987824,
+        "backingStorageSize": 2453598
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 6,
+      "elapsedMs": 85600,
+      "heap": {
+        "usedSize": 15357420,
+        "totalSize": 16846848,
+        "embedderHeapUsedSize": 11974400,
+        "backingStorageSize": 2454028
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 7,
+      "elapsedMs": 102491,
+      "heap": {
+        "usedSize": 15405848,
+        "totalSize": 16846848,
+        "embedderHeapUsedSize": 11840944,
+        "backingStorageSize": 2454034
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 8,
+      "elapsedMs": 119522,
+      "heap": {
+        "usedSize": 15450360,
+        "totalSize": 17371136,
+        "embedderHeapUsedSize": 11933256,
+        "backingStorageSize": 2454337
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 9,
+      "elapsedMs": 136257,
+      "heap": {
+        "usedSize": 15500840,
+        "totalSize": 17371136,
+        "embedderHeapUsedSize": 12006120,
+        "backingStorageSize": 2454509
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 10,
+      "elapsedMs": 153067,
+      "heap": {
+        "usedSize": 15518500,
+        "totalSize": 17895424,
+        "embedderHeapUsedSize": 12034984,
+        "backingStorageSize": 2454669
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 11,
+      "elapsedMs": 170237,
+      "heap": {
+        "usedSize": 15616656,
+        "totalSize": 18419712,
+        "embedderHeapUsedSize": 12354808,
+        "backingStorageSize": 2454882
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 12,
+      "elapsedMs": 187564,
+      "heap": {
+        "usedSize": 15687172,
+        "totalSize": 17633280,
+        "embedderHeapUsedSize": 12348928,
+        "backingStorageSize": 2455144
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 13,
+      "elapsedMs": 205961,
+      "heap": {
+        "usedSize": 15752644,
+        "totalSize": 19206144,
+        "embedderHeapUsedSize": 12452528,
+        "backingStorageSize": 2455309
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 14,
+      "elapsedMs": 223535,
+      "heap": {
+        "usedSize": 15793732,
+        "totalSize": 18944000,
+        "embedderHeapUsedSize": 12394600,
+        "backingStorageSize": 2455534
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 15,
+      "elapsedMs": 240784,
+      "heap": {
+        "usedSize": 15820496,
+        "totalSize": 17633280,
+        "embedderHeapUsedSize": 12859224,
+        "backingStorageSize": 2455784
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 16,
+      "elapsedMs": 258305,
+      "heap": {
+        "usedSize": 15939008,
+        "totalSize": 19206144,
+        "embedderHeapUsedSize": 12335408,
+        "backingStorageSize": 2455969
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 17,
+      "elapsedMs": 275748,
+      "heap": {
+        "usedSize": 16023848,
+        "totalSize": 18681856,
+        "embedderHeapUsedSize": 12788552,
+        "backingStorageSize": 2456222
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 18,
+      "elapsedMs": 296663,
+      "heap": {
+        "usedSize": 16051644,
+        "totalSize": 18681856,
+        "embedderHeapUsedSize": 12663768,
+        "backingStorageSize": 2456452
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 19,
+      "elapsedMs": 316948,
+      "heap": {
+        "usedSize": 16072612,
+        "totalSize": 18419712,
+        "embedderHeapUsedSize": 12932352,
+        "backingStorageSize": 2456617
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 20,
+      "elapsedMs": 336815,
+      "heap": {
+        "usedSize": 17153980,
+        "totalSize": 21303296,
+        "embedderHeapUsedSize": 12926696,
+        "backingStorageSize": 2456852
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 21,
+      "elapsedMs": 354728,
+      "heap": {
+        "usedSize": 16150060,
+        "totalSize": 18681856,
+        "embedderHeapUsedSize": 13186616,
+        "backingStorageSize": 2457085
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 22,
+      "elapsedMs": 372421,
+      "heap": {
+        "usedSize": 16166836,
+        "totalSize": 18419712,
+        "embedderHeapUsedSize": 14332784,
+        "backingStorageSize": 2457296
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 23,
+      "elapsedMs": 390267,
+      "heap": {
+        "usedSize": 16212868,
+        "totalSize": 18419712,
+        "embedderHeapUsedSize": 13930808,
+        "backingStorageSize": 2457593
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 24,
+      "elapsedMs": 408734,
+      "heap": {
+        "usedSize": 16261556,
+        "totalSize": 19206144,
+        "embedderHeapUsedSize": 13304936,
+        "backingStorageSize": 2457823
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 25,
+      "elapsedMs": 426933,
+      "heap": {
+        "usedSize": 16327060,
+        "totalSize": 19468288,
+        "embedderHeapUsedSize": 14396312,
+        "backingStorageSize": 2457961
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 26,
+      "elapsedMs": 445421,
+      "heap": {
+        "usedSize": 16376432,
+        "totalSize": 19468288,
+        "embedderHeapUsedSize": 13349312,
+        "backingStorageSize": 2458176
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 27,
+      "elapsedMs": 463943,
+      "heap": {
+        "usedSize": 16427424,
+        "totalSize": 19992576,
+        "embedderHeapUsedSize": 13308320,
+        "backingStorageSize": 2458401
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 28,
+      "elapsedMs": 482434,
+      "heap": {
+        "usedSize": 16453312,
+        "totalSize": 19206144,
+        "embedderHeapUsedSize": 13417560,
+        "backingStorageSize": 2458636
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 29,
+      "elapsedMs": 501057,
+      "heap": {
+        "usedSize": 16511568,
+        "totalSize": 19730432,
+        "embedderHeapUsedSize": 14582864,
+        "backingStorageSize": 2458846
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 30,
+      "elapsedMs": 519884,
+      "heap": {
+        "usedSize": 16572208,
+        "totalSize": 19206144,
+        "embedderHeapUsedSize": 13612016,
+        "backingStorageSize": 2459071
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 31,
+      "elapsedMs": 538951,
+      "heap": {
+        "usedSize": 16590464,
+        "totalSize": 19730432,
+        "embedderHeapUsedSize": 14345656,
+        "backingStorageSize": 2459298
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 32,
+      "elapsedMs": 558819,
+      "heap": {
+        "usedSize": 16653588,
+        "totalSize": 19730432,
+        "embedderHeapUsedSize": 13609120,
+        "backingStorageSize": 2459614
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 33,
+      "elapsedMs": 579586,
+      "heap": {
+        "usedSize": 16751412,
+        "totalSize": 19206144,
+        "embedderHeapUsedSize": 13440952,
+        "backingStorageSize": 2462850
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 34,
+      "elapsedMs": 599219,
+      "heap": {
+        "usedSize": 16757460,
+        "totalSize": 19730432,
+        "embedderHeapUsedSize": 14656016,
+        "backingStorageSize": 2460845
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 35,
+      "elapsedMs": 618703,
+      "heap": {
+        "usedSize": 16768000,
+        "totalSize": 19730432,
+        "embedderHeapUsedSize": 14664216,
+        "backingStorageSize": 2461084
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 36,
+      "elapsedMs": 638892,
+      "heap": {
+        "usedSize": 16971324,
+        "totalSize": 19992576,
+        "embedderHeapUsedSize": 14794840,
+        "backingStorageSize": 2461328
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 37,
+      "elapsedMs": 660339,
+      "heap": {
+        "usedSize": 16990900,
+        "totalSize": 19468288,
+        "embedderHeapUsedSize": 14753048,
+        "backingStorageSize": 2461644
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 38,
+      "elapsedMs": 681117,
+      "heap": {
+        "usedSize": 17080448,
+        "totalSize": 20254720,
+        "embedderHeapUsedSize": 14634824,
+        "backingStorageSize": 2461803
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 39,
+      "elapsedMs": 701084,
+      "heap": {
+        "usedSize": 17107792,
+        "totalSize": 19730432,
+        "embedderHeapUsedSize": 14858312,
+        "backingStorageSize": 2462134
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 40,
+      "elapsedMs": 720770,
+      "heap": {
+        "usedSize": 17145156,
+        "totalSize": 20254720,
+        "embedderHeapUsedSize": 15114256,
+        "backingStorageSize": 2462340
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 41,
+      "elapsedMs": 740452,
+      "heap": {
+        "usedSize": 17162428,
+        "totalSize": 19992576,
+        "embedderHeapUsedSize": 14867608,
+        "backingStorageSize": 2462583
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 42,
+      "elapsedMs": 761455,
+      "heap": {
+        "usedSize": 17221020,
+        "totalSize": 19730432,
+        "embedderHeapUsedSize": 14948424,
+        "backingStorageSize": 2462813
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 43,
+      "elapsedMs": 782834,
+      "heap": {
+        "usedSize": 17203928,
+        "totalSize": 19730432,
+        "embedderHeapUsedSize": 15084968,
+        "backingStorageSize": 2463385
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 44,
+      "elapsedMs": 803336,
+      "heap": {
+        "usedSize": 17253208,
+        "totalSize": 20254720,
+        "embedderHeapUsedSize": 15322448,
+        "backingStorageSize": 2463399
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 45,
+      "elapsedMs": 823375,
+      "heap": {
+        "usedSize": 17251536,
+        "totalSize": 20516864,
+        "embedderHeapUsedSize": 15284496,
+        "backingStorageSize": 2463399
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 46,
+      "elapsedMs": 843546,
+      "heap": {
+        "usedSize": 17248088,
+        "totalSize": 19992576,
+        "embedderHeapUsedSize": 15203760,
+        "backingStorageSize": 2463399
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 47,
+      "elapsedMs": 864802,
+      "heap": {
+        "usedSize": 17280800,
+        "totalSize": 20516864,
+        "embedderHeapUsedSize": 15158544,
+        "backingStorageSize": 2463400
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 48,
+      "elapsedMs": 891040,
+      "heap": {
+        "usedSize": 17617932,
+        "totalSize": 20779008,
+        "embedderHeapUsedSize": 15220976,
+        "backingStorageSize": 2463369
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 49,
+      "elapsedMs": 919246,
+      "heap": {
+        "usedSize": 17613772,
+        "totalSize": 20516864,
+        "embedderHeapUsedSize": 15283840,
+        "backingStorageSize": 2463369
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 50,
+      "elapsedMs": 941671,
+      "heap": {
+        "usedSize": 17277604,
+        "totalSize": 19992576,
+        "embedderHeapUsedSize": 15362440,
+        "backingStorageSize": 2463369
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 51,
+      "elapsedMs": 964426,
+      "heap": {
+        "usedSize": 17292884,
+        "totalSize": 19730432,
+        "embedderHeapUsedSize": 15528784,
+        "backingStorageSize": 2463369
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 52,
+      "elapsedMs": 986715,
+      "heap": {
+        "usedSize": 17314332,
+        "totalSize": 20516864,
+        "embedderHeapUsedSize": 15527064,
+        "backingStorageSize": 2463369
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 53,
+      "elapsedMs": 1009014,
+      "heap": {
+        "usedSize": 17311048,
+        "totalSize": 20254720,
+        "embedderHeapUsedSize": 15391696,
+        "backingStorageSize": 2463369
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 54,
+      "elapsedMs": 1031384,
+      "heap": {
+        "usedSize": 17326272,
+        "totalSize": 20516864,
+        "embedderHeapUsedSize": 15555824,
+        "backingStorageSize": 2463370
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 55,
+      "elapsedMs": 1053918,
+      "heap": {
+        "usedSize": 17349336,
+        "totalSize": 20779008,
+        "embedderHeapUsedSize": 15626336,
+        "backingStorageSize": 2463378
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 56,
+      "elapsedMs": 1074875,
+      "heap": {
+        "usedSize": 17372060,
+        "totalSize": 21041152,
+        "embedderHeapUsedSize": 15480592,
+        "backingStorageSize": 2463378
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 57,
+      "elapsedMs": 1095738,
+      "heap": {
+        "usedSize": 17375700,
+        "totalSize": 20254720,
+        "embedderHeapUsedSize": 15498672,
+        "backingStorageSize": 2463378
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 58,
+      "elapsedMs": 1115576,
+      "heap": {
+        "usedSize": 17390768,
+        "totalSize": 20516864,
+        "embedderHeapUsedSize": 15777504,
+        "backingStorageSize": 2463372
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 59,
+      "elapsedMs": 1135284,
+      "heap": {
+        "usedSize": 17576640,
+        "totalSize": 20779008,
+        "embedderHeapUsedSize": 15658848,
+        "backingStorageSize": 2463370
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 60,
+      "elapsedMs": 1154628,
+      "heap": {
+        "usedSize": 17587892,
+        "totalSize": 20254720,
+        "embedderHeapUsedSize": 15739344,
+        "backingStorageSize": 2463369
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 61,
+      "elapsedMs": 1173924,
+      "heap": {
+        "usedSize": 17593692,
+        "totalSize": 20254720,
+        "embedderHeapUsedSize": 15860832,
+        "backingStorageSize": 2463378
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 62,
+      "elapsedMs": 1193543,
+      "heap": {
+        "usedSize": 17603084,
+        "totalSize": 20516864,
+        "embedderHeapUsedSize": 15891176,
+        "backingStorageSize": 2463372
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 63,
+      "elapsedMs": 1212790,
+      "heap": {
+        "usedSize": 17606328,
+        "totalSize": 20254720,
+        "embedderHeapUsedSize": 15934224,
+        "backingStorageSize": 2463378
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 64,
+      "elapsedMs": 1232629,
+      "heap": {
+        "usedSize": 17632164,
+        "totalSize": 19992576,
+        "embedderHeapUsedSize": 15750344,
+        "backingStorageSize": 2463369
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 65,
+      "elapsedMs": 1252084,
+      "heap": {
+        "usedSize": 17630660,
+        "totalSize": 20516864,
+        "embedderHeapUsedSize": 16031360,
+        "backingStorageSize": 2463375
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 66,
+      "elapsedMs": 1272012,
+      "heap": {
+        "usedSize": 17639280,
+        "totalSize": 20779008,
+        "embedderHeapUsedSize": 15868880,
+        "backingStorageSize": 2463369
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 67,
+      "elapsedMs": 1306575,
+      "heap": {
+        "usedSize": 17594896,
+        "totalSize": 21041152,
+        "embedderHeapUsedSize": 15493616,
+        "backingStorageSize": 2463378
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 68,
+      "elapsedMs": 1325887,
+      "heap": {
+        "usedSize": 18616928,
+        "totalSize": 21565440,
+        "embedderHeapUsedSize": 16523736,
+        "backingStorageSize": 2456962
+      },
+      "listeners": {
+        "document": 5,
+        "window": 26,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 69,
+      "elapsedMs": 1368248,
+      "heap": {
+        "usedSize": 19045540,
+        "totalSize": 22351872,
+        "embedderHeapUsedSize": 15380240,
+        "backingStorageSize": 2464240
+      },
+      "listeners": {
+        "document": 5,
+        "window": 24,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 70,
+      "elapsedMs": 1412645,
+      "heap": {
+        "usedSize": 19047736,
+        "totalSize": 22351872,
+        "embedderHeapUsedSize": 15659960,
+        "backingStorageSize": 2464240
+      },
+      "listeners": {
+        "document": 5,
+        "window": 24,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 71,
+      "elapsedMs": 1455966,
+      "heap": {
+        "usedSize": 19076772,
+        "totalSize": 22614016,
+        "embedderHeapUsedSize": 15932752,
+        "backingStorageSize": 2464240
+      },
+      "listeners": {
+        "document": 5,
+        "window": 24,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 72,
+      "elapsedMs": 1499291,
+      "heap": {
+        "usedSize": 19137524,
+        "totalSize": 22089728,
+        "embedderHeapUsedSize": 16654328,
+        "backingStorageSize": 2464240
+      },
+      "listeners": {
+        "document": 5,
+        "window": 24,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 73,
+      "elapsedMs": 1543598,
+      "heap": {
+        "usedSize": 19142600,
+        "totalSize": 21041152,
+        "embedderHeapUsedSize": 16481000,
+        "backingStorageSize": 2464240
+      },
+      "listeners": {
+        "document": 5,
+        "window": 24,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 74,
+      "elapsedMs": 1586849,
+      "heap": {
+        "usedSize": 19166048,
+        "totalSize": 20779008,
+        "embedderHeapUsedSize": 14460056,
+        "backingStorageSize": 2464240
+      },
+      "listeners": {
+        "document": 5,
+        "window": 24,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 75,
+      "elapsedMs": 1629240,
+      "heap": {
+        "usedSize": 18173464,
+        "totalSize": 19730432,
+        "embedderHeapUsedSize": 14731544,
+        "backingStorageSize": 2464237
+      },
+      "listeners": {
+        "document": 5,
+        "window": 24,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 76,
+      "elapsedMs": 1673558,
+      "heap": {
+        "usedSize": 18209124,
+        "totalSize": 19992576,
+        "embedderHeapUsedSize": 17241616,
+        "backingStorageSize": 2464240
+      },
+      "listeners": {
+        "document": 5,
+        "window": 24,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 77,
+      "elapsedMs": 1717909,
+      "heap": {
+        "usedSize": 18165712,
+        "totalSize": 19992576,
+        "embedderHeapUsedSize": 17608376,
+        "backingStorageSize": 2464240
+      },
+      "listeners": {
+        "document": 5,
+        "window": 24,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 78,
+      "elapsedMs": 1761233,
+      "heap": {
+        "usedSize": 18231496,
+        "totalSize": 20516864,
+        "embedderHeapUsedSize": 15568088,
+        "backingStorageSize": 2464237
+      },
+      "listeners": {
+        "document": 5,
+        "window": 24,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    },
+    {
+      "cycle": 79,
+      "elapsedMs": 1803597,
+      "heap": {
+        "usedSize": 18177696,
+        "totalSize": 19730432,
+        "embedderHeapUsedSize": 15848272,
+        "backingStorageSize": 2464240
+      },
+      "listeners": {
+        "document": 5,
+        "window": 24,
+        "ipc": {
+          "app.visibility": 2,
+          "app.navigate": 2,
+          "jobs.changed": 3
+        }
+      }
+    }
+  ],
+  "after": {
+    "heap": {
+      "usedSize": 20111096,
+      "totalSize": 25497600,
+      "embedderHeapUsedSize": 16293152,
+      "backingStorageSize": 2464279
+    },
+    "listeners": {
+      "document": 5,
+      "window": 24,
+      "ipc": {
+        "app.visibility": 2,
+        "app.navigate": 2,
+        "jobs.changed": 3
+      }
+    }
+  },
+  "elapsedMs": 1820752
+}

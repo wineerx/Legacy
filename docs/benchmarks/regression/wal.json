@@ -1,0 +1,24 @@
+{
+  "at": "2026-10-07T23:20:35.199Z",
+  "live": {
+    "journalMode": "wal",
+    "walBytes": 4152,
+    "note": "Read-only observation while the original application is closed; not a contention measurement"
+  },
+  "copy": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-wal-audit-1791415235199.sqlite",
+  "copyWrites": {
+    "operations": 1000,
+    "transactionMs": 6.539100000000019,
+    "walBytes": 4152
+  },
+  "checkpoint": {
+    "busy": 0,
+    "log": 1,
+    "checkpointed": 1,
+    "ms": 1.650000000000034
+  },
+  "injectedLock": {
+    "code": "SQLITE_BUSY",
+    "waitMs": 69.83600000000001
+  }
+}

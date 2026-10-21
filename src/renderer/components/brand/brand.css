@@ -2,11 +2,11 @@
 .legacy-logo-dot { color: #e2c69e; }
 .legacy-logo-compact { gap: 0; }
 .legacy-mascot { display: block; flex: none; overflow: visible; }
-.mascot-float, .mascot-body, .mascot-hand, .mascot-eyes, .mascot-sparkles { transform-box: fill-box; transform-origin: center; }
+.mascot-float, .mascot-body, .mascot-hand, .mascot-eyes, .mascot-pupil, .mascot-mouth, .mascot-sparkles { transform-box: fill-box; transform-origin: center; }
 .legacy-mascot[data-animated=true] .mascot-float { animation: legacy-float 4.5s ease-in-out infinite; }
 .legacy-mascot[data-animated=true] .mascot-eyes { animation: legacy-blink 6.7s infinite; }
 .mascot-working[data-animated=true] .mascot-body, .mascot-upload[data-animated=true] .mascot-body { animation: legacy-work 1.6s ease-in-out infinite; }
-.mascot-thinking[data-animated=true] .mascot-eyes, .mascot-searching[data-animated=true] .mascot-eyes { animation: legacy-look 3s ease-in-out infinite; }
+.mascot-thinking[data-animated=true] .mascot-pupil, .mascot-searching[data-animated=true] .mascot-pupil { animation: legacy-look 3s ease-in-out infinite; }
 .mascot-greeting[data-animated=true] .mascot-hand { animation: legacy-wave .9s cubic-bezier(.22,1,.36,1) 1; }
 .mascot-dancing[data-animated=true] .mascot-body, .mascot-proud[data-animated=true] .mascot-body { animation: legacy-dance .7s ease-in-out 2; }
 .mascot-error[data-animated=true] .mascot-body { animation: legacy-shake .5s ease-out 2; }
@@ -20,10 +20,14 @@
 .mascot-upload[data-animated=true] .mascot-upload { animation: legacy-float 1.2s ease-in-out infinite; }
 .mascot-downloading[data-animated=true] .mascot-download { animation: legacy-float 1.5s ease-in-out infinite reverse; }
 .mascot-publishing[data-animated=true] .mascot-body { animation: legacy-work 2s ease-in-out infinite; }
+/* Resting poses settle after their entrance instead of repainting indefinitely. */
+.legacy-mascot[data-animated=true]:is(.mascot-idle,.mascot-error,.mascot-sleeping,.mascot-offline,.mascot-warning,.mascot-rate_limit,.mascot-waiting,.mascot-approval,.mascot-question,.mascot-notification) * { animation-iteration-count: 2; }
 .legacy-mascot[data-animated=false] *, .legacy-mascot[data-visible=false] * { animation-play-state: paused !important; }
 .mascot-tilt { transform-origin: 50% 55%; transform: perspective(500px) rotateX(calc(var(--look-y,0) * -2deg)) rotateY(calc(var(--look-x,0) * 3deg)) translate(calc(var(--look-x,0) * 1px),calc(var(--look-y,0) * 1px)); transition: transform 220ms cubic-bezier(.22,1,.36,1); }
-.mascot-gaze { transform: translate(calc(var(--look-x,0) * 3px),calc(var(--look-y,0) * 2px)); transition: transform 200ms cubic-bezier(.22,1,.36,1); }
+.mascot-gaze { transform: translate(calc(var(--look-x,0) * 2px),calc(var(--look-y,0) * 1.5px)); transition: transform 200ms cubic-bezier(.22,1,.36,1); }
 .mascot-shadow { transform: translateX(calc(var(--look-x,0) * -2px)); transition: transform 220ms ease-out; }
+.mascot-pupil { transform: translate(calc(var(--look-x,0) * 4.5px),calc(var(--look-y,0) * 4.5px)); transition: transform 160ms cubic-bezier(.22,1,.36,1); }
+.mascot-surprised[data-animated=true] .mascot-eyes { animation: legacy-pop .35s cubic-bezier(.22,1,.36,1) 1; }
 .mascot-sidebar-brand { position: relative; }
 .mascot-status-bubble { position: absolute; top: 48px; left: 4px; z-index: 60; width: 240px; max-width: calc(100vw - 32px); border: 1px solid var(--color-line); background: var(--color-panel); border-radius: 12px; padding: 12px; font-size: 12px; line-height: 1.6; box-shadow: 0 8px 32px #0005; overflow-wrap: anywhere; }
 .brand-welcome .brand-live-status { margin-top: 14px !important; color: #d8bd96 !important; max-width: 650px; overflow-wrap: anywhere; }
@@ -57,14 +61,14 @@
 @keyframes legacy-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
 @keyframes legacy-blink { 0%,43%,47%,100% { transform: scaleY(1); } 45% { transform: scaleY(.08); } }
 @keyframes legacy-work { 0%,100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg) translateY(-2px); } }
-@keyframes legacy-look { 0%,100% { transform: translateX(0); } 30%,60% { transform: translate(6px,-3px); } }
+@keyframes legacy-look { 0%,100% { transform: translate(0,0); } 30%,60% { transform: translate(4px,-4px); } }
 @keyframes legacy-wave { 0%,100% { transform: translateY(0) rotate(0); } 50% { transform: translateY(-13px) rotate(18deg); } }
 @keyframes legacy-dance { 0%,100% { transform: rotate(-7deg) translateY(0); } 50% { transform: rotate(7deg) translateY(-5px); } }
 @keyframes legacy-shake { 0%,100% { transform: translateX(0); } 25%,75% { transform: translateX(-4px); } 50% { transform: translateX(4px); } }
 @keyframes legacy-breathe { 0%,100% { transform: scale(1,1); } 50% { transform: scale(1.025,.96); } }
 @keyframes legacy-sparkle { 0%,100% { opacity: .65; } 50% { opacity: 1; } }
 @media (max-width: 760px) { .brand-playground { grid-template-columns: 1fr; gap: 8px; } .brand-accessories { grid-template-columns: repeat(3,minmax(0,1fr)); } .brand-panel-heading > .legacy-logo { display: none; } .brand-welcome { padding: 16px 20px; gap: 12px; } .brand-welcome h2 { font-size: 21px; } .brand-welcome > svg { width: 96px; height: 96px; } }
-@media (prefers-reduced-motion: reduce) { .legacy-mascot * { animation: none !important; transition: none !important; } .mascot-tilt,.mascot-gaze,.mascot-shadow { transform: none !important; } }
+@media (prefers-reduced-motion: reduce) { .legacy-mascot * { animation: none !important; transition: none !important; } .mascot-tilt,.mascot-gaze,.mascot-pupil,.mascot-shadow { transform: none !important; } }
 
 .mascot-status-bubble::before { content: ""; position: absolute; top: -5px; left: 16px; width: 9px; height: 9px; background: var(--color-panel); border-top: 1px solid var(--color-line); border-left: 1px solid var(--color-line); transform: rotate(45deg); }
 
@@ -72,3 +76,4 @@
 @keyframes mascot-reaction { 50% { transform: translateY(-2px) rotate(-2deg); } }
 
 @media (prefers-reduced-motion: reduce) { .mascot-react { animation: none !important; } }
+@keyframes legacy-pop { 0% { transform: scale(.8); } 60% { transform: scale(1.08); } 100% { transform: scale(1); } }

@@ -1,0 +1,22 @@
+[
+  {
+    "action": "abrir modal de conta",
+    "ms": 254.38860000000568
+  },
+  {
+    "action": "selecionar vídeo",
+    "ms": 66.5963000000047
+  },
+  {
+    "action": "abrir criação de postagem",
+    "ms": 95.63830000000598
+  },
+  {
+    "action": "abrir revisão de agendamento",
+    "ms": 85.80600000001141
+  },
+  {
+    "action": "agendar e abrir fila",
+    "ms": 129.176300000021
+  }
+]

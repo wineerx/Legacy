@@ -13,7 +13,7 @@ const iso = (v: string) => new Date(v).toISOString()
 const contains = (col: SQLiteColumn, needle: string) => sql`instr(lower(coalesce(${col}, '')), lower(${needle})) > 0`
 
 function orderFor(col: SQLiteColumn, dir: 'asc' | 'desc'): SQL[] {
-  return [sql`${col} is null`, dir === 'asc' ? asc(col) : desc(col)]
+  return [...(col.notNull ? [] : [sql`${col} is null`]), dir === 'asc' ? asc(col) : desc(col)]
 }
 
 function exportedAssetIds(db: Db, workspaceId: string): Set<string> {

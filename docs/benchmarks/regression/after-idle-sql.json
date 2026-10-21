@@ -1,0 +1,887 @@
+[
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.07010000000082073
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" in (?)) order by \"jobs\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.8153000000002066
+  },
+  {
+    "sql": "select count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ? and \"jobs\".\"attempts\" > ?)",
+    "op": "get",
+    "ms": 0.4073000000007596
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ?)",
+    "op": "all",
+    "ms": 0.24419999999918218
+  },
+  {
+    "sql": "select \"state\", count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and not exists(select 1 from settings where workspace_id = \"jobs\".\"workspace_id\" and key = 'jobHidden.' || \"jobs\".\"id\" and value = 'true')) group by \"jobs\".\"state\"",
+    "op": "all",
+    "ms": 1.2851000000009662
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and not exists(select 1 from settings where workspace_id = \"jobs\".\"workspace_id\" and key = 'jobHidden.' || \"jobs\".\"id\" and value = 'true')) order by \"jobs\".\"created_at\" desc, \"jobs\".\"id\" desc limit ?",
+    "op": "all",
+    "ms": 2.308899999999994
+  },
+  {
+    "sql": "select \"job_id\", \"workspace_id\", \"account_id\", \"username\", \"post_id\", \"asset_sha\", \"media_id\", \"provenance_json\", \"published_at\", \"cleanup_state\" from \"publication_history\" where (\"publication_history\".\"job_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"publication_history\".\"workspace_id\" in (?))",
+    "op": "all",
+    "ms": 0.0750000000007276
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"profile_id\", \"remote_id\", \"permalink\", \"media_product_type\", \"caption\", \"posted_at\", \"duration_ms\", \"thumbnail_path\", \"asset_id\", \"views\", \"likes\", \"comments\", \"metrics_source\", \"metrics_updated_at\", \"favorite\" from \"remote_posts\" where (\"remote_posts\".\"workspace_id\" in (?) and (\"remote_posts\".\"id\" in (?, ?, ?, ?, ?, ?, ?, ?) or \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?)))",
+    "op": "all",
+    "ms": 0.5410000000010768
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"platform\", \"username\", \"url\", \"connected_account_id\", \"last_synced_at\", \"created_at\" from \"tracked_profiles\" where (\"tracked_profiles\".\"workspace_id\" in (?) and \"tracked_profiles\".\"id\" in (?))",
+    "op": "all",
+    "ms": 0.018499999998311978
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"origin\", \"source_name\", \"file_path\", \"sha256\", \"size_bytes\", \"duration_ms\", \"width\", \"height\", \"video_codec\", \"audio_codec\", \"thumbnail_path\", \"validation_json\", \"favorite\", \"rights_note\", \"imported_at\" from \"media_assets\" where (\"media_assets\".\"workspace_id\" in (?) and \"media_assets\".\"id\" in (?, ?, ?, ?, ?, ?, ?, ?))",
+    "op": "all",
+    "ms": 0.12329999999928987
+  },
+  {
+    "sql": "select \"id\", \"job_id\", \"started_at\", \"finished_at\", \"outcome\", \"error_code\", \"error_message\" from \"job_attempts\" where (\"job_attempts\".\"job_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"job_attempts\".\"id\" = (select latest.id from job_attempts latest where latest.job_id = \"job_attempts\".\"job_id\" order by latest.started_at desc, latest.id desc limit 1))",
+    "op": "all",
+    "ms": 0.04160000000047148
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" in (?) and \"settings\".\"key\" in (?))",
+    "op": "all",
+    "ms": 0.01750000000174623
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.040899999999965075
+  },
+  {
+    "sql": "select \"job_id\", \"workspace_id\", \"account_id\", \"username\", \"post_id\", \"asset_sha\", \"media_id\", \"provenance_json\", \"published_at\", \"cleanup_state\" from \"publication_history\" where \"publication_history\".\"workspace_id\" = ? order by \"publication_history\".\"published_at\" desc",
+    "op": "all",
+    "ms": 0.256600000000617
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" where \"workspaces\".\"id\" = ?",
+    "op": "get",
+    "ms": 0.018199999998614658
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"type\" = ? and \"jobs\".\"state\" = ?)",
+    "op": "all",
+    "ms": 0.989000000001397
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"platform\", \"username\", \"url\", \"connected_account_id\", \"last_synced_at\", \"created_at\" from \"tracked_profiles\" where \"tracked_profiles\".\"workspace_id\" = ?",
+    "op": "all",
+    "ms": 0.057499999998981366
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"profile_id\", \"remote_id\", \"permalink\", \"media_product_type\", \"caption\", \"posted_at\", \"duration_ms\", \"thumbnail_path\", \"asset_id\", \"views\", \"likes\", \"comments\", \"metrics_source\", \"metrics_updated_at\", \"favorite\" from \"remote_posts\" where \"remote_posts\".\"workspace_id\" = ?",
+    "op": "all",
+    "ms": 3.6398000000008324
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" = ? and \"settings\".\"key\" = ?)",
+    "op": "get",
+    "ms": 0.04559999999764841
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" = ? and \"settings\".\"key\" = ?)",
+    "op": "get",
+    "ms": 0.018600000003061723
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.02200000000084401
+  },
+  {
+    "sql": "select \"job_id\", \"workspace_id\", \"account_id\", \"username\", \"post_id\", \"asset_sha\", \"media_id\", \"provenance_json\", \"published_at\", \"cleanup_state\" from \"publication_history\" where \"publication_history\".\"workspace_id\" = ? order by \"publication_history\".\"published_at\" desc",
+    "op": "all",
+    "ms": 0.3915999999990163
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" = ? and \"settings\".\"key\" = ?)",
+    "op": "get",
+    "ms": 0.043300000001181616
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where \"jobs\".\"workspace_id\" = ? order by \"jobs\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 6.224799999999959
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"kind\", \"title\", \"body\", \"action_json\", \"due_at\", \"shown_at\", \"read_at\", \"created_at\" from \"notifications\" where (\"notifications\".\"workspace_id\" = ? and (\"notifications\".\"due_at\" is null or \"notifications\".\"due_at\" <= ?)) order by \"notifications\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.5644000000029337
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.04790000000139116
+  },
+  {
+    "sql": "select \"id\", \"label\", \"state\", \"last_error\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"type\" in (?, ?) and \"jobs\".\"state\" in (?, ?, ?)) order by \"jobs\".\"updated_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.11349999999947613
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.04399999999805004
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" in (?)) order by \"jobs\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.6038000000007742
+  },
+  {
+    "sql": "select count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ? and \"jobs\".\"attempts\" > ?)",
+    "op": "get",
+    "ms": 0.3665999999975611
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ?)",
+    "op": "all",
+    "ms": 0.2407999999995809
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"origin\", \"source_name\", \"file_path\", \"sha256\", \"size_bytes\", \"duration_ms\", \"width\", \"height\", \"video_codec\", \"audio_codec\", \"thumbnail_path\", \"validation_json\", \"favorite\", \"rights_note\", \"imported_at\", CASE WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?, ?) AND \"jobs\".\"type\" in (?, ?)) THEN 'processing' WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?, ?) AND \"jobs\".\"type\" in (?)) THEN 'scheduled' WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?) ) THEN 'failed' WHEN EXISTS (SELECT 1 FROM \"publication_history\" WHERE \"publication_history\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\"publication_history\".\"asset_sha\" = \"media_assets\".\"sha256\" OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = \"publication_history\".\"post_id\"))) THEN 'published' ELSE 'ready' END as \"media_state\", EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?) AND \"jobs\".\"type\" in (?)) as \"exported\" from \"media_assets\" where \"media_assets\".\"workspace_id\" = ? order by \"media_assets\".\"imported_at\" is null, \"media_assets\".\"imported_at\" desc, \"media_assets\".\"id\" asc limit ?",
+    "op": "all",
+    "ms": 51.542199999999866
+  },
+  {
+    "sql": "select count(*) from \"media_assets\" where \"media_assets\".\"workspace_id\" = ?",
+    "op": "get",
+    "ms": 0.04399999999805004
+  },
+  {
+    "sql": "select \"remote_posts\".\"id\", \"remote_posts\".\"workspace_id\", \"remote_posts\".\"profile_id\", \"remote_posts\".\"remote_id\", \"remote_posts\".\"permalink\", \"remote_posts\".\"media_product_type\", \"remote_posts\".\"caption\", \"remote_posts\".\"posted_at\", \"remote_posts\".\"duration_ms\", \"remote_posts\".\"thumbnail_path\", \"remote_posts\".\"asset_id\", \"remote_posts\".\"views\", \"remote_posts\".\"likes\", \"remote_posts\".\"comments\", \"remote_posts\".\"metrics_source\", \"remote_posts\".\"metrics_updated_at\", \"remote_posts\".\"favorite\", \"tracked_profiles\".\"username\", \"tracked_profiles\".\"platform\" from \"remote_posts\" left join \"tracked_profiles\" on (\"tracked_profiles\".\"id\" = \"remote_posts\".\"profile_id\" and \"tracked_profiles\".\"workspace_id\" = ?) where (\"remote_posts\".\"workspace_id\" = ? and \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"remote_posts\".\"id\" = (SELECT r.id FROM remote_posts r WHERE r.workspace_id = ? AND r.asset_id = \"remote_posts\".\"asset_id\" ORDER BY r.metrics_updated_at DESC, r.id ASC LIMIT 1)) order by \"remote_posts\".\"metrics_updated_at\" desc, \"remote_posts\".\"id\" asc",
+    "op": "all",
+    "ms": 0.6015999999981432
+  },
+  {
+    "sql": "select \"id\", \"asset_id\" from \"remote_posts\" where (\"remote_posts\".\"workspace_id\" = ? and \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))",
+    "op": "all",
+    "ms": 0.13069999999788706
+  },
+  {
+    "sql": "select \"asset_sha\", \"post_id\", \"username\" from \"publication_history\" where (\"publication_history\".\"workspace_id\" = ? and (\"publication_history\".\"asset_sha\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) or \"publication_history\".\"post_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))) group by \"publication_history\".\"asset_sha\", \"publication_history\".\"post_id\", \"publication_history\".\"username\"",
+    "op": "all",
+    "ms": 0.1349000000009255
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.04839999999967404
+  },
+  {
+    "sql": "select \"id\", \"label\", \"state\", \"last_error\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"type\" in (?, ?) and \"jobs\".\"state\" in (?, ?, ?)) order by \"jobs\".\"updated_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.10480000000097789
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.0591999999996915
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" in (?)) order by \"jobs\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.6442999999999302
+  },
+  {
+    "sql": "select count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ? and \"jobs\".\"attempts\" > ?)",
+    "op": "get",
+    "ms": 0.3411999999989348
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ?)",
+    "op": "all",
+    "ms": 0.23690000000351574
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.04470000000219443
+  },
+  {
+    "sql": "select \"id\", \"label\", \"state\", \"last_error\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"type\" in (?, ?) and \"jobs\".\"state\" in (?, ?, ?)) order by \"jobs\".\"updated_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.0753999999978987
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"origin\", \"source_name\", \"file_path\", \"sha256\", \"size_bytes\", \"duration_ms\", \"width\", \"height\", \"video_codec\", \"audio_codec\", \"thumbnail_path\", \"validation_json\", \"favorite\", \"rights_note\", \"imported_at\", CASE WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?, ?) AND \"jobs\".\"type\" in (?, ?)) THEN 'processing' WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?, ?) AND \"jobs\".\"type\" in (?)) THEN 'scheduled' WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?) ) THEN 'failed' WHEN EXISTS (SELECT 1 FROM \"publication_history\" WHERE \"publication_history\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\"publication_history\".\"asset_sha\" = \"media_assets\".\"sha256\" OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = \"publication_history\".\"post_id\"))) THEN 'published' ELSE 'ready' END as \"media_state\", EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?) AND \"jobs\".\"type\" in (?)) as \"exported\" from \"media_assets\" where \"media_assets\".\"workspace_id\" = ? order by \"media_assets\".\"imported_at\" is null, \"media_assets\".\"imported_at\" desc, \"media_assets\".\"id\" asc limit ?",
+    "op": "all",
+    "ms": 59.529200000000856
+  },
+  {
+    "sql": "select count(*) from \"media_assets\" where \"media_assets\".\"workspace_id\" = ?",
+    "op": "get",
+    "ms": 0.04380000000310247
+  },
+  {
+    "sql": "select \"remote_posts\".\"id\", \"remote_posts\".\"workspace_id\", \"remote_posts\".\"profile_id\", \"remote_posts\".\"remote_id\", \"remote_posts\".\"permalink\", \"remote_posts\".\"media_product_type\", \"remote_posts\".\"caption\", \"remote_posts\".\"posted_at\", \"remote_posts\".\"duration_ms\", \"remote_posts\".\"thumbnail_path\", \"remote_posts\".\"asset_id\", \"remote_posts\".\"views\", \"remote_posts\".\"likes\", \"remote_posts\".\"comments\", \"remote_posts\".\"metrics_source\", \"remote_posts\".\"metrics_updated_at\", \"remote_posts\".\"favorite\", \"tracked_profiles\".\"username\", \"tracked_profiles\".\"platform\" from \"remote_posts\" left join \"tracked_profiles\" on (\"tracked_profiles\".\"id\" = \"remote_posts\".\"profile_id\" and \"tracked_profiles\".\"workspace_id\" = ?) where (\"remote_posts\".\"workspace_id\" = ? and \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"remote_posts\".\"id\" = (SELECT r.id FROM remote_posts r WHERE r.workspace_id = ? AND r.asset_id = \"remote_posts\".\"asset_id\" ORDER BY r.metrics_updated_at DESC, r.id ASC LIMIT 1)) order by \"remote_posts\".\"metrics_updated_at\" desc, \"remote_posts\".\"id\" asc",
+    "op": "all",
+    "ms": 0.5570000000006985
+  },
+  {
+    "sql": "select \"id\", \"asset_id\" from \"remote_posts\" where (\"remote_posts\".\"workspace_id\" = ? and \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))",
+    "op": "all",
+    "ms": 0.1669000000001688
+  },
+  {
+    "sql": "select \"asset_sha\", \"post_id\", \"username\" from \"publication_history\" where (\"publication_history\".\"workspace_id\" = ? and (\"publication_history\".\"asset_sha\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) or \"publication_history\".\"post_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))) group by \"publication_history\".\"asset_sha\", \"publication_history\".\"post_id\", \"publication_history\".\"username\"",
+    "op": "all",
+    "ms": 0.14129999999931897
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.062099999999190914
+  },
+  {
+    "sql": "select \"state\", count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and not exists(select 1 from settings where workspace_id = \"jobs\".\"workspace_id\" and key = 'jobHidden.' || \"jobs\".\"id\" and value = 'true')) group by \"jobs\".\"state\"",
+    "op": "all",
+    "ms": 1.4864999999990687
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and not exists(select 1 from settings where workspace_id = \"jobs\".\"workspace_id\" and key = 'jobHidden.' || \"jobs\".\"id\" and value = 'true')) order by \"jobs\".\"created_at\" desc, \"jobs\".\"id\" desc limit ?",
+    "op": "all",
+    "ms": 2.5756000000001222
+  },
+  {
+    "sql": "select \"job_id\", \"workspace_id\", \"account_id\", \"username\", \"post_id\", \"asset_sha\", \"media_id\", \"provenance_json\", \"published_at\", \"cleanup_state\" from \"publication_history\" where (\"publication_history\".\"job_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"publication_history\".\"workspace_id\" in (?))",
+    "op": "all",
+    "ms": 0.08100000000194996
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"profile_id\", \"remote_id\", \"permalink\", \"media_product_type\", \"caption\", \"posted_at\", \"duration_ms\", \"thumbnail_path\", \"asset_id\", \"views\", \"likes\", \"comments\", \"metrics_source\", \"metrics_updated_at\", \"favorite\" from \"remote_posts\" where (\"remote_posts\".\"workspace_id\" in (?) and (\"remote_posts\".\"id\" in (?, ?, ?, ?, ?, ?, ?, ?) or \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?)))",
+    "op": "all",
+    "ms": 0.565999999998894
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"platform\", \"username\", \"url\", \"connected_account_id\", \"last_synced_at\", \"created_at\" from \"tracked_profiles\" where (\"tracked_profiles\".\"workspace_id\" in (?) and \"tracked_profiles\".\"id\" in (?))",
+    "op": "all",
+    "ms": 0.019799999998213025
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"origin\", \"source_name\", \"file_path\", \"sha256\", \"size_bytes\", \"duration_ms\", \"width\", \"height\", \"video_codec\", \"audio_codec\", \"thumbnail_path\", \"validation_json\", \"favorite\", \"rights_note\", \"imported_at\" from \"media_assets\" where (\"media_assets\".\"workspace_id\" in (?) and \"media_assets\".\"id\" in (?, ?, ?, ?, ?, ?, ?, ?))",
+    "op": "all",
+    "ms": 0.1209000000017113
+  },
+  {
+    "sql": "select \"id\", \"job_id\", \"started_at\", \"finished_at\", \"outcome\", \"error_code\", \"error_message\" from \"job_attempts\" where (\"job_attempts\".\"job_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"job_attempts\".\"id\" = (select latest.id from job_attempts latest where latest.job_id = \"job_attempts\".\"job_id\" order by latest.started_at desc, latest.id desc limit 1))",
+    "op": "all",
+    "ms": 0.04319999999643187
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" in (?) and \"settings\".\"key\" in (?))",
+    "op": "all",
+    "ms": 0.01840000000083819
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.04659999999785214
+  },
+  {
+    "sql": "select \"job_id\", \"workspace_id\", \"account_id\", \"username\", \"post_id\", \"asset_sha\", \"media_id\", \"provenance_json\", \"published_at\", \"cleanup_state\" from \"publication_history\" where \"publication_history\".\"workspace_id\" = ? order by \"publication_history\".\"published_at\" desc",
+    "op": "all",
+    "ms": 0.247800000001007
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" where \"workspaces\".\"id\" = ?",
+    "op": "get",
+    "ms": 0.016100000000733417
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"type\" = ? and \"jobs\".\"state\" = ?)",
+    "op": "all",
+    "ms": 0.9961999999977706
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"platform\", \"username\", \"url\", \"connected_account_id\", \"last_synced_at\", \"created_at\" from \"tracked_profiles\" where \"tracked_profiles\".\"workspace_id\" = ?",
+    "op": "all",
+    "ms": 0.04290000000037253
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"profile_id\", \"remote_id\", \"permalink\", \"media_product_type\", \"caption\", \"posted_at\", \"duration_ms\", \"thumbnail_path\", \"asset_id\", \"views\", \"likes\", \"comments\", \"metrics_source\", \"metrics_updated_at\", \"favorite\" from \"remote_posts\" where \"remote_posts\".\"workspace_id\" = ?",
+    "op": "all",
+    "ms": 2.8038000000015018
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" = ? and \"settings\".\"key\" = ?)",
+    "op": "get",
+    "ms": 0.033699999999953434
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" = ? and \"settings\".\"key\" = ?)",
+    "op": "get",
+    "ms": 0.018199999998614658
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.021800000002258457
+  },
+  {
+    "sql": "select \"job_id\", \"workspace_id\", \"account_id\", \"username\", \"post_id\", \"asset_sha\", \"media_id\", \"provenance_json\", \"published_at\", \"cleanup_state\" from \"publication_history\" where \"publication_history\".\"workspace_id\" = ? order by \"publication_history\".\"published_at\" desc",
+    "op": "all",
+    "ms": 0.23099999999976717
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" = ? and \"settings\".\"key\" = ?)",
+    "op": "get",
+    "ms": 0.019400000001041917
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where \"jobs\".\"workspace_id\" = ? order by \"jobs\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 5.544300000001385
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"kind\", \"title\", \"body\", \"action_json\", \"due_at\", \"shown_at\", \"read_at\", \"created_at\" from \"notifications\" where (\"notifications\".\"workspace_id\" = ? and (\"notifications\".\"due_at\" is null or \"notifications\".\"due_at\" <= ?)) order by \"notifications\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.5718999999990046
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.0459999999984575
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" in (?)) order by \"jobs\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.6283000000003085
+  },
+  {
+    "sql": "select count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ? and \"jobs\".\"attempts\" > ?)",
+    "op": "get",
+    "ms": 0.38259999999718275
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ?)",
+    "op": "all",
+    "ms": 0.2526999999972759
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.04640000000290456
+  },
+  {
+    "sql": "select \"id\", \"label\", \"state\", \"last_error\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"type\" in (?, ?) and \"jobs\".\"state\" in (?, ?, ?)) order by \"jobs\".\"updated_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.13210000000253785
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.0937000000012631
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" in (?)) order by \"jobs\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 1.305500000002212
+  },
+  {
+    "sql": "select count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ? and \"jobs\".\"attempts\" > ?)",
+    "op": "get",
+    "ms": 0.6279999999969732
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ?)",
+    "op": "all",
+    "ms": 0.45689999999740394
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"origin\", \"source_name\", \"file_path\", \"sha256\", \"size_bytes\", \"duration_ms\", \"width\", \"height\", \"video_codec\", \"audio_codec\", \"thumbnail_path\", \"validation_json\", \"favorite\", \"rights_note\", \"imported_at\", CASE WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?, ?) AND \"jobs\".\"type\" in (?, ?)) THEN 'processing' WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?, ?) AND \"jobs\".\"type\" in (?)) THEN 'scheduled' WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?) ) THEN 'failed' WHEN EXISTS (SELECT 1 FROM \"publication_history\" WHERE \"publication_history\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\"publication_history\".\"asset_sha\" = \"media_assets\".\"sha256\" OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = \"publication_history\".\"post_id\"))) THEN 'published' ELSE 'ready' END as \"media_state\", EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?) AND \"jobs\".\"type\" in (?)) as \"exported\" from \"media_assets\" where \"media_assets\".\"workspace_id\" = ? order by \"media_assets\".\"imported_at\" is null, \"media_assets\".\"imported_at\" desc, \"media_assets\".\"id\" asc limit ?",
+    "op": "all",
+    "ms": 64.80149999999776
+  },
+  {
+    "sql": "select count(*) from \"media_assets\" where \"media_assets\".\"workspace_id\" = ?",
+    "op": "get",
+    "ms": 0.0459999999984575
+  },
+  {
+    "sql": "select \"remote_posts\".\"id\", \"remote_posts\".\"workspace_id\", \"remote_posts\".\"profile_id\", \"remote_posts\".\"remote_id\", \"remote_posts\".\"permalink\", \"remote_posts\".\"media_product_type\", \"remote_posts\".\"caption\", \"remote_posts\".\"posted_at\", \"remote_posts\".\"duration_ms\", \"remote_posts\".\"thumbnail_path\", \"remote_posts\".\"asset_id\", \"remote_posts\".\"views\", \"remote_posts\".\"likes\", \"remote_posts\".\"comments\", \"remote_posts\".\"metrics_source\", \"remote_posts\".\"metrics_updated_at\", \"remote_posts\".\"favorite\", \"tracked_profiles\".\"username\", \"tracked_profiles\".\"platform\" from \"remote_posts\" left join \"tracked_profiles\" on (\"tracked_profiles\".\"id\" = \"remote_posts\".\"profile_id\" and \"tracked_profiles\".\"workspace_id\" = ?) where (\"remote_posts\".\"workspace_id\" = ? and \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"remote_posts\".\"id\" = (SELECT r.id FROM remote_posts r WHERE r.workspace_id = ? AND r.asset_id = \"remote_posts\".\"asset_id\" ORDER BY r.metrics_updated_at DESC, r.id ASC LIMIT 1)) order by \"remote_posts\".\"metrics_updated_at\" desc, \"remote_posts\".\"id\" asc",
+    "op": "all",
+    "ms": 0.44470000000001164
+  },
+  {
+    "sql": "select \"id\", \"asset_id\" from \"remote_posts\" where (\"remote_posts\".\"workspace_id\" = ? and \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))",
+    "op": "all",
+    "ms": 0.10800000000017462
+  },
+  {
+    "sql": "select \"asset_sha\", \"post_id\", \"username\" from \"publication_history\" where (\"publication_history\".\"workspace_id\" = ? and (\"publication_history\".\"asset_sha\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) or \"publication_history\".\"post_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))) group by \"publication_history\".\"asset_sha\", \"publication_history\".\"post_id\", \"publication_history\".\"username\"",
+    "op": "all",
+    "ms": 0.13320000000021537
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.05470000000059372
+  },
+  {
+    "sql": "select \"id\", \"label\", \"state\", \"last_error\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"type\" in (?, ?) and \"jobs\".\"state\" in (?, ?, ?)) order by \"jobs\".\"updated_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.0797999999995227
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.04890000000159489
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" in (?)) order by \"jobs\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.6113000000004831
+  },
+  {
+    "sql": "select count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ? and \"jobs\".\"attempts\" > ?)",
+    "op": "get",
+    "ms": 0.35710000000108266
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ?)",
+    "op": "all",
+    "ms": 0.23779999999896972
+  },
+  {
+    "sql": "select \"state\", count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and not exists(select 1 from settings where workspace_id = \"jobs\".\"workspace_id\" and key = 'jobHidden.' || \"jobs\".\"id\" and value = 'true')) group by \"jobs\".\"state\"",
+    "op": "all",
+    "ms": 1.2822000000014668
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and not exists(select 1 from settings where workspace_id = \"jobs\".\"workspace_id\" and key = 'jobHidden.' || \"jobs\".\"id\" and value = 'true')) order by \"jobs\".\"created_at\" desc, \"jobs\".\"id\" desc limit ?",
+    "op": "all",
+    "ms": 2.4553999999989173
+  },
+  {
+    "sql": "select \"job_id\", \"workspace_id\", \"account_id\", \"username\", \"post_id\", \"asset_sha\", \"media_id\", \"provenance_json\", \"published_at\", \"cleanup_state\" from \"publication_history\" where (\"publication_history\".\"job_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"publication_history\".\"workspace_id\" in (?))",
+    "op": "all",
+    "ms": 0.08320000000094296
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"profile_id\", \"remote_id\", \"permalink\", \"media_product_type\", \"caption\", \"posted_at\", \"duration_ms\", \"thumbnail_path\", \"asset_id\", \"views\", \"likes\", \"comments\", \"metrics_source\", \"metrics_updated_at\", \"favorite\" from \"remote_posts\" where (\"remote_posts\".\"workspace_id\" in (?) and (\"remote_posts\".\"id\" in (?, ?, ?, ?, ?, ?, ?, ?) or \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?)))",
+    "op": "all",
+    "ms": 0.5491999999976542
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"platform\", \"username\", \"url\", \"connected_account_id\", \"last_synced_at\", \"created_at\" from \"tracked_profiles\" where (\"tracked_profiles\".\"workspace_id\" in (?) and \"tracked_profiles\".\"id\" in (?))",
+    "op": "all",
+    "ms": 0.01900000000023283
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"origin\", \"source_name\", \"file_path\", \"sha256\", \"size_bytes\", \"duration_ms\", \"width\", \"height\", \"video_codec\", \"audio_codec\", \"thumbnail_path\", \"validation_json\", \"favorite\", \"rights_note\", \"imported_at\" from \"media_assets\" where (\"media_assets\".\"workspace_id\" in (?) and \"media_assets\".\"id\" in (?, ?, ?, ?, ?, ?, ?, ?))",
+    "op": "all",
+    "ms": 0.12180000000080327
+  },
+  {
+    "sql": "select \"id\", \"job_id\", \"started_at\", \"finished_at\", \"outcome\", \"error_code\", \"error_message\" from \"job_attempts\" where (\"job_attempts\".\"job_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"job_attempts\".\"id\" = (select latest.id from job_attempts latest where latest.job_id = \"job_attempts\".\"job_id\" order by latest.started_at desc, latest.id desc limit 1))",
+    "op": "all",
+    "ms": 0.04550000000017462
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" in (?) and \"settings\".\"key\" in (?))",
+    "op": "all",
+    "ms": 0.018000000000029104
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.046699999998963904
+  },
+  {
+    "sql": "select \"job_id\", \"workspace_id\", \"account_id\", \"username\", \"post_id\", \"asset_sha\", \"media_id\", \"provenance_json\", \"published_at\", \"cleanup_state\" from \"publication_history\" where \"publication_history\".\"workspace_id\" = ? order by \"publication_history\".\"published_at\" desc",
+    "op": "all",
+    "ms": 0.23319999999876018
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" where \"workspaces\".\"id\" = ?",
+    "op": "get",
+    "ms": 0.015299999999115244
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"type\" = ? and \"jobs\".\"state\" = ?)",
+    "op": "all",
+    "ms": 1.0829000000012456
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"platform\", \"username\", \"url\", \"connected_account_id\", \"last_synced_at\", \"created_at\" from \"tracked_profiles\" where \"tracked_profiles\".\"workspace_id\" = ?",
+    "op": "all",
+    "ms": 0.04559999999764841
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"profile_id\", \"remote_id\", \"permalink\", \"media_product_type\", \"caption\", \"posted_at\", \"duration_ms\", \"thumbnail_path\", \"asset_id\", \"views\", \"likes\", \"comments\", \"metrics_source\", \"metrics_updated_at\", \"favorite\" from \"remote_posts\" where \"remote_posts\".\"workspace_id\" = ?",
+    "op": "all",
+    "ms": 2.8561999999983527
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" = ? and \"settings\".\"key\" = ?)",
+    "op": "get",
+    "ms": 0.03420000000187429
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" = ? and \"settings\".\"key\" = ?)",
+    "op": "get",
+    "ms": 0.01719999999841093
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.021000000000640284
+  },
+  {
+    "sql": "select \"job_id\", \"workspace_id\", \"account_id\", \"username\", \"post_id\", \"asset_sha\", \"media_id\", \"provenance_json\", \"published_at\", \"cleanup_state\" from \"publication_history\" where \"publication_history\".\"workspace_id\" = ? order by \"publication_history\".\"published_at\" desc",
+    "op": "all",
+    "ms": 0.2525999999998021
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" = ? and \"settings\".\"key\" = ?)",
+    "op": "get",
+    "ms": 0.03839999999763677
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where \"jobs\".\"workspace_id\" = ? order by \"jobs\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 5.294600000001083
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"kind\", \"title\", \"body\", \"action_json\", \"due_at\", \"shown_at\", \"read_at\", \"created_at\" from \"notifications\" where (\"notifications\".\"workspace_id\" = ? and (\"notifications\".\"due_at\" is null or \"notifications\".\"due_at\" <= ?)) order by \"notifications\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.5577000000012049
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.04709999999977299
+  },
+  {
+    "sql": "select \"id\", \"label\", \"state\", \"last_error\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"type\" in (?, ?) and \"jobs\".\"state\" in (?, ?, ?)) order by \"jobs\".\"updated_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.1103000000002794
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"origin\", \"source_name\", \"file_path\", \"sha256\", \"size_bytes\", \"duration_ms\", \"width\", \"height\", \"video_codec\", \"audio_codec\", \"thumbnail_path\", \"validation_json\", \"favorite\", \"rights_note\", \"imported_at\", CASE WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?, ?) AND \"jobs\".\"type\" in (?, ?)) THEN 'processing' WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?, ?) AND \"jobs\".\"type\" in (?)) THEN 'scheduled' WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?) ) THEN 'failed' WHEN EXISTS (SELECT 1 FROM \"publication_history\" WHERE \"publication_history\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\"publication_history\".\"asset_sha\" = \"media_assets\".\"sha256\" OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = \"publication_history\".\"post_id\"))) THEN 'published' ELSE 'ready' END as \"media_state\", EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?) AND \"jobs\".\"type\" in (?)) as \"exported\" from \"media_assets\" where \"media_assets\".\"workspace_id\" = ? order by \"media_assets\".\"imported_at\" is null, \"media_assets\".\"imported_at\" desc, \"media_assets\".\"id\" asc limit ?",
+    "op": "all",
+    "ms": 51.473299999997835
+  },
+  {
+    "sql": "select count(*) from \"media_assets\" where \"media_assets\".\"workspace_id\" = ?",
+    "op": "get",
+    "ms": 0.04500000000189175
+  },
+  {
+    "sql": "select \"remote_posts\".\"id\", \"remote_posts\".\"workspace_id\", \"remote_posts\".\"profile_id\", \"remote_posts\".\"remote_id\", \"remote_posts\".\"permalink\", \"remote_posts\".\"media_product_type\", \"remote_posts\".\"caption\", \"remote_posts\".\"posted_at\", \"remote_posts\".\"duration_ms\", \"remote_posts\".\"thumbnail_path\", \"remote_posts\".\"asset_id\", \"remote_posts\".\"views\", \"remote_posts\".\"likes\", \"remote_posts\".\"comments\", \"remote_posts\".\"metrics_source\", \"remote_posts\".\"metrics_updated_at\", \"remote_posts\".\"favorite\", \"tracked_profiles\".\"username\", \"tracked_profiles\".\"platform\" from \"remote_posts\" left join \"tracked_profiles\" on (\"tracked_profiles\".\"id\" = \"remote_posts\".\"profile_id\" and \"tracked_profiles\".\"workspace_id\" = ?) where (\"remote_posts\".\"workspace_id\" = ? and \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"remote_posts\".\"id\" = (SELECT r.id FROM remote_posts r WHERE r.workspace_id = ? AND r.asset_id = \"remote_posts\".\"asset_id\" ORDER BY r.metrics_updated_at DESC, r.id ASC LIMIT 1)) order by \"remote_posts\".\"metrics_updated_at\" desc, \"remote_posts\".\"id\" asc",
+    "op": "all",
+    "ms": 0.4326999999975669
+  },
+  {
+    "sql": "select \"id\", \"asset_id\" from \"remote_posts\" where (\"remote_posts\".\"workspace_id\" = ? and \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))",
+    "op": "all",
+    "ms": 0.13109999999869615
+  },
+  {
+    "sql": "select \"asset_sha\", \"post_id\", \"username\" from \"publication_history\" where (\"publication_history\".\"workspace_id\" = ? and (\"publication_history\".\"asset_sha\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) or \"publication_history\".\"post_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))) group by \"publication_history\".\"asset_sha\", \"publication_history\".\"post_id\", \"publication_history\".\"username\"",
+    "op": "all",
+    "ms": 0.14239999999699648
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.05249999999796273
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" in (?)) order by \"jobs\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.6607000000003609
+  },
+  {
+    "sql": "select count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ? and \"jobs\".\"attempts\" > ?)",
+    "op": "get",
+    "ms": 0.361800000002404
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ?)",
+    "op": "all",
+    "ms": 0.2407999999995809
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.05320000000210712
+  },
+  {
+    "sql": "select \"id\", \"label\", \"state\", \"last_error\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"type\" in (?, ?) and \"jobs\".\"state\" in (?, ?, ?)) order by \"jobs\".\"updated_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.08299999999871943
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.08190000000104192
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" in (?)) order by \"jobs\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.5973000000012689
+  },
+  {
+    "sql": "select count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ? and \"jobs\".\"attempts\" > ?)",
+    "op": "get",
+    "ms": 0.5488000000004831
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ?)",
+    "op": "all",
+    "ms": 0.7783999999992375
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"origin\", \"source_name\", \"file_path\", \"sha256\", \"size_bytes\", \"duration_ms\", \"width\", \"height\", \"video_codec\", \"audio_codec\", \"thumbnail_path\", \"validation_json\", \"favorite\", \"rights_note\", \"imported_at\", CASE WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?, ?) AND \"jobs\".\"type\" in (?, ?)) THEN 'processing' WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?, ?) AND \"jobs\".\"type\" in (?)) THEN 'scheduled' WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?) ) THEN 'failed' WHEN EXISTS (SELECT 1 FROM \"publication_history\" WHERE \"publication_history\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\"publication_history\".\"asset_sha\" = \"media_assets\".\"sha256\" OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = \"publication_history\".\"post_id\"))) THEN 'published' ELSE 'ready' END as \"media_state\", EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?) AND \"jobs\".\"type\" in (?)) as \"exported\" from \"media_assets\" where \"media_assets\".\"workspace_id\" = ? order by \"media_assets\".\"imported_at\" is null, \"media_assets\".\"imported_at\" desc, \"media_assets\".\"id\" asc limit ?",
+    "op": "all",
+    "ms": 53.13869999999952
+  },
+  {
+    "sql": "select count(*) from \"media_assets\" where \"media_assets\".\"workspace_id\" = ?",
+    "op": "get",
+    "ms": 0.05169999999998254
+  },
+  {
+    "sql": "select \"remote_posts\".\"id\", \"remote_posts\".\"workspace_id\", \"remote_posts\".\"profile_id\", \"remote_posts\".\"remote_id\", \"remote_posts\".\"permalink\", \"remote_posts\".\"media_product_type\", \"remote_posts\".\"caption\", \"remote_posts\".\"posted_at\", \"remote_posts\".\"duration_ms\", \"remote_posts\".\"thumbnail_path\", \"remote_posts\".\"asset_id\", \"remote_posts\".\"views\", \"remote_posts\".\"likes\", \"remote_posts\".\"comments\", \"remote_posts\".\"metrics_source\", \"remote_posts\".\"metrics_updated_at\", \"remote_posts\".\"favorite\", \"tracked_profiles\".\"username\", \"tracked_profiles\".\"platform\" from \"remote_posts\" left join \"tracked_profiles\" on (\"tracked_profiles\".\"id\" = \"remote_posts\".\"profile_id\" and \"tracked_profiles\".\"workspace_id\" = ?) where (\"remote_posts\".\"workspace_id\" = ? and \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"remote_posts\".\"id\" = (SELECT r.id FROM remote_posts r WHERE r.workspace_id = ? AND r.asset_id = \"remote_posts\".\"asset_id\" ORDER BY r.metrics_updated_at DESC, r.id ASC LIMIT 1)) order by \"remote_posts\".\"metrics_updated_at\" desc, \"remote_posts\".\"id\" asc",
+    "op": "all",
+    "ms": 0.4147000000011758
+  },
+  {
+    "sql": "select \"id\", \"asset_id\" from \"remote_posts\" where (\"remote_posts\".\"workspace_id\" = ? and \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))",
+    "op": "all",
+    "ms": 0.10250000000087311
+  },
+  {
+    "sql": "select \"asset_sha\", \"post_id\", \"username\" from \"publication_history\" where (\"publication_history\".\"workspace_id\" = ? and (\"publication_history\".\"asset_sha\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) or \"publication_history\".\"post_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))) group by \"publication_history\".\"asset_sha\", \"publication_history\".\"post_id\", \"publication_history\".\"username\"",
+    "op": "all",
+    "ms": 0.1309000000001106
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"kind\", \"title\", \"body\", \"action_json\", \"due_at\", \"shown_at\", \"read_at\", \"created_at\" from \"notifications\" where (\"notifications\".\"shown_at\" is null and \"notifications\".\"read_at\" is null and (\"notifications\".\"due_at\" is null or \"notifications\".\"due_at\" <= ?)) order by \"notifications\".\"created_at\" limit ?",
+    "op": "all",
+    "ms": 0.1352999999980966
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.044200000000273576
+  },
+  {
+    "sql": "select \"id\", \"label\", \"state\", \"last_error\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"type\" in (?, ?) and \"jobs\".\"state\" in (?, ?, ?)) order by \"jobs\".\"updated_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.12490000000252621
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.05730000000039581
+  },
+  {
+    "sql": "select \"state\", count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and not exists(select 1 from settings where workspace_id = \"jobs\".\"workspace_id\" and key = 'jobHidden.' || \"jobs\".\"id\" and value = 'true')) group by \"jobs\".\"state\"",
+    "op": "all",
+    "ms": 2.6045000000012806
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and not exists(select 1 from settings where workspace_id = \"jobs\".\"workspace_id\" and key = 'jobHidden.' || \"jobs\".\"id\" and value = 'true')) order by \"jobs\".\"created_at\" desc, \"jobs\".\"id\" desc limit ?",
+    "op": "all",
+    "ms": 3.533399999996618
+  },
+  {
+    "sql": "select \"job_id\", \"workspace_id\", \"account_id\", \"username\", \"post_id\", \"asset_sha\", \"media_id\", \"provenance_json\", \"published_at\", \"cleanup_state\" from \"publication_history\" where (\"publication_history\".\"job_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"publication_history\".\"workspace_id\" in (?))",
+    "op": "all",
+    "ms": 0.08460000000195578
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"profile_id\", \"remote_id\", \"permalink\", \"media_product_type\", \"caption\", \"posted_at\", \"duration_ms\", \"thumbnail_path\", \"asset_id\", \"views\", \"likes\", \"comments\", \"metrics_source\", \"metrics_updated_at\", \"favorite\" from \"remote_posts\" where (\"remote_posts\".\"workspace_id\" in (?) and (\"remote_posts\".\"id\" in (?, ?, ?, ?, ?, ?, ?, ?) or \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?)))",
+    "op": "all",
+    "ms": 0.5377999999982421
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"platform\", \"username\", \"url\", \"connected_account_id\", \"last_synced_at\", \"created_at\" from \"tracked_profiles\" where (\"tracked_profiles\".\"workspace_id\" in (?) and \"tracked_profiles\".\"id\" in (?))",
+    "op": "all",
+    "ms": 0.01929999999993015
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"origin\", \"source_name\", \"file_path\", \"sha256\", \"size_bytes\", \"duration_ms\", \"width\", \"height\", \"video_codec\", \"audio_codec\", \"thumbnail_path\", \"validation_json\", \"favorite\", \"rights_note\", \"imported_at\" from \"media_assets\" where (\"media_assets\".\"workspace_id\" in (?) and \"media_assets\".\"id\" in (?, ?, ?, ?, ?, ?, ?, ?))",
+    "op": "all",
+    "ms": 0.12510000000111177
+  },
+  {
+    "sql": "select \"id\", \"job_id\", \"started_at\", \"finished_at\", \"outcome\", \"error_code\", \"error_message\" from \"job_attempts\" where (\"job_attempts\".\"job_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"job_attempts\".\"id\" = (select latest.id from job_attempts latest where latest.job_id = \"job_attempts\".\"job_id\" order by latest.started_at desc, latest.id desc limit 1))",
+    "op": "all",
+    "ms": 0.04230000000097789
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" in (?) and \"settings\".\"key\" in (?))",
+    "op": "all",
+    "ms": 0.02050000000235741
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.044799999999668216
+  },
+  {
+    "sql": "select \"job_id\", \"workspace_id\", \"account_id\", \"username\", \"post_id\", \"asset_sha\", \"media_id\", \"provenance_json\", \"published_at\", \"cleanup_state\" from \"publication_history\" where \"publication_history\".\"workspace_id\" = ? order by \"publication_history\".\"published_at\" desc",
+    "op": "all",
+    "ms": 0.2772000000004482
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" where \"workspaces\".\"id\" = ?",
+    "op": "get",
+    "ms": 0.017299999999522697
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"type\" = ? and \"jobs\".\"state\" = ?)",
+    "op": "all",
+    "ms": 1.2335000000020955
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"platform\", \"username\", \"url\", \"connected_account_id\", \"last_synced_at\", \"created_at\" from \"tracked_profiles\" where \"tracked_profiles\".\"workspace_id\" = ?",
+    "op": "all",
+    "ms": 0.06220000000030268
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"profile_id\", \"remote_id\", \"permalink\", \"media_product_type\", \"caption\", \"posted_at\", \"duration_ms\", \"thumbnail_path\", \"asset_id\", \"views\", \"likes\", \"comments\", \"metrics_source\", \"metrics_updated_at\", \"favorite\" from \"remote_posts\" where \"remote_posts\".\"workspace_id\" = ?",
+    "op": "all",
+    "ms": 2.7564999999995052
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" = ? and \"settings\".\"key\" = ?)",
+    "op": "get",
+    "ms": 0.05559999999968568
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" = ? and \"settings\".\"key\" = ?)",
+    "op": "get",
+    "ms": 0.02470000000175787
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.02449999999953434
+  },
+  {
+    "sql": "select \"job_id\", \"workspace_id\", \"account_id\", \"username\", \"post_id\", \"asset_sha\", \"media_id\", \"provenance_json\", \"published_at\", \"cleanup_state\" from \"publication_history\" where \"publication_history\".\"workspace_id\" = ? order by \"publication_history\".\"published_at\" desc",
+    "op": "all",
+    "ms": 0.2805000000007567
+  },
+  {
+    "sql": "select \"workspace_id\", \"key\", \"value\" from \"settings\" where (\"settings\".\"workspace_id\" = ? and \"settings\".\"key\" = ?)",
+    "op": "get",
+    "ms": 0.021899999999732245
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where \"jobs\".\"workspace_id\" = ? order by \"jobs\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 5.479299999999057
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"kind\", \"title\", \"body\", \"action_json\", \"due_at\", \"shown_at\", \"read_at\", \"created_at\" from \"notifications\" where (\"notifications\".\"workspace_id\" = ? and (\"notifications\".\"due_at\" is null or \"notifications\".\"due_at\" <= ?)) order by \"notifications\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.5614999999997963
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.02179999999862048
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" in (?)) order by \"jobs\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.75879999999961
+  },
+  {
+    "sql": "select count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ? and \"jobs\".\"attempts\" > ?)",
+    "op": "get",
+    "ms": 0.41669999999794527
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ?)",
+    "op": "all",
+    "ms": 0.24699999999938882
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.04890000000159489
+  },
+  {
+    "sql": "select \"id\", \"label\", \"state\", \"last_error\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"type\" in (?, ?) and \"jobs\".\"state\" in (?, ?, ?)) order by \"jobs\".\"updated_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.12119999999413267
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"origin\", \"source_name\", \"file_path\", \"sha256\", \"size_bytes\", \"duration_ms\", \"width\", \"height\", \"video_codec\", \"audio_codec\", \"thumbnail_path\", \"validation_json\", \"favorite\", \"rights_note\", \"imported_at\", CASE WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?, ?) AND \"jobs\".\"type\" in (?, ?)) THEN 'processing' WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?, ?) AND \"jobs\".\"type\" in (?)) THEN 'scheduled' WHEN EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?) ) THEN 'failed' WHEN EXISTS (SELECT 1 FROM \"publication_history\" WHERE \"publication_history\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\"publication_history\".\"asset_sha\" = \"media_assets\".\"sha256\" OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = \"publication_history\".\"post_id\"))) THEN 'published' ELSE 'ready' END as \"media_state\", EXISTS (SELECT 1 FROM \"jobs\" WHERE (\"jobs\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND (\n json_extract(\"jobs\".\"payload_json\", '$.assetId') = \"media_assets\".\"id\"\n OR json_extract(\"jobs\".\"payload_json\", '$.localAssetId') = \"media_assets\".\"id\"\n OR EXISTS (SELECT 1 FROM json_each(\"jobs\".\"payload_json\", '$.assetIds') WHERE value = \"media_assets\".\"id\")\n OR EXISTS (SELECT 1 FROM \"remote_posts\" WHERE \"remote_posts\".\"workspace_id\" = \"media_assets\".\"workspace_id\" AND \"remote_posts\".\"asset_id\" = \"media_assets\".\"id\" AND \"remote_posts\".\"id\" = json_extract(\"jobs\".\"payload_json\", '$.postId')))) AND \"jobs\".\"state\" in (?) AND \"jobs\".\"type\" in (?)) as \"exported\" from \"media_assets\" where \"media_assets\".\"workspace_id\" = ? order by \"media_assets\".\"imported_at\" is null, \"media_assets\".\"imported_at\" desc, \"media_assets\".\"id\" asc limit ?",
+    "op": "all",
+    "ms": 51.97019999999611
+  },
+  {
+    "sql": "select count(*) from \"media_assets\" where \"media_assets\".\"workspace_id\" = ?",
+    "op": "get",
+    "ms": 0.0783000000010361
+  },
+  {
+    "sql": "select \"remote_posts\".\"id\", \"remote_posts\".\"workspace_id\", \"remote_posts\".\"profile_id\", \"remote_posts\".\"remote_id\", \"remote_posts\".\"permalink\", \"remote_posts\".\"media_product_type\", \"remote_posts\".\"caption\", \"remote_posts\".\"posted_at\", \"remote_posts\".\"duration_ms\", \"remote_posts\".\"thumbnail_path\", \"remote_posts\".\"asset_id\", \"remote_posts\".\"views\", \"remote_posts\".\"likes\", \"remote_posts\".\"comments\", \"remote_posts\".\"metrics_source\", \"remote_posts\".\"metrics_updated_at\", \"remote_posts\".\"favorite\", \"tracked_profiles\".\"username\", \"tracked_profiles\".\"platform\" from \"remote_posts\" left join \"tracked_profiles\" on (\"tracked_profiles\".\"id\" = \"remote_posts\".\"profile_id\" and \"tracked_profiles\".\"workspace_id\" = ?) where (\"remote_posts\".\"workspace_id\" = ? and \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) and \"remote_posts\".\"id\" = (SELECT r.id FROM remote_posts r WHERE r.workspace_id = ? AND r.asset_id = \"remote_posts\".\"asset_id\" ORDER BY r.metrics_updated_at DESC, r.id ASC LIMIT 1)) order by \"remote_posts\".\"metrics_updated_at\" desc, \"remote_posts\".\"id\" asc",
+    "op": "all",
+    "ms": 0.44689999999536667
+  },
+  {
+    "sql": "select \"id\", \"asset_id\" from \"remote_posts\" where (\"remote_posts\".\"workspace_id\" = ? and \"remote_posts\".\"asset_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))",
+    "op": "all",
+    "ms": 0.10080000000016298
+  },
+  {
+    "sql": "select \"asset_sha\", \"post_id\", \"username\" from \"publication_history\" where (\"publication_history\".\"workspace_id\" = ? and (\"publication_history\".\"asset_sha\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) or \"publication_history\".\"post_id\" in (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?))) group by \"publication_history\".\"asset_sha\", \"publication_history\".\"post_id\", \"publication_history\".\"username\"",
+    "op": "all",
+    "ms": 0.1301999999996042
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.047899999997753184
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" in (?)) order by \"jobs\".\"created_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.6031000000002678
+  },
+  {
+    "sql": "select count(*) from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ? and \"jobs\".\"attempts\" > ?)",
+    "op": "get",
+    "ms": 0.35960000000341097
+  },
+  {
+    "sql": "select \"id\", \"workspace_id\", \"type\", \"payload_json\", \"label\", \"state\", \"run_at\", \"attempts\", \"max_attempts\", \"lease_until\", \"lease_version\", \"priority\", \"idempotency_key\", \"last_error\", \"result_json\", \"created_at\", \"updated_at\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"state\" = ?)",
+    "op": "all",
+    "ms": 0.4282999999995809
+  },
+  {
+    "sql": "select \"id\", \"name\", \"time_zone\", \"created_at\" from \"workspaces\" order by \"workspaces\".\"created_at\" asc",
+    "op": "all",
+    "ms": 0.0529000000024098
+  },
+  {
+    "sql": "select \"id\", \"label\", \"state\", \"last_error\" from \"jobs\" where (\"jobs\".\"workspace_id\" = ? and \"jobs\".\"type\" in (?, ?) and \"jobs\".\"state\" in (?, ?, ?)) order by \"jobs\".\"updated_at\" desc limit ?",
+    "op": "all",
+    "ms": 0.08830000000307336
+  }
+]

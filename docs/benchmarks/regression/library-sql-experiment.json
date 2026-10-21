@@ -1,0 +1,812 @@
+[
+  {
+    "name": "before",
+    "rows": 60,
+    "samples": [
+      53.267,
+      48.9902,
+      47.5864,
+      50.0282,
+      52.88270000000003,
+      48.13629999999995,
+      47.06959999999998,
+      56.429400000000044,
+      49.8227,
+      55.59189999999995,
+      57.310299999999984,
+      62.95839999999998,
+      54.99180000000001,
+      55.297500000000014,
+      59.64570000000003
+    ],
+    "meanMs": 53.33387333333334,
+    "plan": [
+      {
+        "id": 7,
+        "parent": 0,
+        "notused": 62,
+        "detail": "SEARCH media_assets USING INDEX media_assets_ws_sha (workspace_id=?)"
+      },
+      {
+        "id": 41,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 3"
+      },
+      {
+        "id": 46,
+        "parent": 41,
+        "notused": 61,
+        "detail": "SEARCH jobs USING INDEX jobs_destination (workspace_id=? AND type=? AND state=?)"
+      },
+      {
+        "id": 92,
+        "parent": 41,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 1"
+      },
+      {
+        "id": 96,
+        "parent": 92,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 111,
+        "parent": 41,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 2"
+      },
+      {
+        "id": 116,
+        "parent": 111,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 146,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 6"
+      },
+      {
+        "id": 151,
+        "parent": 146,
+        "notused": 61,
+        "detail": "SEARCH jobs USING INDEX jobs_destination (workspace_id=? AND type=? AND state=?)"
+      },
+      {
+        "id": 184,
+        "parent": 146,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 4"
+      },
+      {
+        "id": 188,
+        "parent": 184,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 203,
+        "parent": 146,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 5"
+      },
+      {
+        "id": 208,
+        "parent": 203,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 236,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 9"
+      },
+      {
+        "id": 241,
+        "parent": 236,
+        "notused": 61,
+        "detail": "SEARCH jobs USING INDEX jobs_batch (workspace_id=?)"
+      },
+      {
+        "id": 257,
+        "parent": 236,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 7"
+      },
+      {
+        "id": 261,
+        "parent": 257,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 276,
+        "parent": 236,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 8"
+      },
+      {
+        "id": 281,
+        "parent": 276,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 307,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 11"
+      },
+      {
+        "id": 312,
+        "parent": 307,
+        "notused": 62,
+        "detail": "SEARCH publication_history USING INDEX publication_history_ws_sha (workspace_id=?)"
+      },
+      {
+        "id": 321,
+        "parent": 307,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 10"
+      },
+      {
+        "id": 326,
+        "parent": 321,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 351,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 14"
+      },
+      {
+        "id": 356,
+        "parent": 351,
+        "notused": 60,
+        "detail": "SEARCH jobs USING INDEX jobs_destination (workspace_id=? AND type=? AND state=?)"
+      },
+      {
+        "id": 375,
+        "parent": 351,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 12"
+      },
+      {
+        "id": 379,
+        "parent": 375,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 394,
+        "parent": 351,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 13"
+      },
+      {
+        "id": 399,
+        "parent": 394,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 425,
+        "parent": 0,
+        "notused": 0,
+        "detail": "USE TEMP B-TREE FOR ORDER BY"
+      }
+    ]
+  },
+  {
+    "name": "guarded",
+    "rows": 60,
+    "samples": [
+      50.92489999999998,
+      52.94729999999993,
+      55.79689999999994,
+      52.99059999999986,
+      53.37390000000005,
+      50.53850000000011,
+      48.77500000000009,
+      57.25160000000005,
+      56.057599999999866,
+      49.54870000000005,
+      47.60400000000004,
+      54.09389999999985,
+      50.40319999999997,
+      51.77539999999999,
+      49.39869999999996
+    ],
+    "meanMs": 52.09867999999998,
+    "plan": [
+      {
+        "id": 7,
+        "parent": 0,
+        "notused": 62,
+        "detail": "SEARCH media_assets USING INDEX media_assets_ws_sha (workspace_id=?)"
+      },
+      {
+        "id": 41,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 3"
+      },
+      {
+        "id": 46,
+        "parent": 41,
+        "notused": 61,
+        "detail": "SEARCH jobs USING INDEX jobs_destination (workspace_id=? AND type=? AND state=?)"
+      },
+      {
+        "id": 92,
+        "parent": 41,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 1"
+      },
+      {
+        "id": 96,
+        "parent": 92,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 114,
+        "parent": 41,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 2"
+      },
+      {
+        "id": 119,
+        "parent": 114,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 149,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 6"
+      },
+      {
+        "id": 154,
+        "parent": 149,
+        "notused": 61,
+        "detail": "SEARCH jobs USING INDEX jobs_destination (workspace_id=? AND type=? AND state=?)"
+      },
+      {
+        "id": 187,
+        "parent": 149,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 4"
+      },
+      {
+        "id": 191,
+        "parent": 187,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 209,
+        "parent": 149,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 5"
+      },
+      {
+        "id": 214,
+        "parent": 209,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 242,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 9"
+      },
+      {
+        "id": 247,
+        "parent": 242,
+        "notused": 61,
+        "detail": "SEARCH jobs USING INDEX jobs_batch (workspace_id=?)"
+      },
+      {
+        "id": 263,
+        "parent": 242,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 7"
+      },
+      {
+        "id": 267,
+        "parent": 263,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 285,
+        "parent": 242,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 8"
+      },
+      {
+        "id": 290,
+        "parent": 285,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 316,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 11"
+      },
+      {
+        "id": 321,
+        "parent": 316,
+        "notused": 62,
+        "detail": "SEARCH publication_history USING INDEX publication_history_ws_sha (workspace_id=?)"
+      },
+      {
+        "id": 330,
+        "parent": 316,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 10"
+      },
+      {
+        "id": 335,
+        "parent": 330,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 360,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 14"
+      },
+      {
+        "id": 365,
+        "parent": 360,
+        "notused": 60,
+        "detail": "SEARCH jobs USING INDEX jobs_destination (workspace_id=? AND type=? AND state=?)"
+      },
+      {
+        "id": 384,
+        "parent": 360,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 12"
+      },
+      {
+        "id": 388,
+        "parent": 384,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 406,
+        "parent": 360,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 13"
+      },
+      {
+        "id": 411,
+        "parent": 406,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 437,
+        "parent": 0,
+        "notused": 0,
+        "detail": "USE TEMP B-TREE FOR ORDER BY"
+      }
+    ]
+  },
+  {
+    "name": "indexed",
+    "rows": 60,
+    "samples": [
+      19.509000000000015,
+      21.710600000000113,
+      24.037700000000086,
+      32.544000000000096,
+      33.12220000000002,
+      34.354300000000194,
+      38.08829999999989,
+      33.1869999999999,
+      27.180000000000064,
+      30.0295000000001,
+      23.05009999999993,
+      20.920200000000023,
+      26.590400000000045,
+      26.9670000000001,
+      21.21730000000025
+    ],
+    "meanMs": 27.50050666666672,
+    "plan": [
+      {
+        "id": 7,
+        "parent": 0,
+        "notused": 62,
+        "detail": "SEARCH media_assets USING INDEX media_assets_ws_sha (workspace_id=?)"
+      },
+      {
+        "id": 41,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 3"
+      },
+      {
+        "id": 46,
+        "parent": 41,
+        "notused": 62,
+        "detail": "SEARCH jobs USING INDEX jobs_destination (workspace_id=? AND type=? AND state=?)"
+      },
+      {
+        "id": 92,
+        "parent": 41,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 1"
+      },
+      {
+        "id": 96,
+        "parent": 92,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 111,
+        "parent": 41,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 2"
+      },
+      {
+        "id": 116,
+        "parent": 111,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 146,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 6"
+      },
+      {
+        "id": 151,
+        "parent": 146,
+        "notused": 61,
+        "detail": "SEARCH jobs USING INDEX jobs_destination (workspace_id=? AND type=? AND state=?)"
+      },
+      {
+        "id": 184,
+        "parent": 146,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 4"
+      },
+      {
+        "id": 188,
+        "parent": 184,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 203,
+        "parent": 146,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 5"
+      },
+      {
+        "id": 208,
+        "parent": 203,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 236,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 9"
+      },
+      {
+        "id": 241,
+        "parent": 236,
+        "notused": 61,
+        "detail": "SEARCH jobs USING INDEX jobs_ws_state (workspace_id=? AND state=?)"
+      },
+      {
+        "id": 258,
+        "parent": 236,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 7"
+      },
+      {
+        "id": 262,
+        "parent": 258,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 277,
+        "parent": 236,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 8"
+      },
+      {
+        "id": 282,
+        "parent": 277,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 308,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 11"
+      },
+      {
+        "id": 313,
+        "parent": 308,
+        "notused": 62,
+        "detail": "SEARCH publication_history USING INDEX publication_history_ws_sha (workspace_id=?)"
+      },
+      {
+        "id": 322,
+        "parent": 308,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 10"
+      },
+      {
+        "id": 327,
+        "parent": 322,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 352,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 14"
+      },
+      {
+        "id": 357,
+        "parent": 352,
+        "notused": 60,
+        "detail": "SEARCH jobs USING INDEX jobs_destination (workspace_id=? AND type=? AND state=?)"
+      },
+      {
+        "id": 376,
+        "parent": 352,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 12"
+      },
+      {
+        "id": 380,
+        "parent": 376,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 395,
+        "parent": 352,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 13"
+      },
+      {
+        "id": 400,
+        "parent": 395,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 426,
+        "parent": 0,
+        "notused": 0,
+        "detail": "USE TEMP B-TREE FOR ORDER BY"
+      }
+    ]
+  },
+  {
+    "name": "ordered",
+    "rows": 60,
+    "samples": [
+      11.13359999999966,
+      8.700900000000274,
+      9.172100000000228,
+      11.00500000000011,
+      12.522800000000188,
+      13.297799999999825,
+      13.15059999999994,
+      12.840500000000247,
+      10.931299999999737,
+      8.349900000000162,
+      8.38819999999987,
+      8.291899999999714,
+      8.322899999999663,
+      8.564499999999953,
+      8.631200000000263
+    ],
+    "meanMs": 10.220213333333323,
+    "plan": [
+      {
+        "id": 7,
+        "parent": 0,
+        "notused": 62,
+        "detail": "SEARCH media_assets USING INDEX media_assets_ws_imported (workspace_id=?)"
+      },
+      {
+        "id": 32,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 3"
+      },
+      {
+        "id": 37,
+        "parent": 32,
+        "notused": 62,
+        "detail": "SEARCH jobs USING INDEX jobs_destination (workspace_id=? AND type=? AND state=?)"
+      },
+      {
+        "id": 83,
+        "parent": 32,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 1"
+      },
+      {
+        "id": 87,
+        "parent": 83,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 102,
+        "parent": 32,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 2"
+      },
+      {
+        "id": 107,
+        "parent": 102,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 137,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 6"
+      },
+      {
+        "id": 142,
+        "parent": 137,
+        "notused": 61,
+        "detail": "SEARCH jobs USING INDEX jobs_destination (workspace_id=? AND type=? AND state=?)"
+      },
+      {
+        "id": 175,
+        "parent": 137,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 4"
+      },
+      {
+        "id": 179,
+        "parent": 175,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 194,
+        "parent": 137,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 5"
+      },
+      {
+        "id": 199,
+        "parent": 194,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 227,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 9"
+      },
+      {
+        "id": 232,
+        "parent": 227,
+        "notused": 61,
+        "detail": "SEARCH jobs USING INDEX jobs_ws_state (workspace_id=? AND state=?)"
+      },
+      {
+        "id": 249,
+        "parent": 227,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 7"
+      },
+      {
+        "id": 253,
+        "parent": 249,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 268,
+        "parent": 227,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 8"
+      },
+      {
+        "id": 273,
+        "parent": 268,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 299,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 11"
+      },
+      {
+        "id": 304,
+        "parent": 299,
+        "notused": 62,
+        "detail": "SEARCH publication_history USING INDEX publication_history_ws_sha (workspace_id=?)"
+      },
+      {
+        "id": 313,
+        "parent": 299,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 10"
+      },
+      {
+        "id": 318,
+        "parent": 313,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      },
+      {
+        "id": 343,
+        "parent": 0,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 14"
+      },
+      {
+        "id": 348,
+        "parent": 343,
+        "notused": 60,
+        "detail": "SEARCH jobs USING INDEX jobs_destination (workspace_id=? AND type=? AND state=?)"
+      },
+      {
+        "id": 367,
+        "parent": 343,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 12"
+      },
+      {
+        "id": 371,
+        "parent": 367,
+        "notused": 0,
+        "detail": "SCAN json_each VIRTUAL TABLE INDEX 3:"
+      },
+      {
+        "id": 386,
+        "parent": 343,
+        "notused": 0,
+        "detail": "CORRELATED SCALAR SUBQUERY 13"
+      },
+      {
+        "id": 391,
+        "parent": 386,
+        "notused": 39,
+        "detail": "SEARCH remote_posts USING INDEX sqlite_autoindex_remote_posts_1 (id=?)"
+      }
+    ]
+  }
+]

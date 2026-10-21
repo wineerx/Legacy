@@ -2,6 +2,8 @@ import { AppError } from '@shared/errors'
 import type { PreparedCopy } from '../../media/publish-prep'
 import { quickTunnelHost } from './quick-tunnel'
 import type { ExposedMedia, MediaHost } from './types'
+import { pipelineConfig } from '../../pipeline-config'
+export class ExposureCapacityError extends AppError { constructor(){super('internal','Capacidade de transferência ocupada; a publicação aguardará na fila.')} }
 
 export const SHARE_TTL_MS = 15 * 60_000
 type Entry = { exposed: ExposedMedia; copy: PreparedCopy; startedAt: number }
@@ -29,6 +31,7 @@ export async function exposeForJob(jobId: string, prepare: () => Promise<Prepare
     const again = pending.get(jobId)
     if (again) return again
   }
+  if(active.size+pending.size>=pipelineConfig.uploadConcurrency) throw new ExposureCapacityError()
   const run = (async () => {
     const copy = await prepare()
     if (closing) { copy.cleanup(); throw new AppError('internal', SHUTTING_DOWN) }

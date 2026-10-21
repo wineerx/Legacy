@@ -7,9 +7,12 @@
   --color-line-strong: #4a4a4a;
   --color-fg: #ededed;
   --color-dim: #9a9a9a;
-  --color-mute: #8a8a8a;
+  --color-mute: #929292; /* 4.86:1 on raised (WCAG 1.4.3) */
+  /* Boundary of form fields: >= 3:1 against panel and app (WCAG 1.4.11). */
+  --color-control-border: #6b6b6b;
   --color-danger: #a04444;
   --color-danger-fg: #f2c9c9;
+  --color-danger-icon: #fca5a5;
   --color-ok: #4f9d69;
   --color-warn: #c9a24a;
   --radius-ctl: 8px;

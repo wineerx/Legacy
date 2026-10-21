@@ -91,6 +91,7 @@ export function GuestSessionProvider({ children }: { children: ReactNode }) {
                 size={128}
                 state="idle"
                 accessory="none"
+                interactive
                 decorative
               />
             </div>

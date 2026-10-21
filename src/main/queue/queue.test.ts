@@ -75,7 +75,7 @@ describe('fila', () => {
   it('recupera lease vencido após reinício e heartbeat estende', () => {
     enqueue(db, { workspaceId: ws, type: 'make_thumbnail', payload: {}, label: 'x' }, t0)
     const j = leaseNext(db, t0, 30_000)!
-    heartbeat(db, j.id, at(20_000), 30_000)
+    heartbeat(db, j.id, at(20_000), 30_000, j.leaseVersion)
     expect(recoverExpired(db, at(40_000))).toBe(0)
     expect(recoverExpired(db, at(51_000))).toBe(1)
     expect(leaseNext(db, at(51_000), 30_000)?.id).toBe(j.id)

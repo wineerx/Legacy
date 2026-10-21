@@ -3,13 +3,14 @@ import * as Primitive from '@radix-ui/react-collapsible'
 import { ChevronRight } from 'lucide-react'
 import { cx } from './cx'
 
-const OpenContext = createContext(false)
+const OpenContext = createContext({open:false,contentId:''})
 
 export const Collapsible = forwardRef<HTMLDivElement, ComponentProps<typeof Primitive.Root>>(
   function Collapsible({ open: controlledOpen, defaultOpen = false, onOpenChange, className, ...props }, ref) {
     const [localOpen, setLocalOpen] = useState(defaultOpen)
     const open = controlledOpen ?? localOpen
-    return <OpenContext.Provider value={open}>
+    const contentId=useId()
+    return <OpenContext.Provider value={{open,contentId}}>
       <Primitive.Root {...props} ref={ref} open={open} onOpenChange={value => {
         if (controlledOpen === undefined) setLocalOpen(value)
         onOpenChange?.(value)
@@ -20,7 +21,8 @@ export const Collapsible = forwardRef<HTMLDivElement, ComponentProps<typeof Prim
 
 export const CollapsibleTrigger = forwardRef<HTMLButtonElement, ComponentProps<typeof Primitive.Trigger>>(
   function CollapsibleTrigger({ className, ...props }, ref) {
-    return <Primitive.Trigger {...props} ref={ref} className={cx('collapsible-trigger', className)} />
+    const {contentId}=useContext(OpenContext)
+    return <Primitive.Trigger {...props} aria-controls={contentId} ref={ref} className={cx('collapsible-trigger', className)} />
   }
 )
 
@@ -30,18 +32,17 @@ type ContentProps = Omit<ComponentProps<typeof Primitive.Content>, 'asChild' | '
 
 export const CollapsibleContent = forwardRef<HTMLDivElement, ContentProps>(
   function CollapsibleContent({ className, bodyClassName, children, ...props }, ref) {
-    const open = useContext(OpenContext)
-    // Keep form values mounted and animate an inner grid: Radix temporarily disables
-    // transitions on its own node while measuring. The grid also handles dynamic
-    // content heights and reverses smoothly when the trigger is clicked rapidly.
-    return <Primitive.Content {...props} ref={ref} forceMount inert={!open} aria-hidden={!open}
+    const {open,contentId} = useContext(OpenContext)
+    // CSS grid already animates dynamic heights with the form kept mounted.
+    // A plain content node avoids Radix's synchronous style/height measurements.
+    return <div {...props} id={contentId} ref={ref} data-state={open?'open':'closed'} inert={!open} aria-hidden={!open}
       className={cx('collapsible-content', className)}>
       <div className="collapsible-height" data-state={open ? 'open' : 'closed'}>
         <div className="collapsible-clip">
           <div className={cx('collapsible-body', bodyClassName)}>{children}</div>
         </div>
       </div>
-    </Primitive.Content>
+    </div>
   }
 )
 

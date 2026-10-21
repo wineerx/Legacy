@@ -1,0 +1,1 @@
+ALTER TABLE `publication_containers` ADD `trial_graduation` text;

@@ -5,6 +5,7 @@ import { Button, SettingRow, Toggle, Select, useToast } from '../../components/u
 import type { PageProps } from '../../routes'
 import { IntegrationPanel } from './IntegrationPanel'
 import { UpdatePanel } from './UpdatePanel'
+import { PeakWindowsPanel } from './PeakWindowsPanel'
 import { BrandPanel } from '../../components/brand/BrandPanel'
 
 type Key = 'minimizeToTray' | 'stripMetadataDefault'
@@ -61,6 +62,7 @@ export function SettingsPage(_: PageProps) {
         </ul>
       </section>
       <BrandPanel />
+      <PeakWindowsPanel />
       <IntegrationPanel />
       <UpdatePanel />
     </div>

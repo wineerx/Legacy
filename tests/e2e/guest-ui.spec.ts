@@ -111,7 +111,7 @@ test('sessão local bloqueia tarefas antes da entrada, pausa ao sair e reinicia 
       .toBe('failed')
     await page.getByRole('button', { name: 'Menu do usuário' }).click()
     await expect(page.getByText('guest@legacy.com').first()).toBeVisible()
-    await page.getByRole('button', { name: 'Sair do Legacy' }).click()
+    await page.getByRole('button', { name: 'Sair', exact: true }).click()
     await expect(
       page.getByRole('heading', { name: 'Entrar no Legacy' })
     ).toBeVisible()
