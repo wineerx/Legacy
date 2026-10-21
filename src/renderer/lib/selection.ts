@@ -25,7 +25,7 @@ export const isSelected = (s: Selection, id: string): boolean => (s.mode === 'al
 
 export function selectionLabel(s: Selection): string {
   if (s.mode === 'all') return `Todos os ${s.total} resultados filtrados`
-  return s.ids.size === 0 ? 'Nenhum selecionado' : `${s.ids.size} selecionados (nesta página)`
+  return s.ids.size === 0 ? 'Nenhum selecionado' : s.ids.size === 1 ? '1 selecionado' : `${s.ids.size} selecionados`
 }
 
 export async function resolveSelectedIds(s: Selection, q: Omit<GridQuery, 'limit' | 'offset'>): Promise<string[]> {
@@ -43,3 +43,12 @@ let composeIds: string[] = []
 export const setComposeSelection = (ids: string[]): void => { composeIds = ids }
 export const peekComposeSelection = (): string[] => composeIds
 export const clearComposeSelection = (): void => { composeIds = [] }
+
+let libraryFocus: { workspaceId: string; assetId?: string; publicationJobId?: string } | null = null
+export const focusLibraryAsset = (workspaceId: string, assetId: string) => { libraryFocus = { workspaceId, assetId } }
+export const focusLibraryPublication = (workspaceId: string, publicationJobId: string) => { libraryFocus = { workspaceId, publicationJobId } }
+export const takeLibraryFocus = (workspaceId: string) => { const result = libraryFocus?.workspaceId === workspaceId ? libraryFocus : undefined; libraryFocus = null; return result }
+
+let queueFocus: { workspaceId: string; taskId: string } | null = null
+export const focusQueueTask = (workspaceId: string, taskId: string) => { queueFocus = { workspaceId, taskId }; window.dispatchEvent(new Event('legacy:queue-focus')) }
+export const takeQueueFocus = (workspaceId: string) => { const result = queueFocus?.workspaceId === workspaceId ? queueFocus.taskId : null; queueFocus = null; return result }

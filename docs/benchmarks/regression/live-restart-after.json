@@ -1,0 +1,293 @@
+{
+  "job": {
+    "id": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+    "state": "done",
+    "lease_version": 3,
+    "attempts": 1,
+    "run_at": "2026-10-07T23:32:09.991Z",
+    "result_json": "{\"mediaProcessingId\":\"3ab08a39-3eb1-42ba-96b9-d07bf26d29b1:media:1ef321f33eac2f210791743abdeebc9e9ba71857cddb82311e9d68d726b41f00\",\"stage\":\"CONFIRMED\",\"stageAt\":\"2026-10-07T23:32:15.800Z\",\"uploadId\":\"3ab08a39-3eb1-42ba-96b9-d07bf26d29b1:upload\",\"creating\":true,\"hostId\":\"cloudflare-quick-tunnel\",\"exposedAt\":\"2026-10-07T23:31:36.085Z\",\"containerId\":\"18138891721570003\",\"firstPollAt\":\"2026-10-07T23:31:37.778Z\",\"publishing\":true,\"mediaId\":\"18088380992697596\",\"confirmedPublished\":true,\"cleanupState\":\"kept\"}",
+    "last_error": null
+  },
+  "events": [
+    {
+      "traceId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "batchId": "3def2591-3006-4710-995d-6b364bdd648e",
+      "mediaId": "a00e7319-aea4-479b-8e85-acbd0539fe46",
+      "accountId": "17841417100073745",
+      "metadata": {
+        "maxAttempts": 24
+      },
+      "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+      "taskId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "attempt": 1,
+      "source": "worker",
+      "provider": "Instagram",
+      "level": "INFO",
+      "message": "Processando: Publicar reel em @365jonvlogs",
+      "id": "0687204d-54d6-43b3-8d1e-4b54d29088e0",
+      "timestamp": "2026-10-07T23:31:53.840Z"
+    },
+    {
+      "traceId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "batchId": "3def2591-3006-4710-995d-6b364bdd648e",
+      "mediaId": "a00e7319-aea4-479b-8e85-acbd0539fe46",
+      "accountId": "17841417100073745",
+      "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+      "taskId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "attempt": 1,
+      "source": "network",
+      "provider": "Instagram",
+      "level": "INFO",
+      "endpoint": "/v25.0/18138891721570003",
+      "method": "GET",
+      "requestId": "5e9a1fd8-d197-4e46-9703-280b9bc91e28",
+      "statusCode": 200,
+      "duration": 1142,
+      "message": "Instagram · HTTP 200",
+      "id": "1054b8d5-d541-43e5-b51f-2b04bffac209",
+      "timestamp": "2026-10-07T23:31:54.990Z"
+    },
+    {
+      "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+      "taskId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "source": "lease",
+      "level": "DEBUG",
+      "message": "defer: accepted",
+      "metadata": {
+        "workerId": "worker-112540",
+        "expectedLease": 2,
+        "actualLease": 2,
+        "operation": "defer",
+        "accepted": true,
+        "state": "queued",
+        "nextRunAt": "2026-10-07T23:32:09.991Z"
+      },
+      "id": "274ed9e8-694e-4d00-b5f1-64ac3e5a0dce",
+      "timestamp": "2026-10-07T23:31:54.992Z"
+    },
+    {
+      "traceId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "batchId": "3def2591-3006-4710-995d-6b364bdd648e",
+      "mediaId": "a00e7319-aea4-479b-8e85-acbd0539fe46",
+      "accountId": "17841417100073745",
+      "metadata": {
+        "maxAttempts": 24
+      },
+      "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+      "taskId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "attempt": 1,
+      "source": "worker",
+      "provider": "Instagram",
+      "level": "INFO",
+      "message": "Processando: Publicar reel em @365jonvlogs",
+      "id": "cbf8bfdb-7d08-47b0-9522-e9c45cc783bc",
+      "timestamp": "2026-10-07T23:32:10.028Z"
+    },
+    {
+      "traceId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "batchId": "3def2591-3006-4710-995d-6b364bdd648e",
+      "mediaId": "a00e7319-aea4-479b-8e85-acbd0539fe46",
+      "accountId": "17841417100073745",
+      "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+      "taskId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "attempt": 1,
+      "source": "network",
+      "provider": "Instagram",
+      "level": "INFO",
+      "endpoint": "/v25.0/18138891721570003",
+      "method": "GET",
+      "requestId": "13e25de7-d56d-45ff-86e6-cc9543ca85de",
+      "statusCode": 200,
+      "duration": 317,
+      "message": "Instagram · HTTP 200",
+      "id": "06bf5de1-945b-45bf-a25a-8d37e798ec33",
+      "timestamp": "2026-10-07T23:32:10.347Z"
+    },
+    {
+      "traceId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "batchId": "3def2591-3006-4710-995d-6b364bdd648e",
+      "mediaId": "a00e7319-aea4-479b-8e85-acbd0539fe46",
+      "accountId": "17841417100073745",
+      "metadata": {
+        "previousStage": "PROVIDER_PROCESSING"
+      },
+      "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+      "taskId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "attempt": 1,
+      "source": "publication",
+      "provider": "Instagram",
+      "level": "INFO",
+      "message": "PUBLISHING",
+      "duration": 32570,
+      "id": "fb813027-102e-47a7-98a7-3f85dd14d615",
+      "timestamp": "2026-10-07T23:32:10.348Z"
+    },
+    {
+      "traceId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "batchId": "3def2591-3006-4710-995d-6b364bdd648e",
+      "mediaId": "a00e7319-aea4-479b-8e85-acbd0539fe46",
+      "accountId": "17841417100073745",
+      "metadata": {
+        "workerId": "worker-112540",
+        "expectedLease": 3,
+        "actualLease": 3,
+        "operation": "save checkpoint",
+        "accepted": true,
+        "state": "running",
+        "nextRunAt": "2026-10-07T23:32:09.991Z"
+      },
+      "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+      "taskId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "attempt": 1,
+      "source": "lease",
+      "provider": "Instagram",
+      "level": "DEBUG",
+      "message": "save checkpoint: accepted",
+      "id": "979aafd1-c065-4fe1-9f18-164fa7cf922f",
+      "timestamp": "2026-10-07T23:32:10.349Z"
+    },
+    {
+      "traceId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "batchId": "3def2591-3006-4710-995d-6b364bdd648e",
+      "mediaId": "a00e7319-aea4-479b-8e85-acbd0539fe46",
+      "accountId": "17841417100073745",
+      "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+      "taskId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "attempt": 1,
+      "source": "network",
+      "provider": "Instagram",
+      "level": "WARN",
+      "endpoint": "/v25.0/17841417100073745/media_publish",
+      "method": "POST",
+      "requestId": "9b77cdaa-5db0-4142-8669-8531a6f593f1",
+      "statusCode": 200,
+      "duration": 5449,
+      "message": "Instagram · HTTP 200",
+      "id": "a765c071-a6a5-4ded-8474-a3ddf5b69507",
+      "timestamp": "2026-10-07T23:32:15.798Z"
+    },
+    {
+      "traceId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "batchId": "3def2591-3006-4710-995d-6b364bdd648e",
+      "mediaId": "a00e7319-aea4-479b-8e85-acbd0539fe46",
+      "accountId": "17841417100073745",
+      "metadata": {
+        "previousStage": "PUBLISHING"
+      },
+      "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+      "taskId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "attempt": 1,
+      "source": "publication",
+      "provider": "Instagram",
+      "level": "INFO",
+      "message": "WAITING_CONFIRMATION",
+      "duration": 5451,
+      "id": "00dd710a-548f-4671-9c94-9294f3bd312f",
+      "timestamp": "2026-10-07T23:32:15.799Z"
+    },
+    {
+      "traceId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "batchId": "3def2591-3006-4710-995d-6b364bdd648e",
+      "mediaId": "a00e7319-aea4-479b-8e85-acbd0539fe46",
+      "accountId": "17841417100073745",
+      "metadata": {
+        "workerId": "worker-112540",
+        "expectedLease": 3,
+        "actualLease": 3,
+        "operation": "save checkpoint",
+        "accepted": true,
+        "state": "running",
+        "nextRunAt": "2026-10-07T23:32:09.991Z"
+      },
+      "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+      "taskId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "attempt": 1,
+      "source": "lease",
+      "provider": "Instagram",
+      "level": "DEBUG",
+      "message": "save checkpoint: accepted",
+      "id": "839da097-c7f1-4fc3-ae2b-47a9b1d0028a",
+      "timestamp": "2026-10-07T23:32:15.800Z"
+    },
+    {
+      "traceId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "batchId": "3def2591-3006-4710-995d-6b364bdd648e",
+      "mediaId": "a00e7319-aea4-479b-8e85-acbd0539fe46",
+      "accountId": "17841417100073745",
+      "metadata": {
+        "previousStage": "WAITING_CONFIRMATION"
+      },
+      "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+      "taskId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "attempt": 1,
+      "source": "publication",
+      "provider": "Instagram",
+      "level": "INFO",
+      "message": "CONFIRMED",
+      "duration": 1,
+      "id": "9a1f07cf-90b3-4d1c-8f4b-8991fff12ec3",
+      "timestamp": "2026-10-07T23:32:15.800Z"
+    },
+    {
+      "traceId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "batchId": "3def2591-3006-4710-995d-6b364bdd648e",
+      "mediaId": "a00e7319-aea4-479b-8e85-acbd0539fe46",
+      "accountId": "17841417100073745",
+      "metadata": {
+        "workerId": "worker-112540",
+        "expectedLease": 3,
+        "actualLease": 3,
+        "operation": "save checkpoint",
+        "accepted": true,
+        "state": "running",
+        "nextRunAt": "2026-10-07T23:32:09.991Z"
+      },
+      "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+      "taskId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "attempt": 1,
+      "source": "lease",
+      "provider": "Instagram",
+      "level": "DEBUG",
+      "message": "save checkpoint: accepted",
+      "id": "c1ab2ebd-23d8-4288-bd2d-c1e6f6e12f3d",
+      "timestamp": "2026-10-07T23:32:15.800Z"
+    },
+    {
+      "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+      "taskId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "source": "lease",
+      "level": "DEBUG",
+      "message": "complete: accepted",
+      "metadata": {
+        "workerId": "worker-112540",
+        "expectedLease": 3,
+        "actualLease": 3,
+        "operation": "complete",
+        "accepted": true,
+        "state": "done",
+        "nextRunAt": "2026-10-07T23:32:09.991Z"
+      },
+      "id": "0d3f1d81-7e04-4ab1-a210-3f31805e0d8e",
+      "timestamp": "2026-10-07T23:32:15.802Z"
+    },
+    {
+      "traceId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "batchId": "3def2591-3006-4710-995d-6b364bdd648e",
+      "mediaId": "a00e7319-aea4-479b-8e85-acbd0539fe46",
+      "accountId": "17841417100073745",
+      "metadata": {
+        "maxAttempts": 24
+      },
+      "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+      "taskId": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+      "attempt": 1,
+      "source": "worker",
+      "provider": "Instagram",
+      "level": "SUCCESS",
+      "message": "Confirmado: Publicar reel em @365jonvlogs",
+      "id": "d3954314-cf70-4c05-bcaa-0d76bc73ed09",
+      "timestamp": "2026-10-07T23:32:15.803Z"
+    }
+  ],
+  "restarted": true
+}

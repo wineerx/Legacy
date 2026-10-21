@@ -76,29 +76,41 @@ function toMinutes(t: string): number {
   return h * 60 + m
 }
 
-function fromMinutes(m: number): string {
-  return `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`
+export interface WindowOccurrence { index: number; date: string; start: number; end: number }
+/**
+ * Concrete UTC bounds of each daily window between two local dates, in chronological order.
+ * `end <= start` crosses midnight and belongs to the start day. Nonexistent wall times (DST gap)
+ * advance to the next valid minute, as zonedToUtc does.
+ */
+export function windowOccurrences(windows: { start: string; end: string; weekdays: number[] }[], timeZone: string, fromDate: string, toDate: string): WindowOccurrence[] {
+  const result: WindowOccurrence[] = []
+  for (let date = fromDate; date <= toDate; date = addDays(date, 1)) {
+    const day = weekday(date)
+    windows.forEach((w, index) => {
+      if (!w.weekdays.includes(day)) return
+      const crosses = toMinutes(w.end) <= toMinutes(w.start)
+      const start = zonedToUtc(date, w.start, timeZone).getTime(), end = zonedToUtc(crosses ? addDays(date, 1) : date, w.end, timeZone).getTime()
+      if (end > start) result.push({ index, date, start, end })
+    })
+  }
+  return result.sort((a, b) => a.start - b.start || a.index - b.index)
 }
 
 export function planSlots(input: PlanInput): PlanResult {
   if (!(input.minIntervalMin >= 1)) throw new AppError('invalid_input', 'O intervalo mínimo precisa ser de pelo menos 1 minuto.')
   if (!(input.maxPerDay >= 1)) throw new AppError('invalid_input', 'O máximo por dia precisa ser pelo menos 1.')
-  const slots: string[] = []
-  const lastDate = input.endDate ?? addDays(input.startDate, 365)
+  const slots: string[] = [], perDay = new Map<string, number>()
+  const gap = input.minIntervalMin * MIN
   let last = -Infinity
-  for (let date = input.startDate; date <= lastDate && slots.length < input.count; date = addDays(date, 1)) {
-    if (!input.weekdays.includes(weekday(date))) continue
-    let perDay = 0
-    for (const w of input.windows) {
-      for (let m = toMinutes(w.start); m < toMinutes(w.end); m += input.minIntervalMin) {
-        if (perDay >= input.maxPerDay || slots.length >= input.count) break
-        const utc = zonedToUtc(date, fromMinutes(m), input.timeZone).getTime()
-        if (utc < input.now.getTime() || utc < last + input.minIntervalMin * MIN) continue
-        slots.push(new Date(utc).toISOString())
-        last = utc
-        perDay++
-      }
+  // Same occurrences as the peak-window planner: midnight-crossing windows count for the day they start.
+  for (const o of windowOccurrences(input.windows.map(w => ({ ...w, weekdays: input.weekdays })), input.timeZone, input.startDate, input.endDate ?? addDays(input.startDate, 365))) {
+    for (let utc = o.start; utc < o.end && slots.length < input.count; utc += gap) {
+      if ((perDay.get(o.date) ?? 0) >= input.maxPerDay) break
+      if (utc < input.now.getTime() || utc < last + gap) continue
+      slots.push(new Date(utc).toISOString()); last = utc
+      perDay.set(o.date, (perDay.get(o.date) ?? 0) + 1)
     }
+    if (slots.length >= input.count) break
   }
   return { slots, unplaced: input.count - slots.length }
 }

@@ -9,7 +9,7 @@ import { enqueue, leaseNext, complete } from '../queue/queue'
 import type { Ctx } from '../context'
 import { setRemoteFavorite } from '../repos/remote-posts'
 import { remotePosts } from '../db/schema'
-import { eq } from 'drizzle-orm'
+import { eq, sql } from 'drizzle-orm'
 import type { GridQuery } from '@shared/types'
 
 let ctx: Ctx
@@ -132,6 +132,14 @@ describe('queryGrid library', () => {
     mk('d1', ws, { durationMs: 5000 }); mk('d2', ws, { durationMs: 9000 })
     const page = queryGrid(ctx.db, base({ source: 'library', profileId: undefined, sortBy: 'durationMs' }))
     expect(page.items.map((i) => i.id)).toEqual(['d2', 'd1'])
+  })
+  it('paginação por importação mantém desempate e permite usar o índice sem ordenar toda a biblioteca', () => {
+    for(let i=0;i<100;i++) mk(`ordered-${String(i).padStart(3,'0')}`,ws)
+    const input=base({source:'library',profileId:undefined,sortBy:'importedAt',limit:25,offset:25})
+    expect(queryGrid(ctx.db,input).items.map(i=>i.id)).toEqual(Array.from({length:25},(_,i)=>`ordered-${String(i+25).padStart(3,'0')}`))
+    const plan=ctx.db.all(sql`EXPLAIN QUERY PLAN SELECT id FROM media_assets WHERE workspace_id=${ws} ORDER BY imported_at DESC,id LIMIT 25 OFFSET 25`) as {detail:string}[]
+    expect(plan.some(p=>p.detail.includes('media_assets_ws_imported'))).toBe(true)
+    expect(plan.some(p=>p.detail.includes('TEMP B-TREE'))).toBe(false)
   })
   it('filtro de métrica esvazia, total filtrado e nota', () => {
     mk('m1', ws)

@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto'
-import { createReadStream } from 'node:fs'
+import { createReadStream, rmSync } from 'node:fs'
 import { copyFile, lstat, mkdir, rm } from 'node:fs/promises'
 import { basename, dirname, extname, join } from 'node:path'
 import { AppError } from '@shared/errors'
@@ -9,7 +9,7 @@ import { workspaceDir, resolveInside } from '../paths'
 import { probe } from '../media/probe'
 import { validateForReels } from '../media/validate'
 import { enqueue } from '../queue/queue'
-import { insertAsset, findAssetBySha, getAsset, deleteAssetRow } from '../repos/assets'
+import { insertAsset, findAssetBySha, getAsset, deleteAssetRow, assetInContainer } from '../repos/assets'
 import { videoStorage } from './storage'
 
 export type ImportResult = { path: string; status: 'imported' | 'duplicate' | 'rejected'; assetId?: string; errors: string[]; warnings: string[] }
@@ -33,7 +33,7 @@ export function storedAssetDir(ctx: Ctx, workspaceId: string, assetId: string): 
   return dirname(asset.filePath)
 }
 
-type Provenance = { origin: 'ig_third_party'; rightsNote: string }
+type Provenance = { origin: 'ig_third_party' | 'tiktok_third_party'; rightsNote: string }
 
 async function importOne(ctx: Ctx, workspaceId: string, path: string, provenance?: Provenance): Promise<ImportResult> {
   const ext = extname(path).toLowerCase()
@@ -95,8 +95,11 @@ export async function importFiles(ctx: Ctx, workspaceId: string, paths: string[]
 }
 
 export async function deleteAsset(ctx: Ctx, workspaceId: string, id: string): Promise<void> {
-  if (!getAsset(ctx.db, workspaceId, id)) throw new AppError('not_found', 'Vídeo não encontrado.')
-  const dir = storedAssetDir(ctx, workspaceId, id)
-  await rm(dir, { recursive: true, force: true })
-  deleteAssetRow(ctx.db, workspaceId, id)
+  ctx.db.transaction(() => {
+    if (!getAsset(ctx.db, workspaceId, id)) throw new AppError('not_found', 'Vídeo não encontrado.')
+    if (assetInContainer(ctx.db,workspaceId,id)) throw new AppError('invalid_input','Vídeo em uso por um Container.')
+    const dir = storedAssetDir(ctx, workspaceId, id)
+    rmSync(dir, { recursive: true, force: true })
+    deleteAssetRow(ctx.db, workspaceId, id)
+  },{behavior:'immediate'})
 }

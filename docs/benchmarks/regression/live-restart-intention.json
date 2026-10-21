@@ -1,0 +1,13 @@
+{
+  "id": "3ab08a39-3eb1-42ba-96b9-d07bf26d29b1",
+  "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+  "type": "publish_instagram",
+  "state": "queued",
+  "attempts": 0,
+  "maxAttempts": 24,
+  "runAt": "2026-10-07T23:33:24.287Z",
+  "lastError": null,
+  "label": "Publicar reel em @365jonvlogs",
+  "createdAt": "2026-10-07T23:31:24.300Z",
+  "updatedAt": "2026-10-07T23:31:24.300Z"
+}

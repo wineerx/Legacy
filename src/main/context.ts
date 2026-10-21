@@ -1,2 +1,2 @@
 import type { Db } from './db/client'
-export interface Ctx { db: Db; dataRoot: string; clock: () => Date; secret?(workspaceId: string, key: 'apifyToken' | 'webhookSecret' | 'instagramToken'): string | null }
+export interface Ctx { db: Db; dataRoot: string; clock: () => Date; renderVisual?:import('@shared/visual-raster').RasterizeVisual; secret?(workspaceId: string, key: import('./services/integrations').SecretKey): string | null }

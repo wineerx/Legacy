@@ -18,7 +18,12 @@ jobs:
           node-version: '24'
           cache: npm
       - run: npm ci
+      - uses: actions/cache@v4
+        with:
+          path: resources/bin/win32-x64
+          key: bin-${{ runner.os }}-${{ hashFiles('scripts/fetch-ffmpeg.mjs', 'scripts/fetch-cloudflared.mjs') }}
       - run: npm run fetch:ffmpeg
+      - run: npm run fetch:cloudflared
       - run: npm run typecheck
       - run: npm test -- --maxWorkers=2
       - run: npm run build
@@ -31,4 +36,5 @@ jobs:
             dist/Legacy-Setup-*.exe
             dist/*.blockmap
             dist/latest.yml
+            out/main/build-info.json
           retention-days: 14

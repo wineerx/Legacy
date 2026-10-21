@@ -1,0 +1,363 @@
+{
+  "now": "2026-10-07T22:03:11.857Z",
+  "file": "C:\\Users\\noob7\\AppData\\Roaming\\legacy\\legacy.sqlite",
+  "counts": [
+    {
+      "type": "apply_banner",
+      "state": "done",
+      "n": 164
+    },
+    {
+      "type": "apply_banner",
+      "state": "failed",
+      "n": 13
+    },
+    {
+      "type": "download_reel",
+      "state": "cancelled",
+      "n": 3
+    },
+    {
+      "type": "download_reel",
+      "state": "done",
+      "n": 477
+    },
+    {
+      "type": "export_tiktok",
+      "state": "done",
+      "n": 3
+    },
+    {
+      "type": "fetch_profile",
+      "state": "cancelled",
+      "n": 2
+    },
+    {
+      "type": "fetch_profile",
+      "state": "done",
+      "n": 38
+    },
+    {
+      "type": "make_thumbnail",
+      "state": "cancelled",
+      "n": 1
+    },
+    {
+      "type": "make_thumbnail",
+      "state": "done",
+      "n": 477
+    },
+    {
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "n": 144
+    },
+    {
+      "type": "publish_instagram",
+      "state": "done",
+      "n": 86
+    },
+    {
+      "type": "publish_instagram",
+      "state": "failed",
+      "n": 7
+    }
+  ],
+  "eligible": {
+    "n": 0
+  },
+  "jobs": [
+    {
+      "id": "53131548-ca89-45ad-8031-6006db3b678b",
+      "type": "publish_instagram",
+      "state": "failed",
+      "run_at": "2026-10-07T21:50:21.031Z",
+      "attempts": 1,
+      "lease_until": null,
+      "lease_version": 1,
+      "last_error": "Processamento falhou (código 3752568763): [vost#0:0/h264_mf @ 000001526043acc0] [enc:h264_mf @ 0000015260423d00] Could not open encoder before EOF | [vost#0:0/h264_mf @ 000001526043acc0] Task finished with error code: -22 (Invalid argument) | [vost#0:0/h264_mf @ 000001526043acc0] Terminating thread with return code -22 (Invalid argument) | [out#0/mp4 @ 00000152603cad00] Nothing was written into output file, because at least one of its streams received no packets.",
+      "result_json": "{\"mediaProcessingId\":\"53131548-ca89-45ad-8031-6006db3b678b:media:ea5bedde-2cc4-40e6-ad8b-68948f7308cc\",\"stage\":\"PREPARING_MEDIA\",\"stageAt\":\"2026-10-07T21:50:21.834Z\"}",
+      "accountId": "17841417100073745",
+      "accountRevision": "9da43804-8ff2-495d-8414-a51da8f276cf"
+    },
+    {
+      "id": "e00a5029-2abb-4b6e-bd62-1cd848ff7c66",
+      "type": "publish_instagram",
+      "state": "failed",
+      "run_at": "2026-10-07T21:48:52.178Z",
+      "attempts": 1,
+      "lease_until": null,
+      "lease_version": 1,
+      "last_error": "Processamento falhou (código 3752568763): [vost#0:0/h264_mf @ 000001a2f86300c0] [enc:h264_mf @ 000001a2f66d1340] Could not open encoder before EOF | [vost#0:0/h264_mf @ 000001a2f86300c0] Task finished with error code: -22 (Invalid argument) | [vost#0:0/h264_mf @ 000001a2f86300c0] Terminating thread with return code -22 (Invalid argument) | [out#0/mp4 @ 000001a2f6675a00] Nothing was written into output file, because at least one of its streams received no packets.",
+      "result_json": "{\"mediaProcessingId\":\"e00a5029-2abb-4b6e-bd62-1cd848ff7c66:media:8bce03eb-2694-4fc4-bd1e-af06f1e1b75c\",\"stage\":\"PREPARING_MEDIA\",\"stageAt\":\"2026-10-07T21:48:52.774Z\"}",
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "45295f4e-2293-49c5-af7a-c8b828616d5b",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T05:54:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "d412ad73-09d1-4e9f-a63e-9750608e15e8",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T06:09:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "5870d1a2-186c-4b64-9730-71cd6b27d4ad",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T05:24:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "179c22e5-bb6c-4c81-9626-1b33782aec09",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T05:39:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "abeafe61-080a-4198-a83f-24867f930c17",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T04:54:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "dfd8629c-d60b-43ed-b240-d106caede423",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T05:09:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "62ba9ae9-7823-4399-930b-3237aa9893cd",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T04:39:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "7fcfe6a6-e149-4825-9295-ac892dfa2e34",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T04:24:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "e12fa62b-a619-4281-9f00-0d4ba4634521",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T03:54:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "8e31ed15-e42e-41b2-8641-37953d6831f6",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T04:09:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "3d224959-79ad-4371-b7c6-52bffb1fb3b2",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T03:24:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "792e33bb-e038-4ca2-8f77-6bd3a6468094",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T03:39:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "269bb237-df03-4faf-a2fa-6b24925fda4e",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T02:54:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "d0b022ad-de9a-4a53-a21b-050e32ee65c9",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T03:09:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "684c8f75-ac7d-4fb9-a868-ae440e87eed1",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T02:24:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "1baa4409-a260-458e-abff-0d93092081ab",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T02:39:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "20f49059-c775-4fd9-95cd-efa08b68f62c",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T01:54:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "id": "d56e787d-f479-4336-bf5a-95d73e01050f",
+      "type": "publish_instagram",
+      "state": "cancelled",
+      "run_at": "2026-10-08T02:09:00.000Z",
+      "attempts": 0,
+      "lease_until": null,
+      "lease_version": 0,
+      "last_error": null,
+      "result_json": null,
+      "accountId": "17841425835816569",
+      "accountRevision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    }
+  ],
+  "accounts": [
+    {
+      "provider": "instagram",
+      "provider_id": "17841425835816569",
+      "username": "365spiders",
+      "state": "connected",
+      "revision": "a6795c97-c6b1-4902-8ecc-88b0bdda4d4c"
+    },
+    {
+      "provider": "instagram",
+      "provider_id": "17841417100073745",
+      "username": "365jonvlogs",
+      "state": "connected",
+      "revision": "9da43804-8ff2-495d-8414-a51da8f276cf"
+    }
+  ],
+  "secretKeys": [
+    {
+      "key": "secret.instagramToken",
+      "present": 1
+    },
+    {
+      "key": "secret.instagramToken:17841425835816569",
+      "present": 1
+    },
+    {
+      "key": "secret.instagramToken:17841417100073745",
+      "present": 1
+    }
+  ],
+  "limits": [],
+  "walBytes": 3032352
+}

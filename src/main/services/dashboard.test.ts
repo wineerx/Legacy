@@ -4,7 +4,7 @@ import { memDb } from '../test-utils'
 import { createWorkspace } from '../repos/workspaces'
 import { addProfileFromUrl } from '../repos/profiles'
 import { addReelLink } from '../repos/remote-posts'
-import { remotePosts } from '../db/schema'
+import { jobs, remotePosts } from '../db/schema'
 import { enqueue } from '../queue/queue'
 import { addNotification, dueUnshown, markAllRead } from '../repos/notifications'
 import { dashboard } from './dashboard'
@@ -37,4 +37,29 @@ it('isola indicadores e ranqueia só métricas conhecidas preservando zeros', ()
   expect(dueUnshown(ctx.db, ctx.clock())).toHaveLength(1)
   markAllRead(ctx.db, ws, ctx.clock())
   expect(dueUnshown(ctx.db, ctx.clock())).toEqual([])
+})
+
+it('analytics agrupa por dia local, isola workspaces e não inventa métricas', () => {
+  const ctx = { db: memDb(), dataRoot: 'unused', clock: () => new Date('2026-10-05T12:00:00Z') }
+  const ws = createWorkspace(ctx.db, { name: 'A', timeZone: 'America/Sao_Paulo' }).id
+  const other = createWorkspace(ctx.db, { name: 'B', timeZone: 'UTC' }).id
+  const p = addProfileFromUrl(ctx, ws, '@example')
+  const [known, unknown] = ['ABCDE', 'ABCDF'].map((code) => addReelLink(ctx, ws, p.id, `https://instagram.com/reel/${code}/`))
+  ctx.db.update(remotePosts).set({ views: 50, likes: 5 }).where(eq(remotePosts.id, known.id)).run()
+  const q = addProfileFromUrl(ctx, other, '@secret')
+  const hidden = addReelLink(ctx, other, q.id, 'https://instagram.com/reel/ABCDG/')
+  ctx.db.update(remotePosts).set({ views: 9999 }).where(eq(remotePosts.id, hidden.id)).run()
+  // 02:00 UTC on the 5th is still the 4th in São Paulo.
+  enqueue(ctx.db, { workspaceId: ws, type: 'fetch_profile', payload: {}, label: 'Falhou' }, new Date('2026-10-05T02:00:00Z'))
+  ctx.db.update(jobs).set({ state: 'failed', updatedAt: '2026-10-05T02:00:00.000Z' }).where(eq(jobs.workspaceId, ws)).run()
+  const a = dashboard(ctx, ws).analytics
+  expect(a.activity).toHaveLength(14)
+  expect(a.activity.at(-1)!.day).toBe('2026-10-05')
+  expect(a.activity.find(d => d.day === '2026-10-04')!.failed).toBe(1)
+  expect(a.activity.reduce((n, d) => n + d.published + d.imported, 0)).toBe(0)
+  expect(a.jobTypes).toEqual([{ type: 'fetch_profile', done: 0, failed: 1, total: 1 }])
+  expect(a.topPosts.map(t => t.id)).toEqual([known.id])
+  expect(a.topPosts[0]).toMatchObject({ views: 50, likes: 5, comments: null })
+  expect(a.topPosts.some(t => t.id === unknown.id)).toBe(false)
+  expect(JSON.stringify(a)).not.toContain('9999')
 })

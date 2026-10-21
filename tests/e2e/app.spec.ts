@@ -14,11 +14,20 @@ test.beforeAll(async () => {
   execFileSync(resolve('resources/bin/win32-x64/ffmpeg.exe'), ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=360x640:rate=30:duration=4', '-f', 'lavfi', '-i', 'sine=frequency=440:duration=4', '-c:v', 'libopenh264', '-c:a', 'aac', '-shortest', video])
   app = await electron.launch({
     executablePath: resolve('node_modules/electron/dist/electron.exe'),
-    args: [resolve('out/main/index.js')],
+    // Own Chromium profile: never share (or lock) the default profile of an app the user has open.
+    args: [resolve('out/main/index.js'), '--user-data-dir=' + join(dataDir, 'chromium')],
     env: { ...process.env, APIFY_TOKEN: '', LEGACY_DISABLE_DESKTOP_NOTIFICATIONS: '1', LEGACY_DATA_DIR: join(dataDir, 'data') }
   })
   page = await app.firstWindow()
+  await page.getByRole('button',{name:'Entrar como visitante',exact:true}).click()
+  // IPC is gated until the guest session is active; the shell heading marks that point.
+  await expect(page.getByRole('heading', { name: 'Visão geral' })).toBeVisible()
 })
+/** The first-steps popover opens over the sidebar after entry; close it before navigating by clicks. */
+async function closeFirstSteps() {
+  const close = page.getByRole('button', { name: 'Fechar primeiros passos', exact: true })
+  if (await close.isVisible()) await close.click()
+}
 test.afterAll(async () => { await app.close() })
 
 test('abre na visão geral com checklist', async () => {
@@ -43,9 +52,9 @@ test('importa vídeo e mostra card 9:16 com miniatura', async () => {
 test('perfil por link e reel guardado como referência', async () => {
   await page.getByRole('link', { name: 'Perfis' }).click()
   await page.getByLabel('Link do perfil').fill('instagram.com/perfil.teste')
-  await page.getByRole('button', { name: 'Adicionar perfil' }).click()
+  await page.getByRole('button', { name: 'Importar perfil' }).click()
   await expect(page.getByRole('heading', { name: '@perfil.teste' })).toBeVisible()
-  await expect(page.getByText(/Busca e download de reels públicos via Apify/)).toBeVisible()
+  await expect(page.getByRole('radiogroup', { name: 'Origem da atualização' }).getByRole('radio', { name: 'Posts', exact: true })).toBeChecked()
   await page.getByRole('button', { name: 'Adicionar link de reel' }).click()
   await page.getByLabel('Link do reel').fill('https://www.instagram.com/reel/ABCDE12345/')
   await page.getByRole('button', { name: 'Adicionar', exact: true }).click()
@@ -54,12 +63,25 @@ test('perfil por link e reel guardado como referência', async () => {
 
 test('clique no card abre player interno e referência fica dentro do Legacy', async () => {
   await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
+  const assetSelection = page.getByRole('checkbox', { name: 'Selecionar clip.mp4', exact: true })
+  const wasSelected = await assetSelection.isChecked()
+  await page.getByRole('button', { name: 'Abrir clip.mp4', exact: true }).click({ modifiers: ['Control'] })
+  await expect(assetSelection).toBeChecked({ checked: !wasSelected })
+  await expect(page.getByRole('dialog', { name: 'Visualizar no Legacy' })).not.toBeVisible()
+  await page.getByRole('button', { name: 'Abrir clip.mp4', exact: true }).click({ modifiers: ['Control'] })
+  await expect(assetSelection).toBeChecked({ checked: wasSelected })
   await page.getByRole('button', { name: 'Abrir clip.mp4', exact: true }).click()
   await expect(page.getByRole('dialog', { name: 'Visualizar no Legacy' })).toBeVisible()
   const source = await page.getByLabel('Player de vídeo').getAttribute('src')
   expect(source).toContain('legacy-media://file/')
   await page.getByRole('button', { name: 'Fechar player' }).click()
   await page.getByRole('link', { name: 'Perfis', exact: true }).click()
+  const postSelection = page.getByRole('checkbox', { name: 'Selecionar Vídeo sem legenda', exact: true })
+  await page.getByRole('button', { name: 'Abrir Vídeo sem legenda', exact: true }).click({ modifiers: ['Control'] })
+  await expect(postSelection).toBeChecked()
+  await expect(page.getByRole('dialog', { name: 'Visualizar no Legacy' })).not.toBeVisible()
+  await page.getByRole('button', { name: 'Abrir Vídeo sem legenda', exact: true }).click({ modifiers: ['Control'] })
+  await expect(postSelection).not.toBeChecked()
   await page.getByRole('button', { name: 'Abrir Vídeo sem legenda', exact: true }).click()
   await expect(page.getByRole('dialog', { name: 'Visualizar no Legacy' })).toBeVisible()
   await expect(page.getByRole('button', { name: 'Ver origem no Instagram' })).toBeVisible()
@@ -178,6 +200,7 @@ test('modelos horizontais preenchem legenda base do editor', async () => {
   await page.getByRole('link', { name: 'Biblioteca' }).click()
   await page.getByRole('checkbox', { name: 'Selecionar clip.mp4' }).check()
   await page.getByRole('button', { name: 'Preparar lote', exact: true }).click()
+  await page.getByText('Modelos de legenda', { exact: true }).click()
   await page.getByRole('button', { name: 'Usar modelo', exact: true }).first().click()
   await expect(page.getByLabel('Legenda base')).toHaveValue(/Qual parte mais te representa/)
 })
@@ -207,13 +230,15 @@ test('desafios têm progresso real e filtros avançados recolhem', async () => {
   await page.screenshot({ path: 'docs/screens/qa-0.4/desafios-0.4.png' })
   await page.evaluate(async () => { const boot = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }; await window.legacy.invoke('profiles.add', { workspaceId: boot.data.workspaces[0].id, url: 'instagram.com/qa.filters' }) })
   await page.getByRole('link', { name: 'Perfis', exact: true }).click()
-  await expect(page.getByLabel('Mínimo de views')).toBeHidden()
-  await page.getByText('Filtros avançados', { exact: true }).click()
-  await expect(page.getByLabel('Mínimo de views')).toBeVisible()
-  await page.getByText('Filtros avançados', { exact: true }).click()
+  await expect(page.getByLabel('Mínimo de views', { exact: true })).toBeHidden()
+  await page.getByRole('button', { name: 'Filtros avançados', exact: true }).click()
+  await expect(page.getByLabel('Mínimo de views', { exact: true })).toBeVisible()
+  await page.keyboard.press('Escape')
+  await expect(page.getByLabel('Mínimo de views', { exact: true })).toBeHidden()
 })
 
 test('card tem métricas horizontais e fila permite ver arquivo e origem', async () => {
+  await closeFirstSteps()
   await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
   await page.evaluate(async (path) => { const boot = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }; await window.legacy.invoke('library.importPaths', { workspaceId: boot.data.workspaces[0].id, paths: [path] }) }, video)
   const metrics = page.getByTestId('card-metrics').first()
@@ -221,14 +246,19 @@ test('card tem métricas horizontais e fila permite ver arquivo e origem', async
   const ys = await metrics.locator('[role="img"]').evaluateAll(nodes => nodes.map(n => Math.round(n.getBoundingClientRect().top)))
   expect(new Set(ys).size).toBe(1)
   await page.getByRole('link', { name: 'Fila', exact: true }).click()
+  // The queue moved per-row actions into a menu.
+  await page.getByRole('button', { name: /^Ações (de|da tarefa) / }).first().click()
   await page.getByRole('button', { name: 'Ver tarefa' }).first().click()
   await expect(page.getByRole('dialog')).toBeVisible()
-  await expect(page.getByRole('button', { name: 'Abrir arquivo', exact: true })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'Abrir mídia', exact: true }).first()).toBeVisible()
   await page.screenshot({ path: 'docs/screens/qa-0.4/tarefa-detalhes.png' })
-  await page.keyboard.press('Escape')
+  // The sheet focuses its close button, whose tooltip takes the first Escape; close explicitly.
+  await page.getByRole('button', { name: 'Fechar detalhes', exact: true }).click()
+  await expect(page.getByRole('dialog')).toBeHidden()
 })
 
 test('Biblioteca mantém áudio AAC, detalhes e preferência de lista/banner', async () => {
+  await closeFirstSteps()
   await page.evaluate(async path => { const boot = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }; await window.legacy.invoke('library.importPaths', { workspaceId: boot.data.workspaces[0].id, paths: [path] }) }, video)
   await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
   await page.getByRole('button', { name: 'Abrir clip.mp4', exact: true }).click()
@@ -247,12 +277,16 @@ test('Biblioteca mantém áudio AAC, detalhes e preferência de lista/banner', a
   await page.getByRole('link', { name: 'Fila', exact: true }).click()
   await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
   await expect(page.getByRole('table')).toBeVisible()
-  await expect(page.getByLabel('Exibir banner')).not.toBeChecked()
-  await page.screenshot({ path: 'docs/screens/qa-media/media-list.png', animations: 'disabled' })
+  await page.getByRole('button', { name: 'Filtros', exact: true }).click()
+  await expect(page.getByLabel('Exibir banner nas miniaturas')).not.toBeChecked()
+  await page.keyboard.press('Escape')
+  mkdirSync('docs/screens/qa-ui-guest', { recursive: true })
+  await page.screenshot({ path: 'docs/screens/qa-ui-guest/media-list.png', animations: 'disabled' })
   await page.getByRole('button', { name: 'Visualização em grade' }).click()
 })
 
 test('divisor de Perfis mantém altura com 1, 10, 100 e 1000 reels', async () => {
+  await closeFirstSteps()
   await page.setViewportSize({ width: 1440, height: 900 })
   const ws = await page.evaluate(async () => { const r = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }; return r.data.workspaces[0].id })
   const metricsFile = join(dataDir, 'metrics-layout.json')

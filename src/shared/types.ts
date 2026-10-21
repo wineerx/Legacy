@@ -1,4 +1,4 @@
-export type Origin = 'pc' | 'ig_own' | 'ig_third_party' | 'link_ref'
+export type Origin = 'pc' | 'ig_own' | 'ig_third_party' | 'tiktok_third_party' | 'link_ref'
 export type GridMetric = 'views' | 'likes' | 'comments'
 export type SortKey = GridMetric | 'postedAt' | 'importedAt' | 'durationMs'
 export type SortDir = 'asc' | 'desc'
@@ -21,6 +21,7 @@ export interface GridItem {
   metrics: Record<GridMetric, number | null>
   badges: Badge[]
   publishedAccounts?: string[]
+  sourcePlatform?: string | null
   sourceProfile?: string | null
   status?: MediaState
   sizeBytes?: number
@@ -42,6 +43,8 @@ export interface GridQuery {
   workspaceId: string
   source: 'library' | 'remote'
   profileId?: string
+  assetId?: string
+  publicationJobId?: string
   sortBy: SortKey
   sortDir: SortDir
   text?: string
@@ -72,7 +75,20 @@ export interface DashboardSummary {
   library: { count: number; bytes: number }
   unread: number
   profiles: { id: string; username: string; lastSyncedAt: string | null; posts: number; downloaded: number; views: number | null; likes: number | null; comments: number | null; viewsKnown: number; likesKnown: number; commentsKnown: number; metricsUpdatedAt: string | null }[]
-  recent: { id: string; label: string; state: JobState; updatedAt: string }[]
+  recent: { id: string; label: string; state: JobState; updatedAt: string; runAt: string; media: string | null }[]
+  /** Next scheduled, active Container that has not ended yet. */
+  nextContainer: { id: string; name: string; plannedStartAt: string | null; plannedEndAt: string | null } | null
+  /** Last quota reading of the active account; values are null when Meta was never read. */
+  quota: { username: string; usage: number | null; total: number | null; durationSec: number | null; fetchedAt: string | null; freshness: 'fresh' | 'stale' | 'missing' } | null
+  analytics: DashboardAnalytics
+}
+export interface DashboardAnalytics {
+  /** Last 14 local days of the workspace, oldest first. */
+  activity: { day: string; published: number; imported: number; failed: number }[]
+  origins: { origin: 'pc' | 'ig_own' | 'ig_third_party' | 'tiktok_third_party' | 'link_ref'; count: number }[]
+  jobTypes: { type: string; done: number; failed: number; total: number }[]
+  topPosts: { id: string; username: string; caption: string | null; permalink: string; thumbnailPath: string | null; views: number | null; likes: number | null; comments: number | null }[]
+  accounts: { username: string; count: number; lastAt: string }[]
 }
 export interface IntegrationStatus {
   apify: { configured: boolean; source: 'saved' | 'environment' | 'none'; lastValidatedAt: string | null }
@@ -93,6 +109,40 @@ export interface JobView {
   label: string
   createdAt: string
   updatedAt: string
+  context?: QueueContext
+}
+
+export interface QueueContext {
+  assetId?: string | null
+  mediaId: string | null
+  mediaName: string | null
+  thumbnailPath: string | null
+  source: string | null
+  sourceProfileId: string | null
+  sourceUrl: string | null
+  sourcePlatform: 'instagram' | 'tiktok' | 'local' | null
+  platform: 'instagram' | 'tiktok' | 'local' | 'webhook'
+  destination: string | null
+  workerId: string | null
+  priority: number
+  stage: string
+  step: number | null
+  steps: number | null
+  stalled: boolean
+  needsAttention: boolean
+  retryAt: string | null
+  publicationLimitUntil?: string | null
+  /** Why the account waits: a refusal by Meta, or a recent Meta reading that showed no room. */
+  publicationLimitCause?: 'meta_refusal' | 'quota_snapshot' | null
+  /** Time of the Meta quota reading behind the estimate; null when the estimate has no valid reading. */
+  publicationLimitCheckedAt?: string | null
+  publicationLimitReading?: { usage: number; total: number; windowSec: number } | null
+  lastAttemptAt: string | null
+  leaseUntil: string | null
+  errorCode: string | null
+  sourceAvatarPath?: string | null
+  errorProvider?: string | null
+  errorStatus?: number | null
 }
 
 export interface CoverTextSpec {
@@ -103,7 +153,7 @@ export interface CoverTextSpec {
   background: string | null
 }
 export interface QueuePageResult {
-  items: (JobView & { batchId: string | null; account: string | null })[]
+  items: (JobView & { publishedVideo?: { assetId: string | null; name: string } | null; batchId: string | null; account: string | null })[]
   total: number
   page: number
   pageSize: number

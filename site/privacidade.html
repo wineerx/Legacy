@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Política de privacidade · Legacy</title>
+  <meta name="description" content="Como o Legacy coleta, usa, armazena e exclui dados, incluindo dados da Plataforma Instagram.">
+  <link rel="icon" href="icon.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="index.html"><img src="icon.png" alt="" width="28" height="28">Legacy</a>
+      <nav class="nav" aria-label="Páginas legais">
+        <a href="privacidade.html" aria-current="page">Privacidade</a>
+        <a href="exclusao-de-dados.html">Exclusão de dados</a>
+        <a href="termos.html">Termos</a>
+      </nav>
+    </div>
+  </header>
+
+  <main>
+    <div class="page-head">
+      <span class="badge">Atualizada em 5 de outubro de 2026</span>
+      <h1>Política de privacidade</h1>
+      <p class="lead">O Legacy é um aplicativo para Windows que organiza vídeos, acompanha métricas e agenda publicações de Reels na sua conta profissional do Instagram. Os dados ficam no seu computador.</p>
+    </div>
+
+    <div class="summary" role="list">
+      <div class="item" role="listitem"><strong>Armazenamento local</strong><span>Banco de dados e vídeos ficam no seu PC. Não temos servidor que guarde seus dados.</span></div>
+      <div class="item" role="listitem"><strong>Sem venda de dados</strong><span>Não vendemos, alugamos nem compartilhamos dados para publicidade.</span></div>
+      <div class="item" role="listitem"><strong>Controle total</strong><span>Desconecte a conta ou apague os dados a qualquer momento.</span></div>
+    </div>
+
+    <section class="card" id="responsavel">
+      <h2>1. Responsável</h2>
+      <p>O Legacy é desenvolvido por Eduardo Ximenes. Para dúvidas sobre esta política ou sobre seus dados, escreva para <a href="mailto:deusdamicrosoft@gmail.com">deusdamicrosoft@gmail.com</a>.</p>
+    </section>
+
+    <section class="card" id="dados">
+      <h2>2. Dados tratados</h2>
+      <h3>Dados da Plataforma Instagram</h3>
+      <p>Quando você conecta uma conta profissional do Instagram, o Legacy acessa, com as permissões <code>instagram_business_basic</code> e <code>instagram_business_content_publish</code>:</p>
+      <ul>
+        <li>o ID e o nome de usuário da conta conectada;</li>
+        <li>o token de acesso emitido pela Meta para essa conta;</li>
+        <li>os identificadores e o estado das publicações que você agendar pelo aplicativo.</li>
+      </ul>
+      <h3>Conteúdo que você adiciona</h3>
+      <ul>
+        <li>vídeos, capas, legendas e agendamentos criados por você;</li>
+        <li>referências de posts públicos e métricas públicas que você escolher carregar;</li>
+        <li>nome e e-mail opcionais exibidos no perfil local do aplicativo.</li>
+      </ul>
+      <h3>Credenciais de serviços</h3>
+      <p>Chaves de integrações informadas por você, como o token do Apify e segredos de webhooks.</p>
+      <p>O Legacy não coleta telemetria, análises de uso nem dados de localização.</p>
+    </section>
+
+    <section class="card" id="uso">
+      <h2>3. Como usamos os dados</h2>
+      <ul>
+        <li>Identificar a conta conectada e mostrar o destino antes de confirmar uma publicação.</li>
+        <li>Criar e publicar Reels nos horários que você agendou.</li>
+        <li>Registrar o histórico de publicações e exibir métricas na sua biblioteca.</li>
+      </ul>
+      <p>Usamos os dados da Plataforma Instagram somente para essas funções, solicitadas por você. Não os usamos para publicidade, perfilamento ou treinamento de modelos.</p>
+    </section>
+
+    <section class="card" id="armazenamento">
+      <h2>4. Armazenamento e segurança</h2>
+      <ul>
+        <li>Os dados ficam em um banco SQLite na pasta do aplicativo (<code>%APPDATA%\Legacy</code>) e nas pastas de mídia que você escolher.</li>
+        <li>Tokens e chaves são cifrados com a proteção de dados do Windows (DPAPI) e nunca são exibidos na interface nem gravados em logs.</li>
+        <li>As comunicações com a Meta e com outros serviços usam HTTPS.</li>
+      </ul>
+    </section>
+
+    <section class="card" id="compartilhamento">
+      <h2>5. Compartilhamento</h2>
+      <p>O Legacy envia dados apenas para executar ações que você pediu:</p>
+      <ul>
+        <li><strong>Meta (Instagram):</strong> vídeo, legenda e token para publicar na sua conta, conforme a <a href="https://privacycenter.instagram.com/policy" rel="noopener">política da Meta</a>.</li>
+        <li><strong>Apify:</strong> quando você carrega um perfil público, o nome desse perfil é enviado ao Apify usando a sua chave, conforme a <a href="https://apify.com/privacy-policy" rel="noopener">política do Apify</a>.</li>
+        <li><strong>Webhooks:</strong> se você ativar, eventos sem chaves, caminhos ou legendas são enviados ao endereço que você configurou.</li>
+      </ul>
+      <p>Não vendemos dados e não os compartilhamos com anunciantes ou corretores de dados. Podemos divulgar informações se a lei exigir.</p>
+    </section>
+
+    <section class="card" id="retencao">
+      <h2>6. Retenção e exclusão</h2>
+      <p>Os dados ficam no seu computador até você removê-los. Ao desconectar a conta do Instagram, o token é apagado do workspace. Veja o passo a passo completo em <a href="exclusao-de-dados.html">Exclusão de dados</a>.</p>
+    </section>
+
+    <section class="card" id="direitos">
+      <h2>7. Seus direitos (LGPD e GDPR)</h2>
+      <p>Você pode confirmar o tratamento, acessar, corrigir, exportar e excluir seus dados, além de revogar o consentimento. Como os dados ficam no seu computador, a maioria desses direitos pode ser exercida diretamente no aplicativo. Para outros pedidos, use o e-mail de contato; respondemos em até 15 dias.</p>
+    </section>
+
+    <section class="card" id="criancas">
+      <h2>8. Menores de idade</h2>
+      <p>O Legacy não se destina a menores de 18 anos e não coleta intencionalmente dados de crianças.</p>
+    </section>
+
+    <section class="card" id="alteracoes">
+      <h2>9. Alterações</h2>
+      <p>Se esta política mudar, a data no topo será atualizada. Mudanças relevantes serão informadas no aplicativo.</p>
+    </section>
+  </main>
+
+  <footer>
+    <div class="inner">
+      <span>© 2026 Legacy · Eduardo Ximenes</span>
+      <a href="mailto:deusdamicrosoft@gmail.com">deusdamicrosoft@gmail.com</a>
+    </div>
+  </footer>
+</body>
+</html>

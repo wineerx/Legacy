@@ -53,9 +53,14 @@ describe('ops', () => {
     const out = join(dir, 'b.mp4')
     await overlayBanner(video, banner, out, { startMs: 500, endMs: 2500 })
     const p = await probe(out)
+    expect(p.audioCodec).toBe('aac')
     expect(p.width).toBe(360)
     expect(p.videoCodec).toBe('h264')
-    expect(Math.abs(p.durationMs - 4000)).toBeLessThan(300)
+    expect(Math.abs(p.durationMs - 4000)).toBeLessThan(100)
+    const pixel = join(dir, 'banner-first.rgb')
+    await runTool(ffmpegPaths().ffmpeg, ['-y', '-i', out, '-frames:v', '1', '-vf', 'scale=1:1', '-f', 'rawvideo', '-pix_fmt', 'rgb24', pixel])
+    const [r,g,b] = readFileSync(pixel)
+    expect(r).toBeGreaterThan(g + b)
   })
 
   it('renderVideoVersion insere a capa como primeiro frame e mantém o áudio', async (ctx) => {
@@ -78,6 +83,18 @@ describe('ops', () => {
   it('detectH264Encoder valida com encode de teste', async () => {
     const enc = await detectH264Encoder()
     expect(['h264_mf', 'h264_nvenc', 'h264_qsv', 'h264_amf', 'libopenh264']).toContain(enc)
+  })
+
+  it('processa capa em vídeo vertical com timestamps fracionários e áudio', async () => {
+    const irregular = join(dir, 'fractional.mp4'), cover = join(dir, 'fractional-cover.png'), out = join(dir, 'fractional-cover.mp4')
+    await runTool(ffmpegPaths().ffmpeg, ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'testsrc2=size=720x1280:rate=29801/1000:duration=2', '-f', 'lavfi', '-i', 'sine=frequency=440:duration=2', '-c:v', 'libopenh264', '-c:a', 'aac', irregular])
+    await extractFrame(irregular, 0, cover)
+    await renderVideoVersion(irregular, out, {coverPng: cover})
+    const result = await probe(out, true)
+    expect(result).toMatchObject({width:720,height:1280,videoCodec:'h264',audioCodec:'aac'})
+    expect(Math.abs(result.durationMs - 2033)).toBeLessThan(150)
+    // Decode the complete result, rather than just trusting container metadata.
+    await runTool(ffmpegPaths().ffmpeg, ['-v', 'error', '-i', out, '-f', 'null', '-'])
   })
 
   it('overlayBanner rejeita janela inválida', async () => {

@@ -1,0 +1,1930 @@
+{
+  "heapBefore": {
+    "usedSize": 7277184,
+    "totalSize": 9179136,
+    "embedderHeapUsedSize": 3957656,
+    "backingStorageSize": 2355388
+  },
+  "heapAfter": {
+    "usedSize": 12797740,
+    "totalSize": 13897728,
+    "embedderHeapUsedSize": 10903936,
+    "backingStorageSize": 2374368
+  },
+  "interactions": [
+    {
+      "i": 0,
+      "name": "Fila",
+      "ms": 433.6246000000001
+    },
+    {
+      "i": 0,
+      "name": "Biblioteca",
+      "ms": 404.33730000000014
+    },
+    {
+      "i": 1,
+      "name": "Fila",
+      "ms": 214.3734000000004
+    },
+    {
+      "i": 1,
+      "name": "Biblioteca",
+      "ms": 184.35279999999966
+    },
+    {
+      "i": 2,
+      "name": "Fila",
+      "ms": 176.5685000000003
+    },
+    {
+      "i": 2,
+      "name": "Biblioteca",
+      "ms": 140.8761000000004
+    },
+    {
+      "i": 3,
+      "name": "Fila",
+      "ms": 123.96609999999964
+    },
+    {
+      "i": 3,
+      "name": "Biblioteca",
+      "ms": 150.58269999999993
+    },
+    {
+      "i": 4,
+      "name": "Fila",
+      "ms": 120.73230000000058
+    },
+    {
+      "i": 4,
+      "name": "Biblioteca",
+      "ms": 220.5528000000004
+    },
+    {
+      "i": 5,
+      "name": "Fila",
+      "ms": 202.57969999999932
+    },
+    {
+      "i": 5,
+      "name": "Biblioteca",
+      "ms": 131.27660000000014
+    },
+    {
+      "i": 6,
+      "name": "Fila",
+      "ms": 126.47599999999966
+    },
+    {
+      "i": 6,
+      "name": "Biblioteca",
+      "ms": 131.9976999999999
+    },
+    {
+      "i": 7,
+      "name": "Fila",
+      "ms": 117.67979999999989
+    },
+    {
+      "i": 7,
+      "name": "Biblioteca",
+      "ms": 137.71979999999985
+    },
+    {
+      "i": 8,
+      "name": "Fila",
+      "ms": 144.3800000000001
+    },
+    {
+      "i": 8,
+      "name": "Biblioteca",
+      "ms": 121.00910000000022
+    },
+    {
+      "i": 9,
+      "name": "Fila",
+      "ms": 110.59389999999985
+    },
+    {
+      "i": 9,
+      "name": "Biblioteca",
+      "ms": 126.73709999999937
+    },
+    {
+      "i": 10,
+      "name": "Fila",
+      "ms": 123.51320000000032
+    },
+    {
+      "i": 10,
+      "name": "Biblioteca",
+      "ms": 119.27369999999974
+    },
+    {
+      "i": 11,
+      "name": "Fila",
+      "ms": 130.91910000000007
+    },
+    {
+      "i": 11,
+      "name": "Biblioteca",
+      "ms": 126.90230000000065
+    },
+    {
+      "i": 12,
+      "name": "Fila",
+      "ms": 141.48819999999978
+    },
+    {
+      "i": 12,
+      "name": "Biblioteca",
+      "ms": 116.86380000000008
+    },
+    {
+      "i": 13,
+      "name": "Fila",
+      "ms": 112.51600000000053
+    },
+    {
+      "i": 13,
+      "name": "Biblioteca",
+      "ms": 351.8177999999998
+    },
+    {
+      "i": 14,
+      "name": "Fila",
+      "ms": 154.1297000000004
+    },
+    {
+      "i": 14,
+      "name": "Biblioteca",
+      "ms": 119.12200000000121
+    },
+    {
+      "i": 15,
+      "name": "Fila",
+      "ms": 120.73719999999958
+    },
+    {
+      "i": 15,
+      "name": "Biblioteca",
+      "ms": 222.21620000000075
+    },
+    {
+      "i": 16,
+      "name": "Fila",
+      "ms": 153.9442999999992
+    },
+    {
+      "i": 16,
+      "name": "Biblioteca",
+      "ms": 131.3713000000007
+    },
+    {
+      "i": 17,
+      "name": "Fila",
+      "ms": 118.48459999999977
+    },
+    {
+      "i": 17,
+      "name": "Biblioteca",
+      "ms": 161.3816999999999
+    },
+    {
+      "i": 18,
+      "name": "Fila",
+      "ms": 125.94520000000011
+    },
+    {
+      "i": 18,
+      "name": "Biblioteca",
+      "ms": 204.5658000000003
+    },
+    {
+      "i": 19,
+      "name": "Fila",
+      "ms": 121.02809999999954
+    },
+    {
+      "i": 19,
+      "name": "Biblioteca",
+      "ms": 113.65220000000045
+    },
+    {
+      "i": 20,
+      "name": "Fila",
+      "ms": 108.5576000000001
+    },
+    {
+      "i": 20,
+      "name": "Biblioteca",
+      "ms": 119.30609999999979
+    },
+    {
+      "i": 21,
+      "name": "Fila",
+      "ms": 102.60459999999875
+    },
+    {
+      "i": 21,
+      "name": "Biblioteca",
+      "ms": 121.0625
+    },
+    {
+      "i": 22,
+      "name": "Fila",
+      "ms": 141.57639999999992
+    },
+    {
+      "i": 22,
+      "name": "Biblioteca",
+      "ms": 109.60690000000068
+    },
+    {
+      "i": 23,
+      "name": "Fila",
+      "ms": 120.00950000000012
+    },
+    {
+      "i": 23,
+      "name": "Biblioteca",
+      "ms": 115.48849999999948
+    },
+    {
+      "i": 24,
+      "name": "Fila",
+      "ms": 104.90930000000117
+    },
+    {
+      "i": 24,
+      "name": "Biblioteca",
+      "ms": 109.95539999999892
+    },
+    {
+      "i": 25,
+      "name": "Fila",
+      "ms": 103.07840000000033
+    },
+    {
+      "i": 25,
+      "name": "Biblioteca",
+      "ms": 116.5635999999995
+    },
+    {
+      "i": 26,
+      "name": "Fila",
+      "ms": 105.01870000000054
+    },
+    {
+      "i": 26,
+      "name": "Biblioteca",
+      "ms": 163.99049999999988
+    },
+    {
+      "i": 27,
+      "name": "Fila",
+      "ms": 117.742400000001
+    },
+    {
+      "i": 27,
+      "name": "Biblioteca",
+      "ms": 109.18329999999878
+    },
+    {
+      "i": 28,
+      "name": "Fila",
+      "ms": 108.30559999999969
+    },
+    {
+      "i": 28,
+      "name": "Biblioteca",
+      "ms": 111.99880000000121
+    },
+    {
+      "i": 29,
+      "name": "Fila",
+      "ms": 106.44680000000153
+    },
+    {
+      "i": 29,
+      "name": "Biblioteca",
+      "ms": 118.61129999999866
+    },
+    {
+      "i": 30,
+      "name": "Fila",
+      "ms": 114.07610000000022
+    },
+    {
+      "i": 30,
+      "name": "Biblioteca",
+      "ms": 115.60449999999946
+    },
+    {
+      "i": 31,
+      "name": "Fila",
+      "ms": 121.47170000000006
+    },
+    {
+      "i": 31,
+      "name": "Biblioteca",
+      "ms": 120.26100000000042
+    },
+    {
+      "i": 32,
+      "name": "Fila",
+      "ms": 103.94950000000063
+    },
+    {
+      "i": 32,
+      "name": "Biblioteca",
+      "ms": 129.8806000000004
+    },
+    {
+      "i": 33,
+      "name": "Fila",
+      "ms": 110.85260000000017
+    },
+    {
+      "i": 33,
+      "name": "Biblioteca",
+      "ms": 389.5758000000005
+    },
+    {
+      "i": 34,
+      "name": "Fila",
+      "ms": 141.58090000000084
+    },
+    {
+      "i": 34,
+      "name": "Biblioteca",
+      "ms": 117.67329999999856
+    },
+    {
+      "i": 35,
+      "name": "Fila",
+      "ms": 108.73949999999968
+    },
+    {
+      "i": 35,
+      "name": "Biblioteca",
+      "ms": 110.54960000000028
+    },
+    {
+      "i": 36,
+      "name": "Fila",
+      "ms": 147.63839999999982
+    },
+    {
+      "i": 36,
+      "name": "Biblioteca",
+      "ms": 127.02280000000064
+    },
+    {
+      "i": 37,
+      "name": "Fila",
+      "ms": 109.45669999999882
+    },
+    {
+      "i": 37,
+      "name": "Biblioteca",
+      "ms": 152.78319999999985
+    },
+    {
+      "i": 38,
+      "name": "Fila",
+      "ms": 121.33799999999974
+    },
+    {
+      "i": 38,
+      "name": "Biblioteca",
+      "ms": 122.59159999999974
+    },
+    {
+      "i": 39,
+      "name": "Fila",
+      "ms": 115.17759999999907
+    },
+    {
+      "i": 39,
+      "name": "Biblioteca",
+      "ms": 124.23469999999907
+    },
+    {
+      "i": 40,
+      "name": "Fila",
+      "ms": 123.76620000000003
+    },
+    {
+      "i": 40,
+      "name": "Biblioteca",
+      "ms": 116.19450000000143
+    },
+    {
+      "i": 41,
+      "name": "Fila",
+      "ms": 112.84569999999985
+    },
+    {
+      "i": 41,
+      "name": "Biblioteca",
+      "ms": 114.95199999999932
+    },
+    {
+      "i": 42,
+      "name": "Fila",
+      "ms": 117.11229999999887
+    },
+    {
+      "i": 42,
+      "name": "Biblioteca",
+      "ms": 129.44690000000082
+    },
+    {
+      "i": 43,
+      "name": "Fila",
+      "ms": 111.44850000000042
+    },
+    {
+      "i": 43,
+      "name": "Biblioteca",
+      "ms": 121.53079999999864
+    },
+    {
+      "i": 44,
+      "name": "Fila",
+      "ms": 207.1232999999993
+    },
+    {
+      "i": 44,
+      "name": "Biblioteca",
+      "ms": 131.2616999999991
+    },
+    {
+      "i": 45,
+      "name": "Fila",
+      "ms": 124.54010000000017
+    },
+    {
+      "i": 45,
+      "name": "Biblioteca",
+      "ms": 137.14390000000094
+    },
+    {
+      "i": 46,
+      "name": "Fila",
+      "ms": 125.96340000000055
+    },
+    {
+      "i": 46,
+      "name": "Biblioteca",
+      "ms": 135.49309999999969
+    },
+    {
+      "i": 47,
+      "name": "Fila",
+      "ms": 130.15610000000015
+    },
+    {
+      "i": 47,
+      "name": "Biblioteca",
+      "ms": 144.0484000000033
+    },
+    {
+      "i": 48,
+      "name": "Fila",
+      "ms": 112.92599999999948
+    },
+    {
+      "i": 48,
+      "name": "Biblioteca",
+      "ms": 133.43930000000182
+    },
+    {
+      "i": 49,
+      "name": "Fila",
+      "ms": 157.84990000000107
+    },
+    {
+      "i": 49,
+      "name": "Biblioteca",
+      "ms": 111.46120000000155
+    }
+  ],
+  "renderer": {
+    "longTasks": [
+      {
+        "start": 148.89999997615814,
+        "duration": 62
+      },
+      {
+        "start": 1496,
+        "duration": 51
+      },
+      {
+        "start": 1594.3999999761581,
+        "duration": 112
+      },
+      {
+        "start": 1786.0999999642372,
+        "duration": 50
+      },
+      {
+        "start": 2412.399999976158,
+        "duration": 79
+      },
+      {
+        "start": 2554.699999988079,
+        "duration": 94
+      },
+      {
+        "start": 2763.099999964237,
+        "duration": 66
+      },
+      {
+        "start": 2883.300000011921,
+        "duration": 91
+      },
+      {
+        "start": 3029.099999964237,
+        "duration": 59
+      },
+      {
+        "start": 3148.800000011921,
+        "duration": 100
+      },
+      {
+        "start": 3299.199999988079,
+        "duration": 63
+      },
+      {
+        "start": 3441.599999964237,
+        "duration": 75
+      },
+      {
+        "start": 3718.199999988079,
+        "duration": 74
+      },
+      {
+        "start": 3841.599999964237,
+        "duration": 81
+      },
+      {
+        "start": 3975.199999988079,
+        "duration": 63
+      },
+      {
+        "start": 4102.599999964237,
+        "duration": 96
+      },
+      {
+        "start": 4232.300000011921,
+        "duration": 61
+      },
+      {
+        "start": 4348.399999976158,
+        "duration": 86
+      },
+      {
+        "start": 4526.099999964237,
+        "duration": 54
+      },
+      {
+        "start": 4631,
+        "duration": 75
+      },
+      {
+        "start": 4753.099999964237,
+        "duration": 52
+      },
+      {
+        "start": 4865.5,
+        "duration": 75
+      },
+      {
+        "start": 4991.899999976158,
+        "duration": 65
+      },
+      {
+        "start": 5110.899999976158,
+        "duration": 76
+      },
+      {
+        "start": 5234.899999976158,
+        "duration": 53
+      },
+      {
+        "start": 5363.099999964237,
+        "duration": 80
+      },
+      {
+        "start": 5523.199999988079,
+        "duration": 59
+      },
+      {
+        "start": 5631.099999964237,
+        "duration": 73
+      },
+      {
+        "start": 5751.699999988079,
+        "duration": 56
+      },
+      {
+        "start": 5860.300000011921,
+        "duration": 74
+      },
+      {
+        "start": 6256.800000011921,
+        "duration": 59
+      },
+      {
+        "start": 6365.599999964237,
+        "duration": 75
+      },
+      {
+        "start": 6489.5,
+        "duration": 54
+      },
+      {
+        "start": 6627.899999976158,
+        "duration": 86
+      },
+      {
+        "start": 6835.5,
+        "duration": 58
+      },
+      {
+        "start": 6988.199999988079,
+        "duration": 81
+      },
+      {
+        "start": 7120.300000011921,
+        "duration": 56
+      },
+      {
+        "start": 7231.300000011921,
+        "duration": 77
+      },
+      {
+        "start": 7395.5,
+        "duration": 62
+      },
+      {
+        "start": 7541.099999964237,
+        "duration": 69
+      },
+      {
+        "start": 7743.099999964237,
+        "duration": 53
+      },
+      {
+        "start": 7844.300000011921,
+        "duration": 70
+      },
+      {
+        "start": 7961.599999964237,
+        "duration": 52
+      },
+      {
+        "start": 8069.199999988079,
+        "duration": 73
+      },
+      {
+        "start": 8189.5,
+        "duration": 51
+      },
+      {
+        "start": 8285.699999988079,
+        "duration": 70
+      },
+      {
+        "start": 8436.5,
+        "duration": 55
+      },
+      {
+        "start": 8548.099999964237,
+        "duration": 68
+      },
+      {
+        "start": 8680.399999976158,
+        "duration": 52
+      },
+      {
+        "start": 8781.800000011921,
+        "duration": 69
+      },
+      {
+        "start": 8898.599999964237,
+        "duration": 51
+      },
+      {
+        "start": 8998.300000011921,
+        "duration": 70
+      },
+      {
+        "start": 9114.599999964237,
+        "duration": 52
+      },
+      {
+        "start": 9215,
+        "duration": 69
+      },
+      {
+        "start": 9335.399999976158,
+        "duration": 51
+      },
+      {
+        "start": 9436.5,
+        "duration": 116
+      },
+      {
+        "start": 9612.300000011921,
+        "duration": 51
+      },
+      {
+        "start": 9715.099999964237,
+        "duration": 70
+      },
+      {
+        "start": 9830.800000011921,
+        "duration": 55
+      },
+      {
+        "start": 9931.800000011921,
+        "duration": 73
+      },
+      {
+        "start": 10049.899999976158,
+        "duration": 53
+      },
+      {
+        "start": 10152.599999964237,
+        "duration": 71
+      },
+      {
+        "start": 10275.399999976158,
+        "duration": 53
+      },
+      {
+        "start": 10386.099999964237,
+        "duration": 73
+      },
+      {
+        "start": 10507.099999964237,
+        "duration": 54
+      },
+      {
+        "start": 10624.099999964237,
+        "duration": 73
+      },
+      {
+        "start": 10746.199999988079,
+        "duration": 54
+      },
+      {
+        "start": 10853,
+        "duration": 76
+      },
+      {
+        "start": 10984.300000011921,
+        "duration": 55
+      },
+      {
+        "start": 11087.800000011921,
+        "duration": 115
+      },
+      {
+        "start": 11518.199999988079,
+        "duration": 56
+      },
+      {
+        "start": 11619.599999964237,
+        "duration": 71
+      },
+      {
+        "start": 11741.300000011921,
+        "duration": 52
+      },
+      {
+        "start": 11844.800000011921,
+        "duration": 69
+      },
+      {
+        "start": 11961.099999964237,
+        "duration": 57
+      },
+      {
+        "start": 12103.699999988079,
+        "duration": 77
+      },
+      {
+        "start": 12233.699999988079,
+        "duration": 55
+      },
+      {
+        "start": 12341.899999976158,
+        "duration": 71
+      },
+      {
+        "start": 12496.800000011921,
+        "duration": 52
+      },
+      {
+        "start": 12616.599999964237,
+        "duration": 75
+      },
+      {
+        "start": 12740.800000011921,
+        "duration": 57
+      },
+      {
+        "start": 12853.399999976158,
+        "duration": 73
+      },
+      {
+        "start": 12979.800000011921,
+        "duration": 54
+      },
+      {
+        "start": 13099,
+        "duration": 76
+      },
+      {
+        "start": 13220.800000011921,
+        "duration": 56
+      },
+      {
+        "start": 13328.5,
+        "duration": 73
+      },
+      {
+        "start": 13448.699999988079,
+        "duration": 54
+      },
+      {
+        "start": 13561.899999976158,
+        "duration": 75
+      },
+      {
+        "start": 13694,
+        "duration": 54
+      },
+      {
+        "start": 13803.800000011921,
+        "duration": 76
+      },
+      {
+        "start": 14006.300000011921,
+        "duration": 59
+      },
+      {
+        "start": 14145.399999976158,
+        "duration": 73
+      },
+      {
+        "start": 14268.099999964237,
+        "duration": 60
+      },
+      {
+        "start": 14392.699999988079,
+        "duration": 82
+      },
+      {
+        "start": 14527.5,
+        "duration": 62
+      },
+      {
+        "start": 14655.699999988079,
+        "duration": 86
+      },
+      {
+        "start": 14793.399999976158,
+        "duration": 56
+      },
+      {
+        "start": 14923.899999976158,
+        "duration": 94
+      },
+      {
+        "start": 15066.099999964237,
+        "duration": 53
+      },
+      {
+        "start": 15177.199999988079,
+        "duration": 73
+      },
+      {
+        "start": 15352.699999988079,
+        "duration": 52
+      },
+      {
+        "start": 15462.099999964237,
+        "duration": 71
+      }
+    ],
+    "events": [
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 1497.0999999642372
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 1497.0999999642372,
+        "ms": 53.5
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 2008.8999999761581
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 2008.8999999761581,
+        "ms": 29.600000023841858
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 2416.800000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 2416.800000011921,
+        "ms": 116.5
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 2555
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 2555,
+        "ms": 108.69999998807907
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 2763.300000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 2763.300000011921,
+        "ms": 79.5
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 2883.699999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 2883.699999988079,
+        "ms": 105.30000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 3029.300000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 3029.300000011921,
+        "ms": 66.79999995231628
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 3149.199999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 3149.199999988079,
+        "ms": 115.60000002384186
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 3299.5
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 3299.5,
+        "ms": 70.89999997615814
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 3441.899999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 3441.899999976158,
+        "ms": 91.30000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 3730.5
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 3730.5,
+        "ms": 74
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 3841.699999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 3841.699999988079,
+        "ms": 99.10000002384186
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 3975.5
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 3975.5,
+        "ms": 72
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 4103.199999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 4103.199999988079,
+        "ms": 95.89999997615814
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 4232.599999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 4232.599999964237,
+        "ms": 68.70000004768372
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 4348.899999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 4348.899999976158,
+        "ms": 101.90000003576279
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 4526.300000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 4526.300000011921,
+        "ms": 61.19999998807907
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 4631.5
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 4631.5,
+        "ms": 89.19999998807907
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 4753.300000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 4753.300000011921,
+        "ms": 59.69999998807907
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 4865.800000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 4865.800000011921,
+        "ms": 87.79999995231628
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 4992.300000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 4992.300000011921,
+        "ms": 75.09999996423721
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 5111.199999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 5111.199999988079,
+        "ms": 89.60000002384186
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 5235.099999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 5235.099999964237,
+        "ms": 61.30000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 5363.399999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 5363.399999976158,
+        "ms": 95
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 5524.199999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 5524.199999988079,
+        "ms": 64.5
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 5631.5
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 5631.5,
+        "ms": 86.30000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 5751.899999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 5751.899999976158,
+        "ms": 62.10000002384186
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 5860.5
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 5860.5,
+        "ms": 88.09999996423721
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 6260
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 6260,
+        "ms": 70.19999998807907
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 6365.300000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 6365.300000011921,
+        "ms": 90.29999995231628
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 6489.699999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 6489.699999988079,
+        "ms": 61.10000002384186
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 6628.599999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 6628.599999964237,
+        "ms": 86.80000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 6835.699999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 6835.699999988079,
+        "ms": 65.60000002384186
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 6988.5
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 6988.5,
+        "ms": 94.5
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 7120.599999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 7120.599999964237,
+        "ms": 62.60000002384186
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 7231.5
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 7231.5,
+        "ms": 92.30000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 7395.599999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 7395.599999964237,
+        "ms": 68.40000003576279
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 7541.899999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 7541.899999976158,
+        "ms": 85.19999998807907
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 7743.399999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 7743.399999976158,
+        "ms": 59.90000003576279
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 7844.099999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 7844.099999964237,
+        "ms": 84.10000002384186
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 7961.899999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 7961.899999976158,
+        "ms": 58.5
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 8069.599999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 8069.599999964237,
+        "ms": 86.30000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 8189.699999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 8189.699999988079,
+        "ms": 57.80000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 8285.899999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 8285.899999976158,
+        "ms": 84.30000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 8436.899999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 8436.899999976158,
+        "ms": 61.30000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 8548.300000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 8548.300000011921,
+        "ms": 82.5
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 8680.599999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 8680.599999964237,
+        "ms": 58.30000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 8782.199999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 8782.199999988079,
+        "ms": 81.5
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 8898.899999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 8898.899999976158,
+        "ms": 57.5
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 8998.5
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 8998.5,
+        "ms": 83.69999998807907
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 9114.800000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 9114.800000011921,
+        "ms": 58.19999998807907
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 9215.199999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 9215.199999988079,
+        "ms": 86.10000002384186
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 9335.599999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 9335.599999964237,
+        "ms": 57.5
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 9437.599999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 9437.599999964237,
+        "ms": 129.9000000357628
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 9612.5
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 9612.5,
+        "ms": 57.89999997615814
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 9715.300000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 9715.300000011921,
+        "ms": 83.19999998807907
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 9831
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 9831,
+        "ms": 62.80000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 9932
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 9932,
+        "ms": 85.5
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 10050.300000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 10050.300000011921,
+        "ms": 59.59999996423721
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 10152.800000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 10152.800000011921,
+        "ms": 84.39999997615814
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 10275.699999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 10275.699999988079,
+        "ms": 63.89999997615814
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 10386.300000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 10386.300000011921,
+        "ms": 88.89999997615814
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 10507.399999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 10507.399999976158,
+        "ms": 60
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 10624.399999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 10624.399999976158,
+        "ms": 89.80000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 10746.399999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 10746.399999976158,
+        "ms": 59.90000003576279
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 10853.199999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 10853.199999988079,
+        "ms": 89.80000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 10984.399999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 10984.399999976158,
+        "ms": 61.90000003576279
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 11089
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 11089,
+        "ms": 130.39999997615814
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 11522.099999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 11522.099999964237,
+        "ms": 63.40000003576279
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 11619.699999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 11619.699999988079,
+        "ms": 87.19999998807907
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 11741.5
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 11741.5,
+        "ms": 59.09999996423721
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 11845.199999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 11845.199999988079,
+        "ms": 81.60000002384186
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 11961
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 11961,
+        "ms": 64.09999996423721
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 12103.899999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 12103.899999976158,
+        "ms": 91.5
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 12234
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 12234,
+        "ms": 62
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 12342.099999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 12342.099999964237,
+        "ms": 85.10000002384186
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 12497.099999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 12497.099999964237,
+        "ms": 58.90000003576279
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 12617
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 12617,
+        "ms": 89.39999997615814
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 12741.099999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 12741.099999964237,
+        "ms": 64.10000002384186
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 12853.599999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 12853.599999964237,
+        "ms": 87.20000004768372
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 12980.099999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 12980.099999964237,
+        "ms": 63.40000003576279
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 13099.199999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 13099.199999988079,
+        "ms": 90
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 13221.099999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 13221.099999964237,
+        "ms": 62.80000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 13328.699999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 13328.699999988079,
+        "ms": 87
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 13448.899999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 13448.899999976158,
+        "ms": 61.80000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 13562.099999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 13562.099999964237,
+        "ms": 90.5
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 13694.199999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 13694.199999988079,
+        "ms": 61.30000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 13804.199999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 13804.199999988079,
+        "ms": 89.80000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 14007.5
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 14007.5,
+        "ms": 66
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 14145.800000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 14145.800000011921,
+        "ms": 86.29999995231628
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 14268.699999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 14268.699999988079,
+        "ms": 66.5
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 14393.599999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 14393.599999964237,
+        "ms": 96.20000004768372
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 14527.800000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 14527.800000011921,
+        "ms": 71.59999996423721
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 14655.899999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 14655.899999976158,
+        "ms": 101.80000001192093
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 14793.599999964237
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 14793.599999964237,
+        "ms": 63.10000002384186
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 14924.199999988079
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 14924.199999988079,
+        "ms": 108.10000002384186
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 15066.300000011921
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 15066.300000011921,
+        "ms": 59.299999952316284
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 15177.399999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 15177.399999976158,
+        "ms": 86.60000002384186
+      },
+      {
+        "type": "pointerdown",
+        "name": "Fila",
+        "start": 15352.899999976158
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 15352.899999976158,
+        "ms": 61.90000003576279
+      },
+      {
+        "type": "pointerdown",
+        "name": "Biblioteca",
+        "start": 15462.5
+      },
+      {
+        "type": "paint-opportunity",
+        "start": 15462.5,
+        "ms": 86.09999996423721
+      }
+    ]
+  }
+}

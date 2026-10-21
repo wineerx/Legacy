@@ -1,4 +1,6 @@
-import { describe, it, expect, beforeAll, beforeEach } from 'vitest'
+import { AppError } from '@shared/errors'
+import * as instagram from '../services/instagram-publishing'
+import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest'
 import { mkdtempSync, existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
@@ -9,7 +11,7 @@ import { getAsset } from '../repos/assets'
 import { makeTestVideo } from '../media/test-fixtures'
 import { leaseNext, enqueue, listJobs } from '../queue/queue'
 import { listNotifications } from '../repos/notifications'
-import { processNext, maybeRecover, type WorkerEvent } from './handlers'
+import { publicationUntilTerminal, processNext, maybeRecover, type WorkerEvent } from './handlers'
 import type { Ctx } from '../context'
 
 const src = mkdtempSync(join(tmpdir(), 'legacy-w-'))
@@ -26,6 +28,20 @@ beforeEach(() => {
 })
 
 describe('processNext', () => {
+  it('publication quota defers the account without failure notifications or exhausted retries', async () => {
+    const spy = vi.spyOn(instagram, 'publishInstagram').mockRejectedValueOnce(new instagram.InstagramApiError(400, 9, undefined, 2207042))
+    const now = ctx.clock()
+    enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', payload: { accountId: '123', username: 'test' }, label: 'Reel', maxAttempts: 1 }, now)
+    enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', payload: { accountId: '123', username: 'test' }, label: 'Next', runAt: new Date(now.getTime() + 15 * 60_000) }, now)
+    try {
+      await processNext(ctx, e => events.push(e))
+      expect(events.map(e => e.state)).toEqual(['running', 'retry'])
+      expect(listJobs(ctx.db, ws).every(j => j.state === 'queued' && j.attempts === 0)).toBe(true)
+      expect(listNotifications(ctx.db, ws, ctx.clock())).toHaveLength(0)
+      expect(await processNext(ctx, e => events.push(e))).toBe(false)
+      expect(spy).toHaveBeenCalledTimes(1)
+    } finally { spy.mockRestore() }
+  })
   it('fila vazia devolve false', async () => {
     expect(await processNext(ctx, (e) => events.push(e))).toBe(false)
   })
@@ -76,4 +92,40 @@ describe('maybeRecover', () => {
     expect(maybeRecover(ctx, t0, t0 + 20_000, 15_000)).toBe(t0 + 20_000)
     expect(listJobs(ctx.db, ws)[0].state).toBe('queued')
   })
+})
+
+it('publicação libera a fila entre consultas intermediárias e completa uma única vez', async () => {
+  const spy = vi.spyOn(instagram, 'publishInstagram')
+  spy.mockImplementationOnce(async () => { expect(listJobs(ctx.db, ws)[0].state).toBe('running'); throw new instagram.InstagramPending(1) })
+    .mockImplementationOnce(async () => { expect(listJobs(ctx.db, ws)[0].state).toBe('running'); throw new instagram.InstagramPending(1) })
+    .mockResolvedValueOnce({ confirmedPublished: true } as never)
+  enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', payload: {}, label: 'Publicar' }, ctx.clock())
+  try {
+    await processNext(ctx, e => events.push(e))
+    expect(listJobs(ctx.db,ws)[0]).toMatchObject({state:'queued',attempts:0})
+    await new Promise(r=>setTimeout(r,5));await processNext(ctx,e=>events.push(e))
+    await new Promise(r=>setTimeout(r,5));await processNext(ctx,e=>events.push(e))
+    expect(events.map(e => e.state)).toEqual(['running','retry','running','retry','running','done'])
+    expect(listJobs(ctx.db, ws)[0]).toMatchObject({ state: 'done', attempts: 1 })
+    expect(spy).toHaveBeenCalledTimes(3)
+  } finally { spy.mockRestore() }
+})
+
+
+it('resposta incompleta continua em execução até confirmação, sem inferir sucesso', async () => {
+ const run=vi.fn().mockRejectedValueOnce(new Error('Resposta incompleta')).mockResolvedValueOnce({confirmedPublished:true})
+ const wait=vi.fn(async()=>{})
+ await expect(publicationUntilTerminal(run,wait)).resolves.toEqual({confirmedPublished:true})
+ expect(wait).toHaveBeenCalledWith(15000)
+ expect(run).toHaveBeenCalledTimes(2)
+})
+
+it('erro explícito na preparação de publicação termina failed sem retornar à fila', async () => {
+ const spy=vi.spyOn(instagram,'publishInstagram').mockRejectedValueOnce(new AppError('ffmpeg_failed','Falha explícita no encoder'))
+ enqueue(ctx.db,{workspaceId:ws,type:'publish_instagram',payload:{},label:'Publicar'},ctx.clock())
+ try {
+  await processNext(ctx,e=>events.push(e))
+  expect(events.map(e=>e.state)).toEqual(['running','failed'])
+  expect(listJobs(ctx.db,ws)[0].state).toBe('failed')
+ } finally {spy.mockRestore()}
 })

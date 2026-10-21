@@ -1,0 +1,17 @@
+{
+  "job": {
+    "id": "d6fba179-a1cd-466e-8c8a-bfa334fb3333",
+    "workspaceId": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+    "type": "publish_instagram",
+    "state": "queued",
+    "attempts": 0,
+    "maxAttempts": 24,
+    "runAt": "2026-10-07T22:06:00.662Z",
+    "lastError": null,
+    "label": "Publicar reel em @365jonvlogs",
+    "createdAt": "2026-10-07T22:04:00.675Z",
+    "updatedAt": "2026-10-07T22:04:00.675Z"
+  },
+  "ipcMs": 18.80000001192093,
+  "firstAt": "2026-10-07T22:06:00.662Z"
+}

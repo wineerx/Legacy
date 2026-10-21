@@ -1,3 +1,4 @@
+import { CalendarPage } from './features/calendar/CalendarPage'
 import type { ReactElement } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import { LayoutGrid, UserSearch, Library, PenSquare, Megaphone, CalendarDays, ListOrdered, Link2, Bell, BookOpen, Trophy } from 'lucide-react'
@@ -12,8 +13,9 @@ import { NotificationsPage } from './features/notifications/NotificationsPage'
 import { SettingsPage } from './features/settings/SettingsPage'
 import { TutorialPage } from './features/tutorial/TutorialPage'
 import { AccountsPage } from './features/settings/AccountsPage'
+import { TemplatesPage } from './features/templates/TemplatesPage'
 
-export type PageKey = 'overview' | 'profiles' | 'library' | 'compose' | 'campaigns' | 'calendar' | 'queue' | 'accounts' | 'notifications' | 'settings' | 'tutorial' | 'achievements'
+export type PageKey = 'overview' | 'profiles' | 'library' | 'compose' | 'campaigns' | 'calendar' | 'queue' | 'accounts' | 'notifications' | 'settings' | 'tutorial' | 'achievements' | 'templates'
 export type PageProps = { navigate(p: PageKey): void }
 
 export const NAV: { key: PageKey; label: string; icon: LucideIcon }[] = [
@@ -21,6 +23,7 @@ export const NAV: { key: PageKey; label: string; icon: LucideIcon }[] = [
   { key: 'profiles', label: 'Perfis', icon: UserSearch },
   { key: 'library', label: 'Biblioteca', icon: Library },
   { key: 'compose', label: 'Criar postagem', icon: PenSquare },
+  { key: 'templates', label: 'Templates', icon: LayoutGrid },
   { key: 'campaigns', label: 'Campanhas', icon: Megaphone },
   { key: 'calendar', label: 'Calendário', icon: CalendarDays },
   { key: 'queue', label: 'Fila', icon: ListOrdered },
@@ -33,13 +36,14 @@ export const NAV: { key: PageKey; label: string; icon: LucideIcon }[] = [
 const PHASE_D = 'Campanhas e calendário chegam junto com a publicação agendada por API.'
 
 export const PAGES: Record<PageKey, (p: PageProps) => ReactElement> = {
+  templates:TemplatesPage,
   achievements: AchievementsPage,
   overview: OverviewPage,
   profiles: ProfilesPage,
   library: LibraryPage,
   compose: ComposePage,
   campaigns: () => <ComingSoon title="Campanhas" reason={PHASE_D} />,
-  calendar: () => <ComingSoon title="Calendário" reason={PHASE_D} />,
+  calendar: CalendarPage,
   queue: QueuePage,
   accounts: AccountsPage,
   notifications: NotificationsPage,

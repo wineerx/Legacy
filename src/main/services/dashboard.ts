@@ -1,8 +1,11 @@
-import { and, desc, eq, sql } from 'drizzle-orm'
+import { and, desc, eq, isNotNull, sql } from 'drizzle-orm'
 import type { Ctx } from '../context'
-import { jobs, mediaAssets, remotePosts, trackedProfiles } from '../db/schema'
+import { jobs, mediaAssets, remotePosts, trackedProfiles, publicationContainers } from '../db/schema'
+import { instagramAccount } from './instagram-publishing'
+import { readQuotaSnapshot } from './instagram-quota'
 import { unreadCount } from '../repos/notifications'
 import { requireWorkspace } from './integrations'
+import { analytics } from './analytics'
 
 export function dashboard(ctx: Ctx, ws: string) {
   requireWorkspace(ctx, ws)
@@ -18,7 +21,15 @@ export function dashboard(ctx: Ctx, ws: string) {
     metricsUpdatedAt: sql<string | null>`max(${remotePosts.metricsUpdatedAt})`
   }).from(trackedProfiles).leftJoin(remotePosts, and(eq(remotePosts.profileId, trackedProfiles.id), eq(remotePosts.workspaceId, ws)))
     .where(eq(trackedProfiles.workspaceId, ws)).groupBy(trackedProfiles.id).orderBy(trackedProfiles.username).all()
-  const recent = ctx.db.select({ id: jobs.id, label: jobs.label, state: jobs.state, updatedAt: jobs.updatedAt }).from(jobs)
+  const recent = ctx.db.select({ id: jobs.id, label: jobs.label, state: jobs.state, updatedAt: jobs.updatedAt, runAt: jobs.runAt,
+    media: sql<string | null>`(select m.source_name from media_assets m where m.workspace_id = ${jobs.workspaceId} and m.id = json_extract(${jobs.payloadJson}, '$.localAssetId'))` }).from(jobs)
     .where(and(eq(jobs.workspaceId, ws), sql`${jobs.type} != 'webhook_delivery'`)).orderBy(desc(jobs.updatedAt), desc(jobs.createdAt)).limit(8).all()
-  return { tasks, library, profiles: metrics, recent, unread: unreadCount(ctx.db, ws, ctx.clock()) }
+  const now = ctx.clock().toISOString()
+  const next = ctx.db.select({ id: publicationContainers.id, name: publicationContainers.name, plannedStartAt: publicationContainers.plannedStartAt, plannedEndAt: publicationContainers.plannedEndAt })
+    .from(publicationContainers).where(and(eq(publicationContainers.workspaceId, ws), isNotNull(publicationContainers.scheduledAt), eq(publicationContainers.controlState, 'active'), sql`${publicationContainers.plannedEndAt} >= ${now}`))
+    .orderBy(publicationContainers.plannedStartAt).limit(1).get() ?? null
+  const account = instagramAccount(ctx, ws)
+  const reading = account ? readQuotaSnapshot(ctx.db, ws, account.id, ctx.clock()) : null
+  const quota = account ? { username: account.username, usage: reading?.usage ?? null, total: reading?.total ?? null, durationSec: reading?.durationSec ?? null, fetchedAt: reading?.fetchedAt ?? null, freshness: reading?.freshness ?? 'missing' as const } : null
+  return { tasks, library, profiles: metrics, recent, unread: unreadCount(ctx.db, ws, ctx.clock()), nextContainer: next, quota, analytics: analytics(ctx, ws) }
 }

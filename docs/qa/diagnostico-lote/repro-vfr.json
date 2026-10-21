@@ -1,0 +1,54 @@
+{
+  "counts": {
+    "edicao": 13,
+    "publicacao_recusada": 2,
+    "conta_alterada": 1
+  },
+  "source": {
+    "width": 720,
+    "height": 1280,
+    "frameRate": "29801/1000",
+    "timeBase": "1/29801",
+    "audio": "aac"
+  },
+  "results": [
+    {
+      "encoder": "h264_mf",
+      "status": 3752568763,
+      "message": [
+        "[h264_mf @ 000001f1a44cfb00] could not set output type (80004005)",
+        "[vost#0:0/h264_mf @ 000001f1a44cf880] [enc:h264_mf @ 000001f1a2477a80] Error while opening encoder - maybe incorrect parameters such as bit_rate, rate, width or height.",
+        "[fc#0 @ 000001f1a23f18c0] Error sending frames to consumers: Generic error in an external library",
+        "[fc#0 @ 000001f1a23f18c0] Task finished with error code: -542398533 (Generic error in an external library)",
+        "[fc#0 @ 000001f1a23f18c0] Terminating thread with return code -542398533 (Generic error in an external library)",
+        "[vost#0:0/h264_mf @ 000001f1a44cf880] [enc:h264_mf @ 000001f1a2477a80] Could not open encoder before EOF"
+      ],
+      "output": null
+    },
+    {
+      "encoder": "libopenh264",
+      "status": 0,
+      "message": [
+        ""
+      ],
+      "output": {
+        "duration": "2.013355",
+        "streams": [
+          {
+            "type": "video",
+            "codec": "h264",
+            "width": 720,
+            "height": 1280,
+            "frameRate": "12200000/402671"
+          },
+          {
+            "type": "audio",
+            "codec": "aac",
+            "frameRate": "0/0"
+          }
+        ]
+      }
+    }
+  ],
+  "artifacts": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-encoder-diagnostic-4jT04i"
+}

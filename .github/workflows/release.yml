@@ -20,6 +20,10 @@ jobs:
           $version = node -p "require('./package.json').version"
           if ('${{ github.ref_type }}' -eq 'tag' -and '${{ github.ref_name }}' -ne "v$version") { throw 'Tag and package version must match' }
       - run: npm ci
+      - uses: actions/cache@v4
+        with:
+          path: resources/bin/win32-x64
+          key: bin-${{ runner.os }}-${{ hashFiles('scripts/fetch-ffmpeg.mjs', 'scripts/fetch-cloudflared.mjs') }}
       - run: npm run fetch:ffmpeg
       - run: npm run typecheck
       - run: npm test -- --maxWorkers=2

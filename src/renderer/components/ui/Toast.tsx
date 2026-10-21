@@ -1,36 +1,22 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { createContext, useCallback, useContext, useEffect, useId, useMemo, useRef, useState, type CSSProperties, type ReactNode } from 'react'
 import { X } from 'lucide-react'
-import { cx } from './cx'
+import { Toaster, toast as sonner } from 'sonner'
 import { LegacyMascot } from '../brand/LegacyMascot'
+import './toast.css'
 
-type Toast = { id: number; title: string; body?: string; tone?: 'info' | 'error' }
-const Ctx = createContext<{ show(t: Omit<Toast, 'id'>): void }>({ show: () => {} })
+type Toast = { title: string; body?: string; tone?: 'info' | 'error' }
+const Ctx = createContext<{ show(t: Toast): void }>({ show: () => {} })
 
-function ToastItem({ toast, onClose }: { toast: Toast; onClose(id: number): void }) {
+function ToastContent({ toast, id }: { toast: Toast; id: number | string }) {
   const isError = toast.tone === 'error'
-  const [paused, setPaused] = useState(false)
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-  useEffect(() => {
-    if (isError || paused) return
-    timer.current = setTimeout(() => onClose(toast.id), 5000)
-    return () => { if (timer.current) clearTimeout(timer.current) }
-  }, [isError, paused, toast.id, onClose])
-
   return (
-    <div
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={() => setPaused(false)}
-      className={cx('flex items-start gap-2 rounded-card border bg-panel p-3 shadow-xl', isError ? 'border-danger' : 'border-line')}
-    >
+    <div role={isError ? 'alert' : 'status'} className="flex items-center gap-2 p-3">
       <LegacyMascot state={isError ? 'error' : 'notification'} size={36} decorative animated={false} />
       <div className="min-w-0 flex-1">
         <p className="text-sm font-semibold">{isError && <span className="sr-only">Erro: </span>}{toast.title}</p>
         {toast.body && <p className="mt-0.5 text-xs text-dim">{toast.body}</p>}
       </div>
-      <button type="button" aria-label="Fechar notificação" onClick={() => onClose(toast.id)} className="rounded-ctl p-1 text-dim hover:text-fg hover:bg-raised">
+      <button type="button" aria-label="Fechar notificação" onClick={() => sonner.dismiss(id)} className="self-start rounded-ctl p-1 text-dim hover:text-fg hover:bg-raised">
         <X size={14} aria-hidden />
       </button>
     </div>
@@ -38,23 +24,44 @@ function ToastItem({ toast, onClose }: { toast: Toast; onClose(id: number): void
 }
 
 export function ToastProvider({ children }: { children: ReactNode }) {
-  const [items, setItems] = useState<Toast[]>([])
-  const show = useCallback((t: Omit<Toast, 'id'>) => {
-    const id = Date.now() + Math.random()
-    setItems((xs) => [...xs, { ...t, id }])
+  const toasterId = useId()
+  const [focused, setFocused] = useState(false)
+  const ids = useRef(new Set<number | string>())
+  useEffect(() => () => {
+    ids.current.forEach(id => sonner.dismiss(id))
+    ids.current.clear()
   }, [])
-  const close = useCallback((id: number) => setItems((xs) => xs.filter((x) => x.id !== id)), [])
+  const show = useCallback((t: Toast) => {
+    const forget = ({ id }: { id: number | string }) => { ids.current.delete(id) }
+    const id = sonner.custom(id => <ToastContent toast={t} id={id} />, {
+      toasterId,
+      duration: t.tone === 'error' ? Infinity : 5000,
+      onDismiss: forget,
+      onAutoClose: forget,
+    })
+    ids.current.add(id)
+  }, [toasterId])
   const value = useMemo(() => ({ show }), [show])
   return (
     <Ctx.Provider value={value}>
       {children}
-      <div className="fixed bottom-10 right-4 z-50 flex w-80 flex-col gap-2">
-        <div role="status" aria-live="polite" className="flex flex-col gap-2">
-          {items.filter((t) => t.tone !== 'error').map((t) => <ToastItem key={t.id} toast={t} onClose={close} />)}
-        </div>
-        <div role="alert" className="flex flex-col gap-2">
-          {items.filter((t) => t.tone === 'error').map((t) => <ToastItem key={t.id} toast={t} onClose={close} />)}
-        </div>
+      <div onFocusCapture={() => setFocused(true)} onBlurCapture={event => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setFocused(false)
+      }}>
+        <Toaster
+          id={toasterId}
+          className="legacy-toaster"
+          theme="dark"
+          position="bottom-right"
+          offset={{ bottom: 40, right: 16 }}
+          mobileOffset={{ bottom: 40, right: 16, left: 16 }}
+          style={{ '--width': '320px' } as CSSProperties}
+          expand={focused}
+          visibleToasts={3}
+          gap={8}
+          toastOptions={{ className: 'legacy-toast' }}
+          containerAriaLabel="Notificações"
+        />
       </div>
     </Ctx.Provider>
   )

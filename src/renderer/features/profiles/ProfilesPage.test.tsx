@@ -1,12 +1,115 @@
 import { describe, it, expect, vi } from 'vitest'
-import { screen } from '@testing-library/react'
+import { screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { mockBridge, renderWithApp, WS_ID } from '../../test-utils'
 import { ProfilesPage } from './ProfilesPage'
 
-const profile = { id: 'p1', username: 'zanon.boss', url: 'https://www.instagram.com/zanon.boss/', connected: false, lastSyncedAt: null }
+const profile = { platform: 'instagram', id: 'p1', username: 'zanon.boss', url: 'https://www.instagram.com/zanon.boss/', connected: false, lastSyncedAt: null }
 
 describe('ProfilesPage', () => {
+  it('consulta métricas automaticamente ao importar sem bloquear a busca de posts', async () => {
+    let finish!: (value: unknown) => void
+    const metrics = new Promise(resolve => { finish = resolve })
+    const invoke = mockBridge({
+      'profiles.list': () => [], 'profiles.add': () => profile,
+      'profiles.downloadStatus': () => ({ configured: true }),
+      'profiles.refresh': () => metrics,
+      'profiles.discover': () => ({ id: 'job1' })
+    })
+    renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+    await userEvent.type(await screen.findByLabelText('Link do perfil'), profile.url)
+    await userEvent.click(screen.getByRole('button', { name: 'Importar perfil' }))
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith('profiles.refresh', { workspaceId: WS_ID, profileId: profile.id }))
+    expect(invoke).toHaveBeenCalledWith('profiles.discover', { workspaceId: WS_ID, profileId: profile.id, source: 'posts', limit: 100 })
+    finish({ postsCount: 421 })
+  })
+
+  it('mostra e remove filtros ativos mesmo com o painel fechado', async () => {
+    const invoke = mockBridge({ 'profiles.list': () => [profile], 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
+    renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+    await userEvent.type(await screen.findByLabelText('Texto na legenda'), 'viagem')
+    const toggle = screen.getByRole('button', { name: 'Filtros avançados' })
+    await userEvent.click(toggle)
+    await userEvent.type(screen.getByLabelText('Mínimo de curtidas'), '100')
+    await userEvent.click(screen.getByRole('button', { name: /^Ver .* resultado/ }))
+    expect(screen.getByRole('button', { name: 'Remover filtro: Legenda: viagem' })).toBeInTheDocument()
+    expect(screen.getByText('Nenhum post corresponde aos filtros')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Remover filtro: Legenda: viagem' }))
+    await waitFor(() => expect(invoke).toHaveBeenLastCalledWith('grid.query', expect.objectContaining({ text: undefined, minLikes: 100 })))
+    await userEvent.click(within(screen.getByRole('region', { name: 'Filtros dos posts' })).getByRole('button', { name: 'Limpar filtros' }))
+    expect(await screen.findByText('Sem filtros aplicados')).toBeInTheDocument()
+    await waitFor(() => expect(invoke).toHaveBeenLastCalledWith('grid.query', expect.objectContaining({ minLikes: undefined })))
+  })
+
+  it('arquiva o perfil ativo e permite restaurar pelo painel de arquivados', async () => {
+    let archived = false
+    const invoke = mockBridge({
+      'profiles.list': () => archived ? [] : [profile],
+      'profiles.archived': () => archived ? [profile] : [],
+      'profiles.archive': input => { archived = input.archived; return null },
+      'grid.query': () => ({ items: [], total: 0, loadedNote: '' })
+    })
+    renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Opções de @zanon.boss' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Arquivar @zanon.boss' }))
+    expect(await screen.findByText('Acompanhe um perfil')).toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('button', { name: 'Perfis arquivados' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Restaurar' }))
+    expect(await screen.findByRole('heading', { name: '@zanon.boss' })).toBeInTheDocument()
+    expect(invoke).toHaveBeenCalledWith('profiles.archive', { workspaceId: WS_ID, profileId: profile.id, archived: false })
+  })
+
+  it('mantém atualização girando e continua os demais perfis após uma falha', async () => {
+    let fail!: (error: unknown) => void
+    const first = new Promise((_, reject) => { fail = reject })
+    const invoke = mockBridge({
+      'profiles.list': () => [profile, { ...profile, id: 'p2', username: 'outro' }],
+      'profiles.refresh': ({ profileId }) => profileId === 'p1' ? first : {},
+      'grid.query': () => ({ items: [], total: 0, loadedNote: '' })
+    })
+    renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+    const button = await screen.findByRole('button', { name: 'Atualizar dados de todos os perfis do Instagram' })
+    await userEvent.click(button)
+    expect(button).toBeDisabled()
+    expect(button.querySelector('svg')).toHaveClass('animate-spin')
+    fail({ code: 'network', message: 'Falha da Apify' })
+    expect(await screen.findByText('1 perfil(is) atualizado(s); 1 falha(s)')).toBeInTheDocument()
+    expect(invoke).toHaveBeenCalledWith('profiles.refresh', { workspaceId: WS_ID, profileId: 'p2' })
+    await waitFor(() => expect(button).toBeEnabled())
+    expect(button.querySelector('svg')).not.toHaveClass('animate-spin')
+  })
+  it('reload no cabeçalho consulta todos os perfis do Instagram sem buscar conteúdo', async () => {
+    const invoke = mockBridge({
+      'profiles.list': () => [profile, { ...profile, id: 'p2', username: 'outro' }, { ...profile, id: 'p3', platform: 'tiktok' }],
+      'profiles.refresh': () => ({ postsCount: 45, reelsCount: null, followersCount: 100, followingCount: 10, updatedAt: '2026-10-06T12:00:00Z' }),
+      'grid.query': () => ({ items: [], total: 0, loadedNote: '' })
+    })
+    renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+    const refreshButton = await screen.findByRole('button', { name: 'Atualizar dados de todos os perfis do Instagram' })
+    expect(refreshButton.parentElement).toContainElement(screen.getByRole('heading', { name: 'Instagram' }))
+    await userEvent.click(refreshButton)
+    expect(invoke).toHaveBeenCalledWith('profiles.refresh', { workspaceId: WS_ID, profileId: profile.id })
+    expect(await screen.findByText('Dados de todos os perfis atualizados')).toBeInTheDocument()
+    expect(invoke).toHaveBeenCalledWith('profiles.refresh', { workspaceId: WS_ID, profileId: 'p2' })
+    expect(invoke.mock.calls.filter(([channel]) => channel === 'profiles.refresh')).toHaveLength(2)
+    expect(invoke.mock.calls.some(([channel]) => channel === 'profiles.discover' || channel === 'profiles.download')).toBe(false)
+  })
+  it('continua atualizando os demais perfis quando um deles falha', async () => {
+    const invoke = mockBridge({
+      'profiles.list': () => [profile, { ...profile, id: 'p2', username: 'quebrado' }, { ...profile, id: 'p3', username: 'terceiro' }],
+      'profiles.refresh': (input: { profileId: string }) => {
+        if (input.profileId === 'p2') throw { code: 'network', message: 'Instagram indisponível' }
+        return { postsCount: 1, reelsCount: null, followersCount: 1, followingCount: 1, updatedAt: '2026-10-06T12:00:00Z' }
+      },
+      'grid.query': () => ({ items: [], total: 0, loadedNote: '' })
+    })
+    renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Atualizar dados de todos os perfis do Instagram' }))
+    expect(await screen.findByText('2 perfil(is) atualizado(s); 1 falha(s)')).toBeInTheDocument()
+    expect(screen.getByText(/@quebrado: Instagram indisponível/)).toBeInTheDocument()
+    const refreshed = invoke.mock.calls.filter(([channel]) => channel === 'profiles.refresh').map(([, input]) => (input as { profileId: string }).profileId)
+    expect(refreshed).toEqual(['p1', 'p2', 'p3'])
+  })
   it('enfileira download com limite e perfil selecionado', async () => {
     const invoke = mockBridge({
       'profiles.list': () => [profile], 'profiles.downloadStatus': () => ({ configured: true }),
@@ -36,8 +139,8 @@ describe('ProfilesPage', () => {
     })
     renderWithApp(<ProfilesPage navigate={vi.fn()} />)
     await userEvent.type(await screen.findByLabelText('Link do perfil'), 'https://evil.com/x')
-    await userEvent.click(screen.getByRole('button', { name: 'Adicionar perfil' }))
-    expect(await screen.findByText(/Link do Instagram inválido/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Importar perfil' }))
+    expect((await screen.findAllByText(/Link do Instagram inválido/))[0]).toBeInTheDocument()
   })
 
   it('perfil não conectado explica limite e ordena por mais vistos', async () => {
@@ -46,8 +149,9 @@ describe('ProfilesPage', () => {
       'grid.query': () => ({ items: [], total: 0, loadedNote: 'Ranking cobre os 0 posts carregados deste perfil.' })
     })
     renderWithApp(<ProfilesPage navigate={vi.fn()} />)
-    expect(await screen.findByText(/Busca e download de reels públicos via Apify/)).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Mais curtidos' }))
+    expect(await screen.findByText(/— posts/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: /^Ordenar:/ }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Curtidas' }))
     expect(invoke).toHaveBeenCalledWith('grid.query', expect.objectContaining({ workspaceId: WS_ID, source: 'remote', profileId: 'p1', sortBy: 'likes', sortDir: 'desc' }))
   })
 
@@ -70,4 +174,76 @@ describe('ProfilesPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Adicionar' }))
     expect(await screen.findByText('Link de reel inválido.')).toBeInTheDocument()
   })
+
+  it('Programar selecionados exige vídeo baixado', async () => {
+    const mk = (id: string, assetId: string | null) => ({ id, kind: 'remote', assetId, thumbnailPath: null, permalink: `https://www.instagram.com/reel/${id}/`, caption: id, postedAt: null, durationMs: 10_000, metrics: { views: 1, likes: 1, comments: 1 }, badges: [] })
+    mockBridge({
+      'profiles.list': () => [profile], 'profiles.downloadStatus': () => ({ configured: true }),
+      'accounts.instagram': () => ({ id: '123', revision: 'rev', username: 'destino', validatedAt: new Date().toISOString() }),
+      'grid.query': () => ({ items: [mk('p1', 'a1'), mk('p2', null)], total: 2, loadedNote: '' })
+    })
+    renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Selecionar página' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Programar selecionados' }))
+    expect(await screen.findByText('Baixe os vídeos selecionados antes de programar. O Instagram publica a cópia local.')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Confirmar agendamento' })).toBeDisabled()
+  })
+})
+
+it('mostra progresso indeterminado, reabre resultado real e mantém erro da tarefa', async () => {
+  let progress: any = { jobId: 'job-progress', state: 'running', error: null, progress: { phase: 'searching', processed: 0, imported: 0, skipped: 0, previewFailures: 0, total: null, percent: null } }
+  mockBridge({ 'profiles.list': () => [profile], 'profiles.importProgress': () => progress, 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
+  renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+  // While importing, the import button becomes "Cancelar importação"; progress opens from the status line.
+  expect(await screen.findByRole('button', { name: 'Cancelar importação' })).toBeInTheDocument()
+  await userEvent.click(await screen.findByRole('button', { name: /Ver andamento/ }))
+  expect(await screen.findByText('Buscando posts na Apify…')).toBeVisible()
+  expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+  await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
+  progress = { ...progress, state: 'failed', error: 'O provedor encerrou a busca.', progress: { phase: 'importing', processed: 32, total: 80, imported: 30, skipped: 2, previewFailures: 1, percent: 40 } }
+  await userEvent.click(screen.getByRole('button', { name: /Ver andamento/ }))
+  await waitFor(() => expect(screen.getByText('32 de 80 posts processados · 40%')).toBeVisible(), { timeout: 3500 })
+  expect(screen.getByText('O provedor encerrou a busca.')).toBeVisible()
+  expect(screen.getByRole('progressbar')).toHaveAttribute('value', '40')
+})
+
+it('envia a origem salva ao atualizar a grade', async () => {
+  const invoke = mockBridge({ 'profiles.list': () => [{ ...profile, contentSource: 'tagged' }], 'profiles.downloadStatus': () => ({ configured: true }), 'profiles.discover': () => ({ id: 'job1' }), 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
+  renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+  await userEvent.click(await screen.findByRole('button', { name: 'Atualizar grade' }))
+  expect(invoke).toHaveBeenCalledWith('profiles.discover', { workspaceId: WS_ID, profileId: profile.id, limit: 100, source: 'tagged' })
+})
+
+it.each(['reels', 'tagged', 'all'] as const)('incorpora perfil usando %s escolhido antes da busca', async (source) => {
+  const invoke = mockBridge({ 'profiles.list': () => [], 'profiles.add': () => profile, 'profiles.downloadStatus': () => ({ configured: true }), 'profiles.discover': () => ({ id: 'job1' }), 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
+  renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+  const group = await screen.findByRole('radiogroup', { name: 'Origem do conteúdo (Instagram)' })
+  const selected = within(group).getByRole('radio', { name: source === 'reels' ? 'Reels' : source === 'tagged' ? 'Marcados' : 'Todos' })
+  await userEvent.click(selected)
+  expect(selected).toHaveAttribute('aria-checked', 'true')
+  expect(within(group).getAllByRole('radio').filter(button => button.getAttribute('aria-checked') === 'true')).toHaveLength(1)
+  expect(within(group).getAllByRole('radio').every(button => button.textContent === '')).toBe(true)
+  await userEvent.type(screen.getByLabelText('Link do perfil'), profile.url)
+  await userEvent.click(screen.getByRole('button', { name: 'Importar perfil' }))
+  await waitFor(() => expect(invoke).toHaveBeenCalledWith('profiles.discover', { workspaceId: WS_ID, profileId: profile.id, limit: 100, source }))
+})
+
+it('exibe a foto do perfil a esquerda do nome no cabecalho', async () => {
+  mockBridge({ 'profiles.list': () => [{ ...profile, avatarPath: 'C:/avatars/example.jpg' }], 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
+  renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+  const heading = await screen.findByRole('heading', { name: '@zanon.boss' })
+  const header = heading.closest('header')!
+  const avatar = header.querySelector('.size-14')!
+  expect(avatar).toBeInTheDocument()
+  expect(avatar.nextElementSibling).toContainElement(heading)
+})
+
+it('cancela a importação em andamento pelo botão e mantém os posts importados', async () => {
+  let progress: any = { jobId: 'job-progress', state: 'running', error: null, progress: { phase: 'importing', processed: 3, imported: 3, skipped: 0, previewFailures: 0, total: 10, percent: 30 } }
+  const invoke = mockBridge({ 'profiles.list': () => [profile], 'profiles.importProgress': () => progress, 'profiles.cancelImport': () => { progress = { ...progress, state: 'cancelled', error: 'Importação cancelada pelo usuário.' }; return true }, 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
+  renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+  await userEvent.click(await screen.findByRole('button', { name: 'Cancelar importação' }))
+  await waitFor(() => expect(invoke).toHaveBeenCalledWith('profiles.cancelImport', { workspaceId: WS_ID, profileId: profile.id }))
+  expect(await screen.findByText('Importação cancelada')).toBeInTheDocument()
+  expect(await screen.findByRole('button', { name: 'Importar perfil' })).toBeInTheDocument()
 })

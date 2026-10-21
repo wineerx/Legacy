@@ -1,0 +1,5922 @@
+[
+  {
+    "id": "Sidebar",
+    "phase": "mount",
+    "actualDuration": 10.400000095367432,
+    "baseDuration": 8.100000262260437,
+    "startTime": 594.8000000715256,
+    "commitTime": 611.9000000953674
+  },
+  {
+    "id": "overview",
+    "phase": "mount",
+    "actualDuration": 3.200000047683716,
+    "baseDuration": 2.3000000715255737,
+    "startTime": 605.5,
+    "commitTime": 611.9000000953674
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "mount",
+    "actualDuration": 2.299999952316284,
+    "baseDuration": 1.8000000715255737,
+    "startTime": 608.8000000715256,
+    "commitTime": 611.9000000953674
+  },
+  {
+    "id": "Sidebar",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 6.200000047683716,
+    "startTime": 616.5,
+    "commitTime": 618.4000000953674
+  },
+  {
+    "id": "overview",
+    "phase": "nested-update",
+    "actualDuration": 0.6999999284744263,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 617.3000000715256,
+    "commitTime": 618.4000000953674
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "nested-update",
+    "actualDuration": 0.20000004768371582,
+    "baseDuration": 1.8000000715255737,
+    "startTime": 618.1000000238419,
+    "commitTime": 618.4000000953674
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 1,
+    "baseDuration": 5.300000071525574,
+    "startTime": 653.4000000953674,
+    "commitTime": 665.1000000238419
+  },
+  {
+    "id": "overview",
+    "phase": "update",
+    "actualDuration": 9.599999904632568,
+    "baseDuration": 7,
+    "startTime": 654.4000000953674,
+    "commitTime": 665.1000000238419
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 3.9999998807907104,
+    "startTime": 666.3000000715256,
+    "commitTime": 666.8000000715256
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 0.8999999761581421,
+    "startTime": 683.4000000953674,
+    "commitTime": 684.4000000953674
+  },
+  {
+    "id": "Sidebar",
+    "phase": "nested-update",
+    "actualDuration": 1.7999999523162842,
+    "baseDuration": 1.7999999523162842,
+    "startTime": 684.9000000953674,
+    "commitTime": 691.8000000715256
+  },
+  {
+    "id": "overview",
+    "phase": "nested-update",
+    "actualDuration": 4,
+    "baseDuration": 3.799999952316284,
+    "startTime": 686.8000000715256,
+    "commitTime": 691.8000000715256
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 691.1000000238419,
+    "commitTime": 691.8000000715256
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 1.399999976158142,
+    "baseDuration": 1.2000000476837158,
+    "startTime": 705.1000000238419,
+    "commitTime": 710.4000000953674
+  },
+  {
+    "id": "overview",
+    "phase": "update",
+    "actualDuration": 2.8000000715255737,
+    "baseDuration": 2.600000023841858,
+    "startTime": 706.6000000238419,
+    "commitTime": 710.4000000953674
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 709.7000000476837,
+    "commitTime": 710.4000000953674
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 2.1999999284744263,
+    "baseDuration": 2.1999999284744263,
+    "startTime": 936.8000000715256,
+    "commitTime": 949
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 8.899999976158142,
+    "baseDuration": 6.59999942779541,
+    "startTime": 939.3000000715256,
+    "commitTime": 949
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.40000009536743164,
+    "baseDuration": 0.40000009536743164,
+    "startTime": 948.5,
+    "commitTime": 949
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 3.7000001668930054,
+    "baseDuration": 3.5000001192092896,
+    "startTime": 954,
+    "commitTime": 957.9000000953674
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 4.299999952316284,
+    "baseDuration": 5.200000047683716,
+    "startTime": 960.7000000476837,
+    "commitTime": 965
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 3.8999998569488525,
+    "startTime": 966.4000000953674,
+    "commitTime": 967.9000000953674
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.9000000953674316,
+    "baseDuration": 4.599999904632568,
+    "startTime": 968.5,
+    "commitTime": 970.8000000715256
+  },
+  {
+    "id": "library",
+    "phase": "update",
+    "actualDuration": 51.799999952316284,
+    "baseDuration": 27,
+    "startTime": 987.1000000238419,
+    "commitTime": 1041.6000000238419
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 2.3000001907348633,
+    "baseDuration": 26.600000143051147,
+    "startTime": 1045.9000000953674,
+    "commitTime": 1050.7000000476837
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 2.399999976158142,
+    "baseDuration": 2.1999999284744263,
+    "startTime": 1370.6000000238419,
+    "commitTime": 1382.5
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 8.900000095367432,
+    "baseDuration": 7.100000023841858,
+    "startTime": 1373,
+    "commitTime": 1382.5
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 1382.1000000238419,
+    "commitTime": 1382.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.3000000715255737,
+    "baseDuration": 2.200000047683716,
+    "startTime": 1390.6000000238419,
+    "commitTime": 1392.9000000953674
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 3.1999999284744263,
+    "baseDuration": 3.9000000953674316,
+    "startTime": 1393.4000000953674,
+    "commitTime": 1396.8000000715256
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.2999999523162842,
+    "baseDuration": 3.5999999046325684,
+    "startTime": 1399.2000000476837,
+    "commitTime": 1400.8000000715256
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.2999999523162842,
+    "baseDuration": 3.3999998569488525,
+    "startTime": 1401.3000000715256,
+    "commitTime": 1402.8000000715256
+  },
+  {
+    "id": "queue",
+    "phase": "update",
+    "actualDuration": 29.5,
+    "baseDuration": 21.399999976158142,
+    "startTime": 1458.9000000953674,
+    "commitTime": 1489.3000000715256
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 3.600000023841858,
+    "baseDuration": 21.700000524520874,
+    "startTime": 1492.5,
+    "commitTime": 1496.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 22.200000405311584,
+    "startTime": 1497.2000000476837,
+    "commitTime": 1498.6000000238419
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.1999999284744263,
+    "baseDuration": 24.000000476837158,
+    "startTime": 1499.4000000953674,
+    "commitTime": 1501.9000000953674
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.6999999284744263,
+    "baseDuration": 22.500000476837158,
+    "startTime": 1502.2000000476837,
+    "commitTime": 1503.1000000238419
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 1.2000000476837158,
+    "startTime": 1627.6000000238419,
+    "commitTime": 1668.5
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 37.699999928474426,
+    "baseDuration": 18.09999907016754,
+    "startTime": 1628.9000000953674,
+    "commitTime": 1668.5
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.40000009536743164,
+    "baseDuration": 0.40000009536743164,
+    "startTime": 1668,
+    "commitTime": 1668.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 16.300000071525574,
+    "baseDuration": 14.699999809265137,
+    "startTime": 1676.5,
+    "commitTime": 1693.8000000715256
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.5,
+    "baseDuration": 15.299999594688416,
+    "startTime": 1698.4000000953674,
+    "commitTime": 1700
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 15.199999690055847,
+    "startTime": 1700.3000000715256,
+    "commitTime": 1701
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 15.199999690055847,
+    "startTime": 1701.2000000476837,
+    "commitTime": 1701.9000000953674
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000001668930054,
+    "baseDuration": 0.7000001668930054,
+    "startTime": 1842.6000000238419,
+    "commitTime": 1860.7000000476837
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 16.299999952316284,
+    "baseDuration": 8.899999976158142,
+    "startTime": 1843.4000000953674,
+    "commitTime": 1860.7000000476837
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.19999992847442627,
+    "baseDuration": 0.19999992847442627,
+    "startTime": 1860.3000000715256,
+    "commitTime": 1860.7000000476837
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 12,
+    "baseDuration": 7.199999809265137,
+    "startTime": 1869.4000000953674,
+    "commitTime": 1882.2000000476837
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 3.5,
+    "baseDuration": 8.099999785423279,
+    "startTime": 1885.4000000953674,
+    "commitTime": 1889
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.3000000715255737,
+    "baseDuration": 9.200000047683716,
+    "startTime": 1889.5,
+    "commitTime": 1891.9000000953674
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.399999976158142,
+    "baseDuration": 8.300000071525574,
+    "startTime": 1892.3000000715256,
+    "commitTime": 1893.8000000715256
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 1.0999999046325684,
+    "baseDuration": 1.0999999046325684,
+    "startTime": 1970.4000000953674,
+    "commitTime": 2009
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 34.90000021457672,
+    "baseDuration": 14.299999952316284,
+    "startTime": 1971.5,
+    "commitTime": 2009
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 2008.2000000476837,
+    "commitTime": 2009
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 13.899999976158142,
+    "baseDuration": 11.899999737739563,
+    "startTime": 2017.3000000715256,
+    "commitTime": 2032.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.600000023841858,
+    "baseDuration": 12.399999737739563,
+    "startTime": 2036.1000000238419,
+    "commitTime": 2037.8000000715256
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5999999046325684,
+    "baseDuration": 12.199999690055847,
+    "startTime": 2038.2000000476837,
+    "commitTime": 2039
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 2.200000047683716,
+    "baseDuration": 13.899999737739563,
+    "startTime": 2039.3000000715256,
+    "commitTime": 2041.8000000715256
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 1,
+    "baseDuration": 0.8999999761581421,
+    "startTime": 2129.4000000953674,
+    "commitTime": 2145.8000000715256
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 14.49999988079071,
+    "baseDuration": 7.4999998807907104,
+    "startTime": 2130.4000000953674,
+    "commitTime": 2145.8000000715256
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 2145.2000000476837,
+    "commitTime": 2145.8000000715256
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 13.099999904632568,
+    "baseDuration": 9.599999785423279,
+    "startTime": 2155.3000000715256,
+    "commitTime": 2169.4000000953674
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 3.299999952316284,
+    "baseDuration": 11.300000071525574,
+    "startTime": 2172.7000000476837,
+    "commitTime": 2176.2000000476837
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.7999999523162842,
+    "baseDuration": 11.099999904632568,
+    "startTime": 2176.8000000715256,
+    "commitTime": 2178.7000000476837
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.1999999284744263,
+    "baseDuration": 10.599999904632568,
+    "startTime": 2179.3000000715256,
+    "commitTime": 2181
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 0.7999999523162842,
+    "startTime": 2284.2000000476837,
+    "commitTime": 2322
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 34.69999980926514,
+    "baseDuration": 13.199999809265137,
+    "startTime": 2285,
+    "commitTime": 2322
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 2321.600000023842,
+    "commitTime": 2322
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 11.399999737739563,
+    "baseDuration": 10.099999904632568,
+    "startTime": 2330.100000023842,
+    "commitTime": 2342.8000000715256
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.2999999523162842,
+    "baseDuration": 10.399999856948853,
+    "startTime": 2346.3000000715256,
+    "commitTime": 2347.9000000953674
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5999999046325684,
+    "baseDuration": 10.299999833106995,
+    "startTime": 2348.3000000715256,
+    "commitTime": 2349
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 10.199999928474426,
+    "startTime": 2349.3000000715256,
+    "commitTime": 2349.9000000953674
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 0.6999999284744263,
+    "startTime": 2439.9000000953674,
+    "commitTime": 2455.2000000476837
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 13.100000023841858,
+    "baseDuration": 6.700000166893005,
+    "startTime": 2440.7000000476837,
+    "commitTime": 2455.2000000476837
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.20000004768371582,
+    "startTime": 2454.7000000476837,
+    "commitTime": 2455.2000000476837
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 11.900000214576721,
+    "baseDuration": 7.800000309944153,
+    "startTime": 2465.7000000476837,
+    "commitTime": 2478.2000000476837
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 3.8999998569488525,
+    "baseDuration": 9.00000011920929,
+    "startTime": 2481.4000000953674,
+    "commitTime": 2485.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.399999976158142,
+    "baseDuration": 8.90000033378601,
+    "startTime": 2486.7000000476837,
+    "commitTime": 2488.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 8.500000476837158,
+    "startTime": 2488.9000000953674,
+    "commitTime": 2490.2000000476837
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 0.7999999523162842,
+    "startTime": 2594.9000000953674,
+    "commitTime": 2624.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 26.700000286102295,
+    "baseDuration": 13.000000476837158,
+    "startTime": 2595.8000000715256,
+    "commitTime": 2624.100000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 2623.5,
+    "commitTime": 2624.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 10.50000011920929,
+    "baseDuration": 9.400000214576721,
+    "startTime": 2630.2000000476837,
+    "commitTime": 2641.4000000953674
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.4999998807907104,
+    "baseDuration": 10.100000262260437,
+    "startTime": 2644.9000000953674,
+    "commitTime": 2646.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 9.900000214576721,
+    "startTime": 2646.8000000715256,
+    "commitTime": 2647.4000000953674
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 10.100000262260437,
+    "startTime": 2647.600000023842,
+    "commitTime": 2648.4000000953674
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 2762.7000000476837,
+    "commitTime": 2763.5
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 0.8000000715255737,
+    "startTime": 2926.600000023842,
+    "commitTime": 2940.7000000476837
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 12.299999833106995,
+    "baseDuration": 7.299999833106995,
+    "startTime": 2927.4000000953674,
+    "commitTime": 2940.7000000476837
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 2940.100000023842,
+    "commitTime": 2940.7000000476837
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 9.199999809265137,
+    "baseDuration": 6,
+    "startTime": 2947.8000000715256,
+    "commitTime": 2957.7000000476837
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 3.200000047683716,
+    "baseDuration": 7.299999713897705,
+    "startTime": 2960,
+    "commitTime": 2963.4000000953674
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.100000023841858,
+    "baseDuration": 7.799999952316284,
+    "startTime": 2963.9000000953674,
+    "commitTime": 2966.4000000953674
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.0999999046325684,
+    "baseDuration": 6.8999998569488525,
+    "startTime": 2966.8000000715256,
+    "commitTime": 2968.2000000476837
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 3031.600000023842,
+    "commitTime": 3061.7000000476837
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 26.800000071525574,
+    "baseDuration": 10.999999761581421,
+    "startTime": 3032.4000000953674,
+    "commitTime": 3061.7000000476837
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 3061.2000000476837,
+    "commitTime": 3061.7000000476837
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 10.699999928474426,
+    "baseDuration": 9.899999976158142,
+    "startTime": 3068.3000000715256,
+    "commitTime": 3080.2000000476837
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.0999999046325684,
+    "baseDuration": 10.399999737739563,
+    "startTime": 3083.4000000953674,
+    "commitTime": 3084.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5999999046325684,
+    "baseDuration": 10.499999761581421,
+    "startTime": 3084.8000000715256,
+    "commitTime": 3085.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 10.49999988079071,
+    "startTime": 3085.600000023842,
+    "commitTime": 3086.2000000476837
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 0.8000000715255737,
+    "startTime": 3162,
+    "commitTime": 3174.9000000953674
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.299999833106995,
+    "baseDuration": 6.899999976158142,
+    "startTime": 3162.8000000715256,
+    "commitTime": 3174.9000000953674
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.40000009536743164,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 3174.5,
+    "commitTime": 3174.9000000953674
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.899999976158142,
+    "baseDuration": 5.700000047683716,
+    "startTime": 3182.600000023842,
+    "commitTime": 3191.9000000953674
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.6999999284744263,
+    "baseDuration": 6.5,
+    "startTime": 3194.100000023842,
+    "commitTime": 3197.2000000476837
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 6.5000001192092896,
+    "startTime": 3197.600000023842,
+    "commitTime": 3199
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 6.200000047683716,
+    "startTime": 3199.600000023842,
+    "commitTime": 3200.9000000953674
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 0.7999999523162842,
+    "startTime": 3273.2000000476837,
+    "commitTime": 3302.9000000953674
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 27.50000011920929,
+    "baseDuration": 11.699999690055847,
+    "startTime": 3274,
+    "commitTime": 3302.9000000953674
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 3302.4000000953674,
+    "commitTime": 3302.9000000953674
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 12,
+    "baseDuration": 10.800000309944153,
+    "startTime": 3310.4000000953674,
+    "commitTime": 3323.4000000953674
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.399999976158142,
+    "baseDuration": 11.40000033378601,
+    "startTime": 3326.600000023842,
+    "commitTime": 3328.2000000476837
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 11.100000381469727,
+    "startTime": 3328.5,
+    "commitTime": 3329.2000000476837
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 11.100000381469727,
+    "startTime": 3329.5,
+    "commitTime": 3330.100000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6999999284744263,
+    "baseDuration": 0.6999999284744263,
+    "startTime": 3413.8000000715256,
+    "commitTime": 3429.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 12.799999952316284,
+    "baseDuration": 7.399999976158142,
+    "startTime": 3414.8000000715256,
+    "commitTime": 3429.100000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 3428.7000000476837,
+    "commitTime": 3429.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 12.899999976158142,
+    "baseDuration": 9.800000190734863,
+    "startTime": 3437,
+    "commitTime": 3450.4000000953674
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 5.0000001192092896,
+    "baseDuration": 12.000000238418579,
+    "startTime": 3454.5,
+    "commitTime": 3459.7000000476837
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.899999976158142,
+    "baseDuration": 11.800000429153442,
+    "startTime": 3460.4000000953674,
+    "commitTime": 3462.7000000476837
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.5,
+    "baseDuration": 11.300000548362732,
+    "startTime": 3463.100000023842,
+    "commitTime": 3464.7000000476837
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 3591.4000000953674,
+    "commitTime": 3618.5
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 24.800000190734863,
+    "baseDuration": 12.000000357627869,
+    "startTime": 3592.3000000715256,
+    "commitTime": 3618.5
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 3618.100000023842,
+    "commitTime": 3618.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.700000047683716,
+    "baseDuration": 7.9999998807907104,
+    "startTime": 3625.4000000953674,
+    "commitTime": 3635.4000000953674
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 8.5,
+    "startTime": 3638.7000000476837,
+    "commitTime": 3640.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.6999999284744263,
+    "baseDuration": 8.399999856948853,
+    "startTime": 3640.4000000953674,
+    "commitTime": 3641.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 8.399999976158142,
+    "startTime": 3641.3000000715256,
+    "commitTime": 3641.8000000715256
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 3816.100000023842,
+    "commitTime": 3829.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.300000071525574,
+    "baseDuration": 6.600000262260437,
+    "startTime": 3816.9000000953674,
+    "commitTime": 3829.100000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.20000004768371582,
+    "baseDuration": 0.20000004768371582,
+    "startTime": 3828.7000000476837,
+    "commitTime": 3829.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 10.399999856948853,
+    "baseDuration": 7.4999998807907104,
+    "startTime": 3836.9000000953674,
+    "commitTime": 3848.2000000476837
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 3.5000001192092896,
+    "baseDuration": 9.00000011920929,
+    "startTime": 3852.600000023842,
+    "commitTime": 3856.3000000715256
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.7000000476837158,
+    "baseDuration": 8.799999952316284,
+    "startTime": 3857.5,
+    "commitTime": 3859.3000000715256
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.5999999046325684,
+    "baseDuration": 8.899999856948853,
+    "startTime": 3859.7000000476837,
+    "commitTime": 3861.7000000476837
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.5000001192092896,
+    "startTime": 3948.5,
+    "commitTime": 3974.7000000476837
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 23.699999928474426,
+    "baseDuration": 9.499999284744263,
+    "startTime": 3949.3000000715256,
+    "commitTime": 3974.7000000476837
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 3974.3000000715256,
+    "commitTime": 3974.7000000476837
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.899999856948853,
+    "baseDuration": 7.899999976158142,
+    "startTime": 3980.9000000953674,
+    "commitTime": 3990.7000000476837
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 8.399999976158142,
+    "startTime": 3993.600000023842,
+    "commitTime": 3994.7000000476837
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 7.9999998807907104,
+    "startTime": 3995.100000023842,
+    "commitTime": 3995.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 7.8999998569488525,
+    "startTime": 3995.7000000476837,
+    "commitTime": 3996.2000000476837
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6999999284744263,
+    "baseDuration": 0.5999999046325684,
+    "startTime": 4069.9000000953674,
+    "commitTime": 4082.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.100000023841858,
+    "baseDuration": 6.799999833106995,
+    "startTime": 4070.7000000476837,
+    "commitTime": 4082.600000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 4082.100000023842,
+    "commitTime": 4082.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 9.299999952316284,
+    "baseDuration": 6.700000047683716,
+    "startTime": 4090.100000023842,
+    "commitTime": 4100
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.8000000715255737,
+    "baseDuration": 7.800000190734863,
+    "startTime": 4102.300000071526,
+    "commitTime": 4105.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8000001907348633,
+    "baseDuration": 7.300000190734863,
+    "startTime": 4105.900000095367,
+    "commitTime": 4107.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 7.5,
+    "startTime": 4107.700000047684,
+    "commitTime": 4109.100000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 0.8000000715255737,
+    "startTime": 4186.100000023842,
+    "commitTime": 4212.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 23.799999594688416,
+    "baseDuration": 8.999999046325684,
+    "startTime": 4186.900000095367,
+    "commitTime": 4212.800000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 4212.200000047684,
+    "commitTime": 4212.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 9.299999713897705,
+    "baseDuration": 8.799999713897705,
+    "startTime": 4218.900000095367,
+    "commitTime": 4229
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 9.299999594688416,
+    "startTime": 4232,
+    "commitTime": 4233.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 8.999999642372131,
+    "startTime": 4233.400000095367,
+    "commitTime": 4234
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 8.999999523162842,
+    "startTime": 4234.200000047684,
+    "commitTime": 4234.700000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 4306.5,
+    "commitTime": 4318.900000095367
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 10.700000047683716,
+    "baseDuration": 6.0000001192092896,
+    "startTime": 4307.200000047684,
+    "commitTime": 4318.900000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 4318.600000023842,
+    "commitTime": 4318.900000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.399999856948853,
+    "baseDuration": 5.799999833106995,
+    "startTime": 4326.400000095367,
+    "commitTime": 4335.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.5,
+    "baseDuration": 7.199999690055847,
+    "startTime": 4337.900000095367,
+    "commitTime": 4340.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.1000001430511475,
+    "baseDuration": 6.699999928474426,
+    "startTime": 4341.100000023842,
+    "commitTime": 4342.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 6.799999833106995,
+    "startTime": 4342.800000071526,
+    "commitTime": 4343.900000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 1,
+    "baseDuration": 0.8999999761581421,
+    "startTime": 4423.800000071526,
+    "commitTime": 4453.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 26.700000286102295,
+    "baseDuration": 11.500000238418579,
+    "startTime": 4424.900000095367,
+    "commitTime": 4453.400000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 4452.900000095367,
+    "commitTime": 4453.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.599999904632568,
+    "baseDuration": 7.700000047683716,
+    "startTime": 4460,
+    "commitTime": 4469.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.1999999284744263,
+    "baseDuration": 8.100000143051147,
+    "startTime": 4472.200000047684,
+    "commitTime": 4473.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 8.200000047683716,
+    "startTime": 4473.700000047684,
+    "commitTime": 4474.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 8,
+    "startTime": 4474.400000095367,
+    "commitTime": 4475
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 0.8999999761581421,
+    "startTime": 4574.700000047684,
+    "commitTime": 4588.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.900000095367432,
+    "baseDuration": 7.200000166893005,
+    "startTime": 4575.600000023842,
+    "commitTime": 4588.400000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 4588,
+    "commitTime": 4588.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 11.300000071525574,
+    "baseDuration": 8.099999785423279,
+    "startTime": 4596.100000023842,
+    "commitTime": 4608
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.8000000715255737,
+    "baseDuration": 9.599999904632568,
+    "startTime": 4610.900000095367,
+    "commitTime": 4613.900000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.2000001668930054,
+    "baseDuration": 9.400000095367432,
+    "startTime": 4614.5,
+    "commitTime": 4616
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.8000000715255737,
+    "baseDuration": 9.899999976158142,
+    "startTime": 4616.5,
+    "commitTime": 4618.400000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 4713.5,
+    "commitTime": 4742.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 27,
+    "baseDuration": 10.499999761581421,
+    "startTime": 4714.200000047684,
+    "commitTime": 4742.800000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 4742.400000095367,
+    "commitTime": 4742.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.300000190734863,
+    "baseDuration": 7.800000071525574,
+    "startTime": 4749.300000071526,
+    "commitTime": 4759
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.2999999523162842,
+    "baseDuration": 8.100000143051147,
+    "startTime": 4762.200000047684,
+    "commitTime": 4763.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 8.200000047683716,
+    "startTime": 4763.900000095367,
+    "commitTime": 4764.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 8,
+    "startTime": 4764.600000023842,
+    "commitTime": 4765
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 4809.300000071526,
+    "commitTime": 4809.800000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 4836.600000023842,
+    "commitTime": 4851.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 12.699999809265137,
+    "baseDuration": 7.599999785423279,
+    "startTime": 4837.400000095367,
+    "commitTime": 4851.100000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 4850.600000023842,
+    "commitTime": 4851.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 9.500000238418579,
+    "baseDuration": 6.400000095367432,
+    "startTime": 4859.100000023842,
+    "commitTime": 4869.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 3.600000023841858,
+    "baseDuration": 8.00000011920929,
+    "startTime": 4872.700000047684,
+    "commitTime": 4876.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.2999998331069946,
+    "baseDuration": 7.9999998807907104,
+    "startTime": 4876.900000095367,
+    "commitTime": 4878.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 7.4999998807907104,
+    "startTime": 4879.200000047684,
+    "commitTime": 4880.300000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 0.8000000715255737,
+    "startTime": 4961.600000023842,
+    "commitTime": 4989.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 25.899999856948853,
+    "baseDuration": 10.399999856948853,
+    "startTime": 4962.400000095367,
+    "commitTime": 4989.900000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 4989.5,
+    "commitTime": 4989.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 12.700000047683716,
+    "baseDuration": 12.200000166893005,
+    "startTime": 4996.5,
+    "commitTime": 5010.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 12.500000238418579,
+    "startTime": 5013.700000047684,
+    "commitTime": 5014.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 12.50000011920929,
+    "startTime": 5015.100000023842,
+    "commitTime": 5015.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 12.50000011920929,
+    "startTime": 5016,
+    "commitTime": 5016.600000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 0.5000001192092896,
+    "startTime": 5091.700000047684,
+    "commitTime": 5104.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.49999988079071,
+    "baseDuration": 6.8999998569488525,
+    "startTime": 5092.400000095367,
+    "commitTime": 5104.700000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 5104.300000071526,
+    "commitTime": 5104.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.399999856948853,
+    "baseDuration": 6.299999833106995,
+    "startTime": 5112.200000047684,
+    "commitTime": 5121.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.799999952316284,
+    "baseDuration": 7.499999523162842,
+    "startTime": 5123.900000095367,
+    "commitTime": 5126.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.0999999046325684,
+    "baseDuration": 7.299999713897705,
+    "startTime": 5127.200000047684,
+    "commitTime": 5128.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.1000001430511475,
+    "baseDuration": 7.299999952316284,
+    "startTime": 5129,
+    "commitTime": 5130.200000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 0.7999999523162842,
+    "startTime": 5216,
+    "commitTime": 5245.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 25.700000166893005,
+    "baseDuration": 10.999999761581421,
+    "startTime": 5217.100000023842,
+    "commitTime": 5245.100000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 5244.600000023842,
+    "commitTime": 5245.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 9.199999809265137,
+    "baseDuration": 7.899999737739563,
+    "startTime": 5251.400000095367,
+    "commitTime": 5261.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.0000001192092896,
+    "baseDuration": 8.299999713897705,
+    "startTime": 5264.5,
+    "commitTime": 5265.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.40000009536743164,
+    "baseDuration": 8.099999904632568,
+    "startTime": 5266,
+    "commitTime": 5266.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 7.999999761581421,
+    "startTime": 5266.800000071526,
+    "commitTime": 5267.200000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 5346.5,
+    "commitTime": 5359.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.199999928474426,
+    "baseDuration": 6.5000001192092896,
+    "startTime": 5347.200000047684,
+    "commitTime": 5359.700000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 5359.300000071526,
+    "commitTime": 5359.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.699999928474426,
+    "baseDuration": 6.099999904632568,
+    "startTime": 5367.200000047684,
+    "commitTime": 5376.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.5999999046325684,
+    "baseDuration": 7.399999737739563,
+    "startTime": 5379.300000071526,
+    "commitTime": 5382
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 7.299999952316284,
+    "startTime": 5382.600000023842,
+    "commitTime": 5384
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.9000000953674316,
+    "baseDuration": 7.099999904632568,
+    "startTime": 5384.400000095367,
+    "commitTime": 5385.700000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.40000009536743164,
+    "startTime": 5461.800000071526,
+    "commitTime": 5491.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 26.800000190734863,
+    "baseDuration": 10.700000166893005,
+    "startTime": 5462.5,
+    "commitTime": 5491.100000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 5490.5,
+    "commitTime": 5491.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.50000011920929,
+    "baseDuration": 7.800000071525574,
+    "startTime": 5497.600000023842,
+    "commitTime": 5507.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 8.200000047683716,
+    "startTime": 5510.400000095367,
+    "commitTime": 5511.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 8.300000071525574,
+    "startTime": 5512.300000071526,
+    "commitTime": 5512.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5000001192092896,
+    "baseDuration": 8.200000166893005,
+    "startTime": 5513,
+    "commitTime": 5513.800000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 5588.600000023842,
+    "commitTime": 5601.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 10.800000190734863,
+    "baseDuration": 5.9999998807907104,
+    "startTime": 5589.200000047684,
+    "commitTime": 5601.400000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.20000004768371582,
+    "baseDuration": 0.20000004768371582,
+    "startTime": 5601,
+    "commitTime": 5601.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 9.599999904632568,
+    "baseDuration": 6.699999690055847,
+    "startTime": 5609.100000023842,
+    "commitTime": 5619.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.700000286102295,
+    "baseDuration": 7.699999928474426,
+    "startTime": 5622,
+    "commitTime": 5625
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.9000000953674316,
+    "baseDuration": 6.8999998569488525,
+    "startTime": 5625.5,
+    "commitTime": 5626.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.2000001668930054,
+    "baseDuration": 7.4999998807907104,
+    "startTime": 5627.100000023842,
+    "commitTime": 5628.400000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 1,
+    "baseDuration": 0.8999999761581421,
+    "startTime": 5781.400000095367,
+    "commitTime": 5806.5
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 22.200000047683716,
+    "baseDuration": 8.699999928474426,
+    "startTime": 5782.400000095367,
+    "commitTime": 5806.5
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 5805.900000095367,
+    "commitTime": 5806.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.700000166893005,
+    "baseDuration": 7.800000190734863,
+    "startTime": 5813.200000047684,
+    "commitTime": 5822.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 8.600000262260437,
+    "startTime": 5826.200000047684,
+    "commitTime": 5827.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 8.300000309944153,
+    "startTime": 5827.700000047684,
+    "commitTime": 5828.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 8.100000262260437,
+    "startTime": 5828.400000095367,
+    "commitTime": 5828.900000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 0.8999999761581421,
+    "startTime": 5983.300000071526,
+    "commitTime": 5996.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.000000238418579,
+    "baseDuration": 5.799999833106995,
+    "startTime": 5984.200000047684,
+    "commitTime": 5996.700000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 5996.300000071526,
+    "commitTime": 5996.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.599999785423279,
+    "baseDuration": 6.399999618530273,
+    "startTime": 6003.900000095367,
+    "commitTime": 6013.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.4999998807907104,
+    "baseDuration": 7.399999618530273,
+    "startTime": 6016.400000095367,
+    "commitTime": 6019.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.2999999523162842,
+    "baseDuration": 7.399999618530273,
+    "startTime": 6019.600000023842,
+    "commitTime": 6021
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.2999999523162842,
+    "baseDuration": 7.399999499320984,
+    "startTime": 6021.400000095367,
+    "commitTime": 6022.900000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 6090.400000095367,
+    "commitTime": 6118.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 26.200000047683716,
+    "baseDuration": 10.999999642372131,
+    "startTime": 6091.300000071526,
+    "commitTime": 6118.600000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 6118.100000023842,
+    "commitTime": 6118.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 9.199999690055847,
+    "baseDuration": 8.099999785423279,
+    "startTime": 6125.700000047684,
+    "commitTime": 6136.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 8.799999833106995,
+    "startTime": 6139.900000095367,
+    "commitTime": 6141.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5000001192092896,
+    "baseDuration": 8.5,
+    "startTime": 6141.5,
+    "commitTime": 6142.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 8.299999952316284,
+    "startTime": 6142.400000095367,
+    "commitTime": 6142.900000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6999999284744263,
+    "baseDuration": 0.6999999284744263,
+    "startTime": 6216.300000071526,
+    "commitTime": 6228.5
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 10.599999904632568,
+    "baseDuration": 6.800000309944153,
+    "startTime": 6217.100000023842,
+    "commitTime": 6228.5
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.19999992847442627,
+    "baseDuration": 0.19999992847442627,
+    "startTime": 6228.200000047684,
+    "commitTime": 6228.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 7.9999998807907104,
+    "baseDuration": 6.299999833106995,
+    "startTime": 6235.800000071526,
+    "commitTime": 6244.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.5,
+    "baseDuration": 7.399999976158142,
+    "startTime": 6247,
+    "commitTime": 6249.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 7.300000071525574,
+    "startTime": 6250,
+    "commitTime": 6251.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.9000000953674316,
+    "baseDuration": 7.000000238418579,
+    "startTime": 6251.600000023842,
+    "commitTime": 6252.600000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6999999284744263,
+    "baseDuration": 0.6999999284744263,
+    "startTime": 6315.300000071526,
+    "commitTime": 6343.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 25.899999856948853,
+    "baseDuration": 11.09999942779541,
+    "startTime": 6316.200000047684,
+    "commitTime": 6343.400000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 6343.100000023842,
+    "commitTime": 6343.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.50000011920929,
+    "baseDuration": 7.299999833106995,
+    "startTime": 6349.600000023842,
+    "commitTime": 6359.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 7.799999833106995,
+    "startTime": 6362.200000047684,
+    "commitTime": 6363.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 7.499999761581421,
+    "startTime": 6363.5,
+    "commitTime": 6364.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 7.399999737739563,
+    "startTime": 6364.300000071526,
+    "commitTime": 6364.700000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.5000001192092896,
+    "baseDuration": 0.5000001192092896,
+    "startTime": 6435.800000071526,
+    "commitTime": 6447.300000071526
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 10.199999928474426,
+    "baseDuration": 6.100000262260437,
+    "startTime": 6436.400000095367,
+    "commitTime": 6447.300000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.20000004768371582,
+    "baseDuration": 0.20000004768371582,
+    "startTime": 6447,
+    "commitTime": 6447.300000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.299999833106995,
+    "baseDuration": 5.700000286102295,
+    "startTime": 6454.900000095367,
+    "commitTime": 6463.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.5,
+    "baseDuration": 7.100000262260437,
+    "startTime": 6466,
+    "commitTime": 6468.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 7.100000500679016,
+    "startTime": 6469.100000023842,
+    "commitTime": 6470.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.0000001192092896,
+    "baseDuration": 7.000000596046448,
+    "startTime": 6470.700000047684,
+    "commitTime": 6471.900000095367
+  },
+  {
+    "id": "queue",
+    "phase": "update",
+    "actualDuration": 16.100000023841858,
+    "baseDuration": 12.700000286102295,
+    "startTime": 6526.900000095367,
+    "commitTime": 6543.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.10000002384185791,
+    "baseDuration": 12.800000309944153,
+    "startTime": 6547.200000047684,
+    "commitTime": 6547.400000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 0.8000000715255737,
+    "startTime": 6684.5,
+    "commitTime": 6709.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 22.5,
+    "baseDuration": 9.899999856948853,
+    "startTime": 6685.300000071526,
+    "commitTime": 6709.300000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 6708.800000071526,
+    "commitTime": 6709.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.100000143051147,
+    "baseDuration": 7.5000001192092896,
+    "startTime": 6715,
+    "commitTime": 6724.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.0999999046325684,
+    "baseDuration": 7.900000333786011,
+    "startTime": 6727.300000071526,
+    "commitTime": 6728.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 7.800000190734863,
+    "startTime": 6728.700000047684,
+    "commitTime": 6729.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 7.800000190734863,
+    "startTime": 6729.400000095367,
+    "commitTime": 6729.900000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 6837.700000047684,
+    "commitTime": 6838.400000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6999999284744263,
+    "baseDuration": 0.6999999284744263,
+    "startTime": 6879.300000071526,
+    "commitTime": 6891.300000071526
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 10.00000011920929,
+    "baseDuration": 6.200000047683716,
+    "startTime": 6880,
+    "commitTime": 6891.300000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 6890.900000095367,
+    "commitTime": 6891.300000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 7.599999904632568,
+    "baseDuration": 5.399999618530273,
+    "startTime": 6898.300000071526,
+    "commitTime": 6906.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.299999952316284,
+    "baseDuration": 6.499999642372131,
+    "startTime": 6909.200000047684,
+    "commitTime": 6911.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 6.499999642372131,
+    "startTime": 6912.100000023842,
+    "commitTime": 6913.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 6.0999995470047,
+    "startTime": 6913.5,
+    "commitTime": 6914.600000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.5999999046325684,
+    "baseDuration": 0.5999999046325684,
+    "startTime": 6974.300000071526,
+    "commitTime": 7000.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 24.5,
+    "baseDuration": 10.099999785423279,
+    "startTime": 6975,
+    "commitTime": 7000.700000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 7000.300000071526,
+    "commitTime": 7000.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 9.099999904632568,
+    "baseDuration": 8.199999809265137,
+    "startTime": 7006.600000023842,
+    "commitTime": 7016.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.0999999046325684,
+    "baseDuration": 8.599999785423279,
+    "startTime": 7019.400000095367,
+    "commitTime": 7020.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 8.699999809265137,
+    "startTime": 7020.800000071526,
+    "commitTime": 7021.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 8.599999785423279,
+    "startTime": 7021.600000023842,
+    "commitTime": 7022
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.5000001192092896,
+    "startTime": 7090.700000047684,
+    "commitTime": 7102.300000071526
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 9.699999809265137,
+    "baseDuration": 5.0000001192092896,
+    "startTime": 7091.400000095367,
+    "commitTime": 7102.300000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 7101.900000095367,
+    "commitTime": 7102.300000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.599999785423279,
+    "baseDuration": 6.199999570846558,
+    "startTime": 7109.400000095367,
+    "commitTime": 7118.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.5,
+    "baseDuration": 6.899999499320984,
+    "startTime": 7121.100000023842,
+    "commitTime": 7123.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8000001907348633,
+    "baseDuration": 6.799999713897705,
+    "startTime": 7124.100000023842,
+    "commitTime": 7125.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 6.7999995946884155,
+    "startTime": 7125.600000023842,
+    "commitTime": 7126.600000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.5000001192092896,
+    "baseDuration": 0.5000001192092896,
+    "startTime": 7190.700000047684,
+    "commitTime": 7216.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 23.899999856948853,
+    "baseDuration": 11.100000023841858,
+    "startTime": 7191.400000095367,
+    "commitTime": 7216.700000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 7216.200000047684,
+    "commitTime": 7216.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.400000095367432,
+    "baseDuration": 7.600000023841858,
+    "startTime": 7223.400000095367,
+    "commitTime": 7232.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.9999998807907104,
+    "baseDuration": 7.699999928474426,
+    "startTime": 7235.400000095367,
+    "commitTime": 7236.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 7.799999952316284,
+    "startTime": 7236.800000071526,
+    "commitTime": 7237.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 7.899999976158142,
+    "startTime": 7237.5,
+    "commitTime": 7238
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 1,
+    "baseDuration": 0.9000000953674316,
+    "startTime": 7331.800000071526,
+    "commitTime": 7345.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.5,
+    "baseDuration": 7.600000262260437,
+    "startTime": 7332.800000071526,
+    "commitTime": 7345.200000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 7344.800000071526,
+    "commitTime": 7345.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 7.800000071525574,
+    "baseDuration": 5.400000095367432,
+    "startTime": 7352.100000023842,
+    "commitTime": 7360.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.600000023841858,
+    "baseDuration": 6.700000166893005,
+    "startTime": 7363.100000023842,
+    "commitTime": 7365.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 6.000000238418579,
+    "startTime": 7366.300000071526,
+    "commitTime": 7367.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 5.900000214576721,
+    "startTime": 7367.800000071526,
+    "commitTime": 7368.900000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 7432.200000047684,
+    "commitTime": 7458.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 24.800000071525574,
+    "baseDuration": 10.999999761581421,
+    "startTime": 7432.900000095367,
+    "commitTime": 7458.900000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 7458.400000095367,
+    "commitTime": 7458.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 9.199999928474426,
+    "baseDuration": 8.799999833106995,
+    "startTime": 7465,
+    "commitTime": 7475.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 9.399999856948853,
+    "startTime": 7478,
+    "commitTime": 7479.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 9.299999833106995,
+    "startTime": 7479.600000023842,
+    "commitTime": 7480
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 9.399999856948853,
+    "startTime": 7480.100000023842,
+    "commitTime": 7480.700000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 0.7999999523162842,
+    "startTime": 7552.400000095367,
+    "commitTime": 7565
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 10.600000023841858,
+    "baseDuration": 5.1000001430511475,
+    "startTime": 7553.200000047684,
+    "commitTime": 7565
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 7564.5,
+    "commitTime": 7565
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8,
+    "baseDuration": 5.700000166893005,
+    "startTime": 7572.200000047684,
+    "commitTime": 7581
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.1999999284744263,
+    "baseDuration": 6.799999952316284,
+    "startTime": 7583.100000023842,
+    "commitTime": 7585.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 6.399999976158142,
+    "startTime": 7586,
+    "commitTime": 7587.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 6.5,
+    "startTime": 7587.700000047684,
+    "commitTime": 7588.800000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 7657.5,
+    "commitTime": 7683.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 23.700000166893005,
+    "baseDuration": 9.800000667572021,
+    "startTime": 7658.300000071526,
+    "commitTime": 7683.900000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.20000004768371582,
+    "baseDuration": 0.20000004768371582,
+    "startTime": 7683.600000023842,
+    "commitTime": 7683.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 11.799999952316284,
+    "baseDuration": 11,
+    "startTime": 7690.100000023842,
+    "commitTime": 7703.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.9000000953674316,
+    "baseDuration": 11.300000071525574,
+    "startTime": 7706.600000023842,
+    "commitTime": 7707.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 11.700000047683716,
+    "startTime": 7707.800000071526,
+    "commitTime": 7708.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 11.400000095367432,
+    "startTime": 7708.600000023842,
+    "commitTime": 7709
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 0.5,
+    "startTime": 7778.300000071526,
+    "commitTime": 7790.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 10.100000143051147,
+    "baseDuration": 5.699999809265137,
+    "startTime": 7779,
+    "commitTime": 7790.200000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.19999992847442627,
+    "baseDuration": 0.19999992847442627,
+    "startTime": 7789.900000095367,
+    "commitTime": 7790.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.299999952316284,
+    "baseDuration": 5.9000004529953,
+    "startTime": 7797.5,
+    "commitTime": 7806.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.6999999284744263,
+    "baseDuration": 6.900000333786011,
+    "startTime": 7808.800000071526,
+    "commitTime": 7811.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 7.400000333786011,
+    "startTime": 7812,
+    "commitTime": 7813.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 7.300000309944153,
+    "startTime": 7813.600000023842,
+    "commitTime": 7814.700000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 0.8000000715255737,
+    "startTime": 7886.5,
+    "commitTime": 7913.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 24.800000071525574,
+    "baseDuration": 10.800000190734863,
+    "startTime": 7887.300000071526,
+    "commitTime": 7913.600000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.19999992847442627,
+    "baseDuration": 0.19999992847442627,
+    "startTime": 7913.300000071526,
+    "commitTime": 7913.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.800000190734863,
+    "baseDuration": 7.900000095367432,
+    "startTime": 7919.800000071526,
+    "commitTime": 7929.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 8.200000047683716,
+    "startTime": 7932.400000095367,
+    "commitTime": 7933.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 8.099999904632568,
+    "startTime": 7933.800000071526,
+    "commitTime": 7934.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 7.9999998807907104,
+    "startTime": 7934.400000095367,
+    "commitTime": 7934.900000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 0.6999999284744263,
+    "startTime": 8008.700000047684,
+    "commitTime": 8021.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.100000023841858,
+    "baseDuration": 7.599999904632568,
+    "startTime": 8009.5,
+    "commitTime": 8021.800000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 8021.300000071526,
+    "commitTime": 8021.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 7.799999952316284,
+    "baseDuration": 5.999999761581421,
+    "startTime": 8028.700000047684,
+    "commitTime": 8037.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.200000047683716,
+    "baseDuration": 6.899999618530273,
+    "startTime": 8039.600000023842,
+    "commitTime": 8042
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 6.699999809265137,
+    "startTime": 8042.700000047684,
+    "commitTime": 8043.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 6.899999737739563,
+    "startTime": 8044.100000023842,
+    "commitTime": 8045.200000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 0.8000000715255737,
+    "startTime": 8103.5,
+    "commitTime": 8129.5
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 23.799999952316284,
+    "baseDuration": 9.90000033378601,
+    "startTime": 8104.300000071526,
+    "commitTime": 8129.5
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 8129.100000023842,
+    "commitTime": 8129.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.399999856948853,
+    "baseDuration": 7.200000166893005,
+    "startTime": 8135.700000047684,
+    "commitTime": 8145.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.0999999046325684,
+    "baseDuration": 7.400000095367432,
+    "startTime": 8148.300000071526,
+    "commitTime": 8149.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 7.5000001192092896,
+    "startTime": 8149.700000047684,
+    "commitTime": 8150.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 7.5000001192092896,
+    "startTime": 8150.400000095367,
+    "commitTime": 8150.800000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 0.7999999523162842,
+    "startTime": 8245.300000071526,
+    "commitTime": 8257.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.000000238418579,
+    "baseDuration": 6.099999904632568,
+    "startTime": 8246.100000023842,
+    "commitTime": 8257.800000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 8257.5,
+    "commitTime": 8257.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.200000047683716,
+    "baseDuration": 6.499999761581421,
+    "startTime": 8264.600000023842,
+    "commitTime": 8273.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.5,
+    "baseDuration": 7.599999904632568,
+    "startTime": 8275.800000071526,
+    "commitTime": 8278.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8999998569488525,
+    "baseDuration": 7.099999785423279,
+    "startTime": 8278.800000071526,
+    "commitTime": 8280
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 7.199999928474426,
+    "startTime": 8280.300000071526,
+    "commitTime": 8281.400000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6999999284744263,
+    "baseDuration": 0.6999999284744263,
+    "startTime": 8357.800000071526,
+    "commitTime": 8384.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 24.199999928474426,
+    "baseDuration": 10.799999713897705,
+    "startTime": 8358.5,
+    "commitTime": 8384.400000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 8383.900000095367,
+    "commitTime": 8384.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 7.700000166893005,
+    "baseDuration": 7.200000047683716,
+    "startTime": 8390.100000023842,
+    "commitTime": 8399.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 7.6000001430511475,
+    "startTime": 8402.400000095367,
+    "commitTime": 8403.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5000001192092896,
+    "baseDuration": 7.6000001430511475,
+    "startTime": 8403.600000023842,
+    "commitTime": 8404.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.19999992847442627,
+    "baseDuration": 7.299999952316284,
+    "startTime": 8404.400000095367,
+    "commitTime": 8404.800000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 8473.300000071526,
+    "commitTime": 8485.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 10.399999976158142,
+    "baseDuration": 6.099999904632568,
+    "startTime": 8474.100000023842,
+    "commitTime": 8485.400000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.20000004768371582,
+    "baseDuration": 0.20000004768371582,
+    "startTime": 8485.100000023842,
+    "commitTime": 8485.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.49999988079071,
+    "baseDuration": 5.899999976158142,
+    "startTime": 8492.400000095367,
+    "commitTime": 8501.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.5000001192092896,
+    "baseDuration": 7.000000238418579,
+    "startTime": 8503.700000047684,
+    "commitTime": 8506.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.399999976158142,
+    "baseDuration": 6.900000095367432,
+    "startTime": 8506.900000095367,
+    "commitTime": 8508.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 6.6000001430511475,
+    "startTime": 8508.900000095367,
+    "commitTime": 8510.100000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 8587.100000023842,
+    "commitTime": 8618.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 27.799999713897705,
+    "baseDuration": 11.399999141693115,
+    "startTime": 8587.800000071526,
+    "commitTime": 8618.200000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.19999992847442627,
+    "baseDuration": 0.19999992847442627,
+    "startTime": 8617.800000071526,
+    "commitTime": 8618.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 13.299999952316284,
+    "baseDuration": 12.49999988079071,
+    "startTime": 8624.5,
+    "commitTime": 8638.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 12.699999809265137,
+    "startTime": 8643,
+    "commitTime": 8644.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 12.799999713897705,
+    "startTime": 8644.5,
+    "commitTime": 8645.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 12.799999713897705,
+    "startTime": 8645.300000071526,
+    "commitTime": 8645.800000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.5999999046325684,
+    "baseDuration": 0.5999999046325684,
+    "startTime": 8725.200000047684,
+    "commitTime": 8739.5
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.899999976158142,
+    "baseDuration": 6.700000166893005,
+    "startTime": 8726,
+    "commitTime": 8739.5
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.20000004768371582,
+    "baseDuration": 0.20000004768371582,
+    "startTime": 8739.200000047684,
+    "commitTime": 8739.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.100000262260437,
+    "baseDuration": 6.0000001192092896,
+    "startTime": 8747.100000023842,
+    "commitTime": 8756.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.600000023841858,
+    "baseDuration": 7.300000071525574,
+    "startTime": 8759,
+    "commitTime": 8761.900000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.1999999284744263,
+    "baseDuration": 7.100000023841858,
+    "startTime": 8762.400000095367,
+    "commitTime": 8763.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 7.100000023841858,
+    "startTime": 8764,
+    "commitTime": 8765.200000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 8832,
+    "commitTime": 8832.300000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 8845.700000047684,
+    "commitTime": 8871.5
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 23.49999976158142,
+    "baseDuration": 9.999999761581421,
+    "startTime": 8846.400000095367,
+    "commitTime": 8871.5
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 8871.100000023842,
+    "commitTime": 8871.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.09999966621399,
+    "baseDuration": 7.399999618530273,
+    "startTime": 8877.400000095367,
+    "commitTime": 8886.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 7.999999642372131,
+    "startTime": 8890.100000023842,
+    "commitTime": 8891.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 7.499999642372131,
+    "startTime": 8891.600000023842,
+    "commitTime": 8892.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 7.699999690055847,
+    "startTime": 8892.300000071526,
+    "commitTime": 8892.800000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6999999284744263,
+    "baseDuration": 0.6999999284744263,
+    "startTime": 8971.800000071526,
+    "commitTime": 8984.5
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.200000047683716,
+    "baseDuration": 5.700000047683716,
+    "startTime": 8972.5,
+    "commitTime": 8984.5
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.20000004768371582,
+    "baseDuration": 0.20000004768371582,
+    "startTime": 8984.200000047684,
+    "commitTime": 8984.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.299999833106995,
+    "baseDuration": 6,
+    "startTime": 8991.900000095367,
+    "commitTime": 9001.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.3000000715255737,
+    "baseDuration": 7,
+    "startTime": 9003.300000071526,
+    "commitTime": 9005.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.399999976158142,
+    "baseDuration": 7.299999952316284,
+    "startTime": 9006.5,
+    "commitTime": 9008
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 6.799999952316284,
+    "startTime": 9008.5,
+    "commitTime": 9009.800000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 9082.800000071526,
+    "commitTime": 9110.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 25.700000047683716,
+    "baseDuration": 10.90000069141388,
+    "startTime": 9083.600000023842,
+    "commitTime": 9110.200000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.19999992847442627,
+    "baseDuration": 0.19999992847442627,
+    "startTime": 9109.900000095367,
+    "commitTime": 9110.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.200000047683716,
+    "baseDuration": 8,
+    "startTime": 9116.400000095367,
+    "commitTime": 9125.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 8.300000071525574,
+    "startTime": 9128.600000023842,
+    "commitTime": 9129.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 8.300000071525574,
+    "startTime": 9130,
+    "commitTime": 9130.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 8.200000047683716,
+    "startTime": 9130.700000047684,
+    "commitTime": 9131.100000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 9203,
+    "commitTime": 9217.900000095367
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 13.099999904632568,
+    "baseDuration": 7.8999998569488525,
+    "startTime": 9203.700000047684,
+    "commitTime": 9217.900000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 9217.600000023842,
+    "commitTime": 9217.900000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.5,
+    "baseDuration": 5.8999998569488525,
+    "startTime": 9225.200000047684,
+    "commitTime": 9234.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.1999999284744263,
+    "baseDuration": 6.8999998569488525,
+    "startTime": 9236.700000047684,
+    "commitTime": 9239.300000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 6.399999737739563,
+    "startTime": 9239.700000047684,
+    "commitTime": 9240.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 6.8999998569488525,
+    "startTime": 9241.200000047684,
+    "commitTime": 9242.5
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 9363.600000023842,
+    "commitTime": 9388.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 22.700000047683716,
+    "baseDuration": 9.09999966621399,
+    "startTime": 9364.400000095367,
+    "commitTime": 9388.900000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 9388.5,
+    "commitTime": 9388.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 10.700000166893005,
+    "baseDuration": 9.800000071525574,
+    "startTime": 9395.100000023842,
+    "commitTime": 9406.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 10.200000047683716,
+    "startTime": 9409.800000071526,
+    "commitTime": 9410.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 10.100000143051147,
+    "startTime": 9411.200000047684,
+    "commitTime": 9411.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 10.00000011920929,
+    "startTime": 9411.900000095367,
+    "commitTime": 9412.400000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 9555.5,
+    "commitTime": 9568.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.40000033378601,
+    "baseDuration": 6.0000001192092896,
+    "startTime": 9556.200000047684,
+    "commitTime": 9568.800000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 9568.300000071526,
+    "commitTime": 9568.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 10.300000190734863,
+    "baseDuration": 6.899999976158142,
+    "startTime": 9576.300000071526,
+    "commitTime": 9587.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.5999999046325684,
+    "baseDuration": 7.899999976158142,
+    "startTime": 9589.900000095367,
+    "commitTime": 9592.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 7.800000071525574,
+    "startTime": 9593.200000047684,
+    "commitTime": 9594.300000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.1999999284744263,
+    "baseDuration": 8,
+    "startTime": 9594.600000023842,
+    "commitTime": 9596.100000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 9675.100000023842,
+    "commitTime": 9705.5
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 27.300000190734863,
+    "baseDuration": 10.700000286102295,
+    "startTime": 9675.800000071526,
+    "commitTime": 9705.5
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 9705,
+    "commitTime": 9705.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 9.49999988079071,
+    "baseDuration": 8.899999976158142,
+    "startTime": 9713.600000023842,
+    "commitTime": 9724
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.7000000476837158,
+    "baseDuration": 9.299999952316284,
+    "startTime": 9727.600000023842,
+    "commitTime": 9729.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 9,
+    "startTime": 9729.600000023842,
+    "commitTime": 9730.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 9,
+    "startTime": 9730.300000071526,
+    "commitTime": 9730.900000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6999999284744263,
+    "baseDuration": 0.6999999284744263,
+    "startTime": 9809.900000095367,
+    "commitTime": 9822.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 10.99999988079071,
+    "baseDuration": 5.699999570846558,
+    "startTime": 9810.600000023842,
+    "commitTime": 9822.600000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.19999992847442627,
+    "baseDuration": 0.19999992847442627,
+    "startTime": 9822.300000071526,
+    "commitTime": 9822.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 10.5,
+    "baseDuration": 7.500000476837158,
+    "startTime": 9830.700000047684,
+    "commitTime": 9842.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.8000000715255737,
+    "baseDuration": 8.500000715255737,
+    "startTime": 9844.5,
+    "commitTime": 9847.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 7.800000548362732,
+    "startTime": 9848,
+    "commitTime": 9849
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 8.100000500679016,
+    "startTime": 9849.400000095367,
+    "commitTime": 9850.5
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 1,
+    "baseDuration": 1,
+    "startTime": 9929.100000023842,
+    "commitTime": 9958.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 26.50000011920929,
+    "baseDuration": 9.499999761581421,
+    "startTime": 9930.100000023842,
+    "commitTime": 9958.200000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 9957.700000047684,
+    "commitTime": 9958.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 11.399999856948853,
+    "baseDuration": 10.400000095367432,
+    "startTime": 9965.300000071526,
+    "commitTime": 9977.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 10.700000166893005,
+    "startTime": 9981.600000023842,
+    "commitTime": 9982.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.8999998569488525,
+    "baseDuration": 11,
+    "startTime": 9983.800000071526,
+    "commitTime": 9985
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 10.700000047683716,
+    "startTime": 9985.300000071526,
+    "commitTime": 9985.900000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 0.8999999761581421,
+    "startTime": 10073.300000071526,
+    "commitTime": 10090.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 14.600000143051147,
+    "baseDuration": 8.09999966621399,
+    "startTime": 10074.200000047684,
+    "commitTime": 10090.200000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 10089.800000071526,
+    "commitTime": 10090.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 9.50000011920929,
+    "baseDuration": 6.200000166893005,
+    "startTime": 10098.100000023842,
+    "commitTime": 10108.300000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 3.200000286102295,
+    "baseDuration": 7.800000309944153,
+    "startTime": 10111,
+    "commitTime": 10114.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 7.300000309944153,
+    "startTime": 10115,
+    "commitTime": 10116
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.1999999284744263,
+    "baseDuration": 7.400000214576721,
+    "startTime": 10116.900000095367,
+    "commitTime": 10118.200000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.49999988079071045,
+    "baseDuration": 0.49999988079071045,
+    "startTime": 10218.900000095367,
+    "commitTime": 10249.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 28.300000071525574,
+    "baseDuration": 11.000000596046448,
+    "startTime": 10219.5,
+    "commitTime": 10249.800000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 10249.300000071526,
+    "commitTime": 10249.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 9.299999952316284,
+    "baseDuration": 8.799999952316284,
+    "startTime": 10257.100000023842,
+    "commitTime": 10268.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 9.300000071525574,
+    "startTime": 10272.400000095367,
+    "commitTime": 10273.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.29999983310699463,
+    "baseDuration": 9.099999904632568,
+    "startTime": 10273.900000095367,
+    "commitTime": 10274.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 9.100000023841858,
+    "startTime": 10274.800000071526,
+    "commitTime": 10275.400000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.5000001192092896,
+    "baseDuration": 0.5000001192092896,
+    "startTime": 10389.700000047684,
+    "commitTime": 10403.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.49999988079071,
+    "baseDuration": 7.199999451637268,
+    "startTime": 10390.400000095367,
+    "commitTime": 10403.100000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 10402.600000023842,
+    "commitTime": 10403.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 9.899999976158142,
+    "baseDuration": 6.799999833106995,
+    "startTime": 10411.200000047684,
+    "commitTime": 10421.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 3.100000023841858,
+    "baseDuration": 7.799999952316284,
+    "startTime": 10424,
+    "commitTime": 10427.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 7.499999761581421,
+    "startTime": 10427.5,
+    "commitTime": 10428.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.9999998807907104,
+    "baseDuration": 7.599999666213989,
+    "startTime": 10429.300000071526,
+    "commitTime": 10430.700000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 10509,
+    "commitTime": 10547.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 36.09999978542328,
+    "baseDuration": 13.50000011920929,
+    "startTime": 10509.800000071526,
+    "commitTime": 10547.700000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 10547.200000047684,
+    "commitTime": 10547.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 10.999999761581421,
+    "baseDuration": 10.400000095367432,
+    "startTime": 10555.400000095367,
+    "commitTime": 10567.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 10.800000071525574,
+    "startTime": 10571.600000023842,
+    "commitTime": 10572.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5999999046325684,
+    "baseDuration": 10.900000095367432,
+    "startTime": 10572.900000095367,
+    "commitTime": 10573.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 10.700000166893005,
+    "startTime": 10573.700000047684,
+    "commitTime": 10574.100000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 10673,
+    "commitTime": 10689
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 13.299999952316284,
+    "baseDuration": 7.8999998569488525,
+    "startTime": 10673.600000023842,
+    "commitTime": 10689
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 10688.200000047684,
+    "commitTime": 10689
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.700000047683716,
+    "baseDuration": 6.000000357627869,
+    "startTime": 10698.100000023842,
+    "commitTime": 10707.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.799999952316284,
+    "baseDuration": 6.90000057220459,
+    "startTime": 10710.300000071526,
+    "commitTime": 10713.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 6.400000333786011,
+    "startTime": 10713.700000047684,
+    "commitTime": 10714.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 6.600000262260437,
+    "startTime": 10715.100000023842,
+    "commitTime": 10716
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 0.8999999761581421,
+    "startTime": 10837.400000095367,
+    "commitTime": 10865.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 26.09999978542328,
+    "baseDuration": 10.500000715255737,
+    "startTime": 10838.300000071526,
+    "commitTime": 10865.800000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 10865.300000071526,
+    "commitTime": 10865.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 14.999999761581421,
+    "baseDuration": 14.59999966621399,
+    "startTime": 10872.800000071526,
+    "commitTime": 10888.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.1999999284744263,
+    "baseDuration": 15.199999690055847,
+    "startTime": 10892.800000071526,
+    "commitTime": 10894.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 15.09999966621399,
+    "startTime": 10894.400000095367,
+    "commitTime": 10895
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 15.299999713897705,
+    "startTime": 10895.200000047684,
+    "commitTime": 10895.900000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 10977.600000023842,
+    "commitTime": 10996.900000095367
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 17.100000143051147,
+    "baseDuration": 8.399999618530273,
+    "startTime": 10978.400000095367,
+    "commitTime": 10996.900000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 10996.300000071526,
+    "commitTime": 10996.900000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 14.99999988079071,
+    "baseDuration": 10.50000011920929,
+    "startTime": 11008.200000047684,
+    "commitTime": 11024
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 5,
+    "baseDuration": 12.299999952316284,
+    "startTime": 11029.300000071526,
+    "commitTime": 11034.300000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 10.99999988079071,
+    "startTime": 11034.900000095367,
+    "commitTime": 11036.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.5999999046325684,
+    "baseDuration": 11.799999833106995,
+    "startTime": 11036.700000047684,
+    "commitTime": 11038.700000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 11129.600000023842,
+    "commitTime": 11163.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 30.90000009536743,
+    "baseDuration": 12.300000309944153,
+    "startTime": 11130.300000071526,
+    "commitTime": 11163.600000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 11163.100000023842,
+    "commitTime": 11163.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 11.300000190734863,
+    "baseDuration": 10.400000095367432,
+    "startTime": 11171.900000095367,
+    "commitTime": 11184.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 10.700000166893005,
+    "startTime": 11189.900000095367,
+    "commitTime": 11191.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 11.300000071525574,
+    "startTime": 11191.600000023842,
+    "commitTime": 11192.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 10.900000095367432,
+    "startTime": 11192.900000095367,
+    "commitTime": 11194
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 0.8999999761581421,
+    "startTime": 11302.400000095367,
+    "commitTime": 11316.5
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.599999904632568,
+    "baseDuration": 6.899999737739563,
+    "startTime": 11303.300000071526,
+    "commitTime": 11316.5
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 11315.800000071526,
+    "commitTime": 11316.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.900000214576721,
+    "baseDuration": 6.000000357627869,
+    "startTime": 11325.900000095367,
+    "commitTime": 11335.900000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.399999976158142,
+    "baseDuration": 7.000000357627869,
+    "startTime": 11338.300000071526,
+    "commitTime": 11340.900000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 7.000000238418579,
+    "startTime": 11341.5,
+    "commitTime": 11342.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.0000001192092896,
+    "baseDuration": 6.800000309944153,
+    "startTime": 11343.300000071526,
+    "commitTime": 11344.5
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 11432.100000023842,
+    "commitTime": 11465.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 30.600000143051147,
+    "baseDuration": 12.299999713897705,
+    "startTime": 11432.800000071526,
+    "commitTime": 11465.100000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 11464.700000047684,
+    "commitTime": 11465.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 7.800000071525574,
+    "baseDuration": 7.199999928474426,
+    "startTime": 11472.700000047684,
+    "commitTime": 11481.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 7.3999998569488525,
+    "startTime": 11484.900000095367,
+    "commitTime": 11486.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 7.399999976158142,
+    "startTime": 11486.300000071526,
+    "commitTime": 11486.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.7000001668930054,
+    "baseDuration": 7.700000166893005,
+    "startTime": 11487,
+    "commitTime": 11487.800000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6999999284744263,
+    "baseDuration": 0.6999999284744263,
+    "startTime": 11608.300000071526,
+    "commitTime": 11624.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 14.599999904632568,
+    "baseDuration": 7.900000095367432,
+    "startTime": 11609,
+    "commitTime": 11624.700000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 11624.100000023842,
+    "commitTime": 11624.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 11.799999952316284,
+    "baseDuration": 7.499999642372131,
+    "startTime": 11635.200000047684,
+    "commitTime": 11647.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 4,
+    "baseDuration": 8.899999618530273,
+    "startTime": 11650.800000071526,
+    "commitTime": 11655.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.1999999284744263,
+    "baseDuration": 8.5999995470047,
+    "startTime": 11655.900000095367,
+    "commitTime": 11657.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.5000001192092896,
+    "baseDuration": 8.799999713897705,
+    "startTime": 11657.600000023842,
+    "commitTime": 11659.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "update",
+    "actualDuration": 15.299999952316284,
+    "baseDuration": 11.599999785423279,
+    "startTime": 11710,
+    "commitTime": 11726.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.10000002384185791,
+    "baseDuration": 11.599999785423279,
+    "startTime": 11731.100000023842,
+    "commitTime": 11731.200000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 0.8999999761581421,
+    "startTime": 11921.200000047684,
+    "commitTime": 11949.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 24.700000643730164,
+    "baseDuration": 11.200000286102295,
+    "startTime": 11922.100000023842,
+    "commitTime": 11949.300000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 11948.600000023842,
+    "commitTime": 11949.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 7.8999998569488525,
+    "baseDuration": 6.800000071525574,
+    "startTime": 11956.800000071526,
+    "commitTime": 11966
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 7.300000190734863,
+    "startTime": 11969,
+    "commitTime": 11970.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.40000009536743164,
+    "baseDuration": 7.200000166893005,
+    "startTime": 11970.400000095367,
+    "commitTime": 11970.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 7.100000023841858,
+    "startTime": 11971.200000047684,
+    "commitTime": 11971.700000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 1.5,
+    "baseDuration": 1.4000000953674316,
+    "startTime": 12178.900000095367,
+    "commitTime": 12199.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 17.600000143051147,
+    "baseDuration": 9.300000190734863,
+    "startTime": 12180.5,
+    "commitTime": 12199.400000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 12198.900000095367,
+    "commitTime": 12199.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 12.399999976158142,
+    "baseDuration": 9.59999966621399,
+    "startTime": 12211.800000071526,
+    "commitTime": 12224.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.899999976158142,
+    "baseDuration": 10.59999966621399,
+    "startTime": 12227.5,
+    "commitTime": 12230.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.3000001907348633,
+    "baseDuration": 10.599999785423279,
+    "startTime": 12231.200000047684,
+    "commitTime": 12232.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.0999999046325684,
+    "baseDuration": 10.299999475479126,
+    "startTime": 12233.400000095367,
+    "commitTime": 12234.600000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 0.5999999046325684,
+    "startTime": 12314.900000095367,
+    "commitTime": 12344.5
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 27.40000009536743,
+    "baseDuration": 10.199999570846558,
+    "startTime": 12315.700000047684,
+    "commitTime": 12344.5
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 12344.100000023842,
+    "commitTime": 12344.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 7.8999998569488525,
+    "baseDuration": 6.699999809265137,
+    "startTime": 12352.300000071526,
+    "commitTime": 12361.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 6.999999761581421,
+    "startTime": 12364.5,
+    "commitTime": 12365.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 7.299999713897705,
+    "startTime": 12365.900000095367,
+    "commitTime": 12366.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 7.099999666213989,
+    "startTime": 12366.600000023842,
+    "commitTime": 12367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 0.8999999761581421,
+    "startTime": 12438.100000023842,
+    "commitTime": 12451
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 10.899999856948853,
+    "baseDuration": 5.599999785423279,
+    "startTime": 12439,
+    "commitTime": 12451
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 12450.5,
+    "commitTime": 12451
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 9.399999976158142,
+    "baseDuration": 6.700000047683716,
+    "startTime": 12461.100000023842,
+    "commitTime": 12471.300000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.5,
+    "baseDuration": 7.5000001192092896,
+    "startTime": 12474,
+    "commitTime": 12476.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 7.200000166893005,
+    "startTime": 12477.300000071526,
+    "commitTime": 12478.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.2999999523162842,
+    "baseDuration": 7.6000001430511475,
+    "startTime": 12478.900000095367,
+    "commitTime": 12480.400000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.5999999046325684,
+    "baseDuration": 0.5,
+    "startTime": 12583.800000071526,
+    "commitTime": 12612.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 26.600000023841858,
+    "baseDuration": 11.299999952316284,
+    "startTime": 12584.5,
+    "commitTime": 12612.600000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 12612,
+    "commitTime": 12612.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 9.700000166893005,
+    "baseDuration": 8.600000023841858,
+    "startTime": 12620.100000023842,
+    "commitTime": 12631.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.5,
+    "baseDuration": 9.49999988079071,
+    "startTime": 12635.100000023842,
+    "commitTime": 12636.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 8.99999988079071,
+    "startTime": 12637,
+    "commitTime": 12637.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.1999999284744263,
+    "baseDuration": 9.799999833106995,
+    "startTime": 12637.900000095367,
+    "commitTime": 12639.300000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 0.7999999523162842,
+    "startTime": 12725.600000023842,
+    "commitTime": 12739.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 10.999999761581421,
+    "baseDuration": 6.5999995470047,
+    "startTime": 12726.5,
+    "commitTime": 12739.100000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 12738.700000047684,
+    "commitTime": 12739.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 9.100000023841858,
+    "baseDuration": 5.900000333786011,
+    "startTime": 12747,
+    "commitTime": 12756.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 3.6999999284744263,
+    "baseDuration": 7.300000190734863,
+    "startTime": 12761.300000071526,
+    "commitTime": 12765.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.3000000715255737,
+    "baseDuration": 7.400000333786011,
+    "startTime": 12765.700000047684,
+    "commitTime": 12767.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.7000000476837158,
+    "baseDuration": 7.800000309944153,
+    "startTime": 12768.400000095367,
+    "commitTime": 12770.300000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 12844.100000023842,
+    "commitTime": 12844.5
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 12864.600000023842,
+    "commitTime": 12893.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 25.9000004529953,
+    "baseDuration": 9.099999785423279,
+    "startTime": 12865.300000071526,
+    "commitTime": 12893.300000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 12892.800000071526,
+    "commitTime": 12893.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.899999976158142,
+    "baseDuration": 8.400000095367432,
+    "startTime": 12901.200000047684,
+    "commitTime": 12911.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.9000000953674316,
+    "baseDuration": 9.300000309944153,
+    "startTime": 12915.5,
+    "commitTime": 12917.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 9.200000166893005,
+    "startTime": 12918.100000023842,
+    "commitTime": 12919
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 9.300000071525574,
+    "startTime": 12919.200000047684,
+    "commitTime": 12920.400000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 0.8999999761581421,
+    "startTime": 13042.200000047684,
+    "commitTime": 13055.5
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.5,
+    "baseDuration": 6.700000166893005,
+    "startTime": 13043.200000047684,
+    "commitTime": 13055.5
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.20000004768371582,
+    "startTime": 13055.100000023842,
+    "commitTime": 13055.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.399999856948853,
+    "baseDuration": 6.899999976158142,
+    "startTime": 13062.300000071526,
+    "commitTime": 13071.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.700000047683716,
+    "baseDuration": 8.100000023841858,
+    "startTime": 13074,
+    "commitTime": 13076.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 7.399999976158142,
+    "startTime": 13077.200000047684,
+    "commitTime": 13078.300000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 7.700000047683716,
+    "startTime": 13078.600000023842,
+    "commitTime": 13079.700000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 0.8000000715255737,
+    "startTime": 13146.5,
+    "commitTime": 13174.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 25.00000023841858,
+    "baseDuration": 10.700000643730164,
+    "startTime": 13147.300000071526,
+    "commitTime": 13174.200000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 13173.800000071526,
+    "commitTime": 13174.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.400000214576721,
+    "baseDuration": 7.900000214576721,
+    "startTime": 13181.200000047684,
+    "commitTime": 13191.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 8.300000190734863,
+    "startTime": 13194.600000023842,
+    "commitTime": 13195.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 8.400000095367432,
+    "startTime": 13196.200000047684,
+    "commitTime": 13196.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 8.300000071525574,
+    "startTime": 13196.900000095367,
+    "commitTime": 13197.400000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.6000001430511475,
+    "startTime": 13274.700000047684,
+    "commitTime": 13286.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 10.400000095367432,
+    "baseDuration": 5.299999952316284,
+    "startTime": 13275.400000095367,
+    "commitTime": 13286.600000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.19999992847442627,
+    "baseDuration": 0.19999992847442627,
+    "startTime": 13286.300000071526,
+    "commitTime": 13286.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.49999988079071,
+    "baseDuration": 5.800000309944153,
+    "startTime": 13294.400000095367,
+    "commitTime": 13304.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.600000023841858,
+    "baseDuration": 7.100000381469727,
+    "startTime": 13306.600000023842,
+    "commitTime": 13309.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 6.6000001430511475,
+    "startTime": 13310.100000023842,
+    "commitTime": 13311.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.8999998569488525,
+    "baseDuration": 6.700000047683716,
+    "startTime": 13311.400000095367,
+    "commitTime": 13312.5
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 13418.5,
+    "commitTime": 13450
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 28.800000071525574,
+    "baseDuration": 10.699999690055847,
+    "startTime": 13419.200000047684,
+    "commitTime": 13450
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 13449.400000095367,
+    "commitTime": 13450
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 9.899999856948853,
+    "baseDuration": 8.799999713897705,
+    "startTime": 13457.700000047684,
+    "commitTime": 13468.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.9999998807907104,
+    "baseDuration": 9.099999785423279,
+    "startTime": 13472.800000071526,
+    "commitTime": 13474
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 8.799999713897705,
+    "startTime": 13474.300000071526,
+    "commitTime": 13474.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.6999999284744263,
+    "baseDuration": 9.299999713897705,
+    "startTime": 13474.900000095367,
+    "commitTime": 13475.700000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 13560.5,
+    "commitTime": 13574
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.49999988079071,
+    "baseDuration": 6.500000238418579,
+    "startTime": 13561.300000071526,
+    "commitTime": 13574
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.30000007152557373,
+    "startTime": 13573.5,
+    "commitTime": 13574
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 9.199999928474426,
+    "baseDuration": 6.600000262260437,
+    "startTime": 13582.200000047684,
+    "commitTime": 13591.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 3.5,
+    "baseDuration": 7.700000166893005,
+    "startTime": 13594.900000095367,
+    "commitTime": 13598.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.6000001430511475,
+    "baseDuration": 8.100000381469727,
+    "startTime": 13599.100000023842,
+    "commitTime": 13600.900000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 7.600000262260437,
+    "startTime": 13601.600000023842,
+    "commitTime": 13603.100000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 1.5000001192092896,
+    "baseDuration": 1.5000001192092896,
+    "startTime": 13707.700000047684,
+    "commitTime": 13751.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 40.200000047683716,
+    "baseDuration": 14.799999952316284,
+    "startTime": 13709.300000071526,
+    "commitTime": 13751.900000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 13751.300000071526,
+    "commitTime": 13751.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 10.100000143051147,
+    "baseDuration": 9.400000214576721,
+    "startTime": 13759.700000047684,
+    "commitTime": 13770.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 2.6999999284744263,
+    "baseDuration": 10.300000071525574,
+    "startTime": 13774.900000095367,
+    "commitTime": 13778.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.9000000953674316,
+    "baseDuration": 10.200000286102295,
+    "startTime": 13778.600000023842,
+    "commitTime": 13779.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.8999999761581421,
+    "baseDuration": 10.300000190734863,
+    "startTime": 13780.200000047684,
+    "commitTime": 13781.300000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 1.9999998807907104,
+    "baseDuration": 1.9999998807907104,
+    "startTime": 13879.900000095367,
+    "commitTime": 13899.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 16.299999952316284,
+    "baseDuration": 9.000000476837158,
+    "startTime": 13882,
+    "commitTime": 13899.800000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 13899.300000071526,
+    "commitTime": 13899.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 12.09999966621399,
+    "baseDuration": 8.299999952316284,
+    "startTime": 13913.200000047684,
+    "commitTime": 13926.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 3.0000001192092896,
+    "baseDuration": 9.400000095367432,
+    "startTime": 13929.5,
+    "commitTime": 13932.900000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.4999998807907104,
+    "baseDuration": 9.700000047683716,
+    "startTime": 13933.400000095367,
+    "commitTime": 13935.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 9.400000095367432,
+    "startTime": 13936,
+    "commitTime": 13937.300000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 0.7999999523162842,
+    "startTime": 14029.600000023842,
+    "commitTime": 14058.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 26.799999952316284,
+    "baseDuration": 11.300000071525574,
+    "startTime": 14030.5,
+    "commitTime": 14058.600000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 14058.200000047684,
+    "commitTime": 14058.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 7.200000047683716,
+    "baseDuration": 6.799999952316284,
+    "startTime": 14065.600000023842,
+    "commitTime": 14074.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 7.100000023841858,
+    "startTime": 14078.5,
+    "commitTime": 14079.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 6.9999998807907104,
+    "startTime": 14080.100000023842,
+    "commitTime": 14080.700000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 7.099999904632568,
+    "startTime": 14080.900000095367,
+    "commitTime": 14081.300000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6999999284744263,
+    "baseDuration": 0.6999999284744263,
+    "startTime": 14154.200000047684,
+    "commitTime": 14168.5
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.899999976158142,
+    "baseDuration": 6.100000262260437,
+    "startTime": 14155,
+    "commitTime": 14168.5
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.40000009536743164,
+    "baseDuration": 0.40000009536743164,
+    "startTime": 14168,
+    "commitTime": 14168.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 9.099999904632568,
+    "baseDuration": 6.1000001430511475,
+    "startTime": 14176.300000071526,
+    "commitTime": 14185.900000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.6999999284744263,
+    "baseDuration": 7.100000262260437,
+    "startTime": 14188.800000071526,
+    "commitTime": 14191.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.5,
+    "baseDuration": 7.300000190734863,
+    "startTime": 14192.200000047684,
+    "commitTime": 14193.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.1999999284744263,
+    "baseDuration": 6.800000071525574,
+    "startTime": 14194.100000023842,
+    "commitTime": 14195.600000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 0.7999999523162842,
+    "startTime": 14275.300000071526,
+    "commitTime": 14303.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 25.600000143051147,
+    "baseDuration": 8.800000071525574,
+    "startTime": 14276.100000023842,
+    "commitTime": 14303.300000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.19999992847442627,
+    "baseDuration": 0.19999992847442627,
+    "startTime": 14302.900000095367,
+    "commitTime": 14303.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 7.699999928474426,
+    "baseDuration": 6.9999998807907104,
+    "startTime": 14309.800000071526,
+    "commitTime": 14318.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 7.4999998807907104,
+    "startTime": 14322,
+    "commitTime": 14323.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 7.199999809265137,
+    "startTime": 14323.400000095367,
+    "commitTime": 14323.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 7.099999785423279,
+    "startTime": 14324.100000023842,
+    "commitTime": 14324.600000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 14415.200000047684,
+    "commitTime": 14428.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.699999928474426,
+    "baseDuration": 5.400000095367432,
+    "startTime": 14415.900000095367,
+    "commitTime": 14428.700000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 14428.300000071526,
+    "commitTime": 14428.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 11.49999988079071,
+    "baseDuration": 7.899999976158142,
+    "startTime": 14437.600000023842,
+    "commitTime": 14449.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 4.5,
+    "baseDuration": 9.600000023841858,
+    "startTime": 14455.900000095367,
+    "commitTime": 14460.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.600000023841858,
+    "baseDuration": 9.400000214576721,
+    "startTime": 14461.600000023842,
+    "commitTime": 14463.300000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.9999998807907104,
+    "baseDuration": 8.700000047683716,
+    "startTime": 14463.800000071526,
+    "commitTime": 14465
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 0.5,
+    "startTime": 14569.200000047684,
+    "commitTime": 14602.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 30.899999856948853,
+    "baseDuration": 11.399999618530273,
+    "startTime": 14569.900000095367,
+    "commitTime": 14602.600000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.20000004768371582,
+    "baseDuration": 0.20000004768371582,
+    "startTime": 14602.200000047684,
+    "commitTime": 14602.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.500000238418579,
+    "baseDuration": 8.000000238418579,
+    "startTime": 14610.100000023842,
+    "commitTime": 14620.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.6999999284744263,
+    "baseDuration": 8.50000011920929,
+    "startTime": 14624.300000071526,
+    "commitTime": 14626.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 8.500000357627869,
+    "startTime": 14626.5,
+    "commitTime": 14627.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 8.100000262260437,
+    "startTime": 14627.600000023842,
+    "commitTime": 14628
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 14715,
+    "commitTime": 14728
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 11.100000143051147,
+    "baseDuration": 6.200000286102295,
+    "startTime": 14715.700000047684,
+    "commitTime": 14728
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.30000007152557373,
+    "baseDuration": 0.20000004768371582,
+    "startTime": 14727.600000023842,
+    "commitTime": 14728
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 10.899999976158142,
+    "baseDuration": 7.900000095367432,
+    "startTime": 14736.700000047684,
+    "commitTime": 14748.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.799999952316284,
+    "baseDuration": 8.800000071525574,
+    "startTime": 14752,
+    "commitTime": 14755
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 8.00000011920929,
+    "startTime": 14755.800000071526,
+    "commitTime": 14756.900000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 8.400000095367432,
+    "startTime": 14757.300000071526,
+    "commitTime": 14758.400000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 14848.700000047684,
+    "commitTime": 14849.100000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 14856.400000095367,
+    "commitTime": 14890.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 32,
+    "baseDuration": 11.50000011920929,
+    "startTime": 14857,
+    "commitTime": 14890.900000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 14890.400000095367,
+    "commitTime": 14890.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.899999856948853,
+    "baseDuration": 7.999999642372131,
+    "startTime": 14898.700000047684,
+    "commitTime": 14908.400000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.4999998807907104,
+    "baseDuration": 8.499999523162842,
+    "startTime": 14912.300000071526,
+    "commitTime": 14914
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 8.499999761581421,
+    "startTime": 14914.600000023842,
+    "commitTime": 14915.200000047684
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5999999046325684,
+    "baseDuration": 8.499999642372131,
+    "startTime": 14915.400000095367,
+    "commitTime": 14916
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 15096,
+    "commitTime": 15110.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 12.800000190734863,
+    "baseDuration": 7.5000001192092896,
+    "startTime": 15096.800000071526,
+    "commitTime": 15110.700000047684
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 15110.200000047684,
+    "commitTime": 15110.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.899999856948853,
+    "baseDuration": 6.6000001430511475,
+    "startTime": 15119.200000047684,
+    "commitTime": 15129
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.6999999284744263,
+    "baseDuration": 8.00000011920929,
+    "startTime": 15131.800000071526,
+    "commitTime": 15134.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 7.5,
+    "startTime": 15135.100000023842,
+    "commitTime": 15136.200000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.600000023841858,
+    "baseDuration": 8.300000071525574,
+    "startTime": 15136.700000047684,
+    "commitTime": 15138.300000071526
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7999999523162842,
+    "baseDuration": 0.7999999523162842,
+    "startTime": 15229.600000023842,
+    "commitTime": 15259.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 27.100000143051147,
+    "baseDuration": 10.600000500679016,
+    "startTime": 15230.5,
+    "commitTime": 15259.800000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.7000000476837158,
+    "startTime": 15259.100000023842,
+    "commitTime": 15259.800000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 9.59999966621399,
+    "baseDuration": 8.499999642372131,
+    "startTime": 15266.400000095367,
+    "commitTime": 15277.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.1000001430511475,
+    "baseDuration": 8.999999761581421,
+    "startTime": 15281.600000023842,
+    "commitTime": 15282.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 8.799999713897705,
+    "startTime": 15283.100000023842,
+    "commitTime": 15283.600000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 9.099999785423279,
+    "startTime": 15283.800000071526,
+    "commitTime": 15284.400000095367
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.7000000476837158,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 15362.600000023842,
+    "commitTime": 15377.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 13.200000047683716,
+    "baseDuration": 7.400000333786011,
+    "startTime": 15363.300000071526,
+    "commitTime": 15377.600000023842
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 15377.200000047684,
+    "commitTime": 15377.600000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.200000047683716,
+    "baseDuration": 5.200000166893005,
+    "startTime": 15384.900000095367,
+    "commitTime": 15393.700000047684
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.700000047683716,
+    "baseDuration": 6.600000023841858,
+    "startTime": 15396,
+    "commitTime": 15398.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 0.9999998807907104,
+    "baseDuration": 5.9999998807907104,
+    "startTime": 15399.300000071526,
+    "commitTime": 15400.5
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1,
+    "baseDuration": 6.100000023841858,
+    "startTime": 15400.900000095367,
+    "commitTime": 15402.200000047684
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.9999998807907104,
+    "baseDuration": 0.9999998807907104,
+    "startTime": 15502.900000095367,
+    "commitTime": 15534.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 27.90000009536743,
+    "baseDuration": 10.599999904632568,
+    "startTime": 15504,
+    "commitTime": 15534.300000071526
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 15533.800000071526,
+    "commitTime": 15534.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8.5,
+    "baseDuration": 7.899999976158142,
+    "startTime": 15541.200000047684,
+    "commitTime": 15550.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 1.2000000476837158,
+    "baseDuration": 8.300000071525574,
+    "startTime": 15553.700000047684,
+    "commitTime": 15555
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.5,
+    "baseDuration": 8.299999952316284,
+    "startTime": 15555.5,
+    "commitTime": 15556.100000023842
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.49999988079071045,
+    "baseDuration": 8.299999833106995,
+    "startTime": 15556.400000095367,
+    "commitTime": 15557
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.6000000238418579,
+    "baseDuration": 0.6000000238418579,
+    "startTime": 15644,
+    "commitTime": 15659.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "mount",
+    "actualDuration": 12.99999988079071,
+    "baseDuration": 7.1000001430511475,
+    "startTime": 15644.700000047684,
+    "commitTime": 15659.400000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 0.2999999523162842,
+    "startTime": 15658.900000095367,
+    "commitTime": 15659.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 8.700000047683716,
+    "baseDuration": 6.399999976158142,
+    "startTime": 15667.100000023842,
+    "commitTime": 15676.400000095367
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 2.5999999046325684,
+    "baseDuration": 6.8999998569488525,
+    "startTime": 15678.900000095367,
+    "commitTime": 15682.100000023842
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.100000023841858,
+    "baseDuration": 6.899999976158142,
+    "startTime": 15682.600000023842,
+    "commitTime": 15683.800000071526
+  },
+  {
+    "id": "queue",
+    "phase": "nested-update",
+    "actualDuration": 1.399999976158142,
+    "baseDuration": 7.300000071525574,
+    "startTime": 15684.200000047684,
+    "commitTime": 15685.600000023842
+  },
+  {
+    "id": "Sidebar",
+    "phase": "update",
+    "actualDuration": 0.5,
+    "baseDuration": 0.5,
+    "startTime": 15768.300000071526,
+    "commitTime": 15796.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "mount",
+    "actualDuration": 25.700000166893005,
+    "baseDuration": 10.100000262260437,
+    "startTime": 15769,
+    "commitTime": 15796.900000095367
+  },
+  {
+    "id": "Diagnostics",
+    "phase": "update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 0.3999999761581421,
+    "startTime": 15796.400000095367,
+    "commitTime": 15796.900000095367
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 8,
+    "baseDuration": 7.5000001192092896,
+    "startTime": 15802.800000071526,
+    "commitTime": 15811.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.8000000715255737,
+    "baseDuration": 7.800000190734863,
+    "startTime": 15814.5,
+    "commitTime": 15815.5
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.3999999761581421,
+    "baseDuration": 7.800000190734863,
+    "startTime": 15815.700000047684,
+    "commitTime": 15816.300000071526
+  },
+  {
+    "id": "library",
+    "phase": "nested-update",
+    "actualDuration": 0.2999999523162842,
+    "baseDuration": 7.700000166893005,
+    "startTime": 15816.300000071526,
+    "commitTime": 15816.800000071526
+  }
+]

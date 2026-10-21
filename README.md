@@ -122,7 +122,7 @@ A versão 0.2 precisa ser atualizada uma vez pelo instalador para receber esses 
 
 Em **Contas**, informe um token de uma conta profissional obtido no seu app Meta com permissões de identificação e publicação de conteúdo. O Legacy valida a identidade e protege o token com DPAPI. Esta versão conecta uma conta por workspace; não realiza OAuth pelo navegador nem renova o token automaticamente. A validação de identidade não confirma a permissão de publicar.
 
-Em **Perfis**, selecione vídeos com URL disponível e clique em **Programar selecionados**. Escolha data e intervalo; o horário segue o fuso do workspace. Na Fila, **Ver tarefa** mostra a origem, horário, erros e o arquivo/preview quando já existir. URLs do Instagram podem expirar antes do agendamento; faça nova descoberta se necessário. Trocar ou desconectar a conta invalida agendamentos antigos. O worker salva checkpoints para evitar repetir uma publicação cujo resultado ficou incerto.
+Em **Perfis**, baixe os vídeos selecionados antes de **Programar selecionados**. Na **Biblioteca**, vídeos importados do computador também podem ser publicados, sem URL ou post de origem. O Instagram recebe uma cópia MP4 local por HTTPS temporário, incluindo a versão editada escolhida. Data e horário seguem o fuso do workspace. Trocar ou desconectar a conta invalida o destino dos agendamentos anteriores; revise a conta antes de recriar tarefas.
 
 A fila persiste após reinício, salva o ID da execução remota e deduplica arquivos por SHA-256 no workspace. Cada arquivo tem até três tentativas, limite de 1 GiB e timeout de cinco minutos. Links expirados exigem nova busca. Tarefas ainda na fila podem ser canceladas; uma execução já iniciada termina ou expira. Se a resposta de criação da execução Apify se perder, confira o console Apify antes de iniciar outra busca: o app não repete uma cobrança potencialmente aceita.
 
@@ -191,3 +191,9 @@ A fila tem contagens completas, busca por tarefa/conta, filtros por estado e tip
 Uma publicação falhada pode ser **cancelada**, **realocada com Passar a vez** ou repetida. Passar a vez sugere 15 minutos após o último agendamento pendente do mesmo tipo e conta; você revisa o horário no calendário antes de confirmar. Histórico e checkpoints remotos permanecem, e os demais horários não mudam. Tarefas em execução não podem ser canceladas ou realocadas.
 
 Consulte o [guia da fila](docs/queue-operations.md) e a [análise de login Instagram pelo navegador](docs/instagram-login.md). OAuth é viável para contas profissionais, mas depende de um servidor HTTPS e configuração Meta. A versão 0.7.0 ainda usa token protegido pelo Windows; nenhum segredo de app foi colocado no instalador.
+
+## Compilação consolidada para revisão
+
+A 0.7.2 reúne os PRs #8/#9 e o suporte local que ficou no worktree de publicação. A versão pública do GitHub é independente desta compilação local. Confira versão e commit completo em **Configurações → Sobre esta versão**, no título da janela e em `out/main/build-info.json`.
+
+Compile após o commit final com `npm run build` e empacote com `npx electron-builder --win --publish never`. A compilação captura o SHA do checkout; não precisa de Git instalado no computador de destino. O instalador atualiza os executáveis e mantém a pasta de dados. Faça backup consistente do SQLite antes da atualização. A migração 0004 preserva histórico, credenciais e fila, permitindo publicações sem post remoto. Cada abertura inicia na entrada visitante e aguarda sua entrada para executar novas tarefas.

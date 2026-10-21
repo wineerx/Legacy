@@ -12,10 +12,11 @@ import { addReelLink } from '../repos/remote-posts'
 import { insertAsset, getAsset } from '../repos/assets'
 import { remotePosts } from '../db/schema'
 import { enqueue } from '../queue/queue'
-import { recordPublication, history } from './publication-history'
+import { publicationFeedback, acknowledgePublications, recordPublication, history } from './publication-history'
 import { achievements } from './achievements'
 import { migrate } from 'drizzle-orm/better-sqlite3/migrator'
 import { MIGRATIONS_DIR } from '../test-utils'
+import { openDb } from '../db/client'
 import { jobs } from '../db/schema'
 let ctx: Ctx; let ws: string; let postId: string; let root: string; let file: string
 beforeEach(async () => {
@@ -64,4 +65,40 @@ it('migração recupera publicações confirmadas antigas sem contar falhas', ()
 it('limpeza não remove arquivo baixado depois do agendamento', async () => {
   const r = await recordPublication(ctx, { workspaceId: ws, jobId: 'remote-only', accountId: '123', username: 'owner', postId, cleanup: true, cleanupAssetId: null })
   expect(r.cleanupState).toBe('no_local_copy'); expect(getAsset(ctx.db, ws, 'asset')).not.toBeNull()
+})
+
+it('feedback ignora histórico anterior, exige confirmação e persiste reconhecimento', async () => {
+  await record()
+  expect(publicationFeedback(ctx, ws)).toEqual([])
+  enqueue(ctx.db, { workspaceId: ws, type: 'export_tiktok', label: 'Exportado manualmente', payload: {} }, ctx.clock())
+  expect(publicationFeedback(ctx, ws)).toEqual([])
+  await recordPublication(ctx, { workspaceId: ws, jobId: 'new-confirmed', accountId: '123', username: 'owner', postId })
+  expect(publicationFeedback(ctx, ws)).toEqual([{ jobId: 'new-confirmed', username: 'owner' }])
+  acknowledgePublications(ctx, ws, ['not-confirmed'])
+  expect(publicationFeedback(ctx, ws)).toHaveLength(1)
+  acknowledgePublications(ctx, ws, ['new-confirmed'])
+  expect(publicationFeedback(ctx, ws)).toEqual([])
+})
+
+it('migração 0004 preserva linhas existentes do histórico', () => {
+  const dir = mkdtempSync(join(tmpdir(), 'legacy-migration-0003-')); mkdirSync(join(dir, 'meta'))
+  const journal = JSON.parse(readFileSync(join(MIGRATIONS_DIR, 'meta/_journal.json'), 'utf8')); journal.entries = journal.entries.filter((e: { idx: number }) => e.idx <= 3)
+  writeFileSync(join(dir, 'meta/_journal.json'), JSON.stringify(journal)); for (const e of journal.entries) copyFileSync(join(MIGRATIONS_DIR, `${e.tag}.sql`), join(dir, `${e.tag}.sql`))
+  const { db, close } = openDb(':memory:', dir)
+  const raw = (db as unknown as { $client: { prepare(sql: string): { run(...a: unknown[]): unknown; get(...a: unknown[]): unknown; all(): unknown[] } } }).$client
+  const w = createWorkspace(db, { name: 'Antigo', timeZone: 'UTC' }).id
+  expect((raw.prepare("SELECT \"notnull\" AS nn FROM pragma_table_info('publication_history') WHERE name = 'post_id'").get() as { nn: number }).nn).toBe(1)
+  raw.prepare('INSERT INTO publication_history (job_id, workspace_id, account_id, username, post_id, asset_sha, media_id, provenance_json, published_at, cleanup_state) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)')
+    .run('job-06', w, '123', 'owner', 'post-06', 'sha-06', '999', '{"profile":"source"}', '2026-10-01T10:00:00.000Z', 'deleted')
+  migrate(db, { migrationsFolder: MIGRATIONS_DIR })
+  expect((raw.prepare("SELECT \"notnull\" AS nn FROM pragma_table_info('publication_history') WHERE name = 'post_id'").get() as { nn: number }).nn).toBe(0)
+  expect(history({ db, dataRoot: root, clock: () => new Date() }, w)).toEqual([expect.objectContaining({ jobId: 'job-06', workspaceId: w, accountId: '123', username: 'owner', postId: 'post-06', assetSha: 'sha-06', mediaId: '999', provenanceJson: '{"profile":"source"}', publishedAt: '2026-10-01T10:00:00.000Z', cleanupState: 'deleted' })])
+  close()
+})
+
+it('limpeza mantém cópia local necessária por outra publicação', async () => {
+  enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', label: 'Outro envio local', payload: { localAssetId: 'asset', postId: null } }, ctx.clock())
+  const row = await recordPublication(ctx, { workspaceId: ws, jobId: 'local-confirmed', accountId: '123', username: 'owner', postId: null, assetId: 'asset', mediaId: '999', cleanup: true })
+  expect(row.cleanupState).toBe('kept_in_use')
+  expect(getAsset(ctx.db, ws, 'asset')).not.toBeNull()
 })

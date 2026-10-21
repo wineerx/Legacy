@@ -1,0 +1,24 @@
+{
+  "job": {
+    "id": "d6fba179-a1cd-466e-8c8a-bfa334fb3333",
+    "state": "done",
+    "lease_version": 2,
+    "attempts": 1,
+    "run_at": "2026-10-07T22:05:32.983Z",
+    "result_json": "{\"mediaProcessingId\":\"d6fba179-a1cd-466e-8c8a-bfa334fb3333:media:ea5bedde-2cc4-40e6-ad8b-68948f7308cc\",\"stage\":\"CONFIRMED\",\"stageAt\":\"2026-10-07T22:05:39.849Z\",\"uploadId\":\"d6fba179-a1cd-466e-8c8a-bfa334fb3333:upload\",\"creating\":true,\"hostId\":\"cloudflare-quick-tunnel\",\"exposedAt\":\"2026-10-07T22:05:16.450Z\",\"containerId\":\"18138879934570003\",\"firstPollAt\":\"2026-10-07T22:05:17.775Z\",\"publishing\":true,\"mediaId\":\"17947428987342635\",\"confirmedPublished\":true,\"cleanupState\":\"kept\"}"
+  },
+  "history": [
+    {
+      "job_id": "d6fba179-a1cd-466e-8c8a-bfa334fb3333",
+      "workspace_id": "e4e3a0ae-9858-4900-8dfc-f9d0d08cfcee",
+      "account_id": "17841417100073745",
+      "username": "365jonvlogs",
+      "post_id": "e3b69027-5af4-452b-a8d9-7032e88b5438",
+      "asset_sha": "6c2bf67a2e9c7bbb060259c7a63ff74d2e48c51d8981a93c1b02e705f78aa4be",
+      "media_id": "17947428987342635",
+      "provenance_json": "{\"sourceName\":\"e3b69027-5af4-452b-a8d9-7032e88b5438.mp4\",\"platform\":\"instagram\",\"remoteId\":\"3994189660711392419\",\"profile\":\"viraispvchapado\",\"permalink\":\"https://www.instagram.com/p/DduNlWUPZSj/\",\"caption\":\"#TVアニメ『白夜のミステリー』 白夜のミステリーにまつわる話題のネタがついに解禁!! 🌌 白夜に潜む謎を一挙公開！ さらに、これまで知られていなかった不思議な現象や予想外の発見に加え、 誰も予想できなかった驚きの瞬間も明らかになりました\",\"views\":1040818,\"likes\":248232,\"comments\":362,\"assetId\":\"768aee74-94ee-41cd-af19-cda5be7c0672\",\"downloadedAt\":\"2026-10-07T21:26:13.105Z\"}",
+      "published_at": "2026-10-07T22:05:39.850Z",
+      "cleanup_state": "kept"
+    }
+  ]
+}

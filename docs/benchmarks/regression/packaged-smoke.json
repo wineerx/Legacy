@@ -1,0 +1,174 @@
+{
+  "timestamp": "2026-10-07T23:50:35.467Z",
+  "executablePath": "C:\\Users\\noob7\\Desktop\\Legacy\\dist\\win-unpacked\\Legacy.exe",
+  "isolatedProfile": "C:\\Users\\noob7\\AppData\\Local\\Temp\\legacy-packaged-smoke-9Eoe4o",
+  "productionDebugDisabled": true,
+  "navigation": [
+    {
+      "name": "Biblioteca",
+      "ms": 295.4027000000001
+    },
+    {
+      "name": "Perfis",
+      "ms": 48.75529999999981
+    },
+    {
+      "name": "Criar postagem",
+      "ms": 36.67309999999998
+    },
+    {
+      "name": "Fila",
+      "ms": 76.39849999999979
+    }
+  ],
+  "version": "0.7.5",
+  "appPath": "C:\\Users\\noob7\\Desktop\\Legacy\\dist\\win-unpacked\\resources\\app.asar",
+  "indexes": [
+    {
+      "name": "sqlite_autoindex_jobs_1",
+      "sql": null
+    },
+    {
+      "name": "jobs_idem",
+      "sql": "CREATE UNIQUE INDEX `jobs_idem` ON `jobs` (`idempotency_key`)"
+    },
+    {
+      "name": "jobs_pick",
+      "sql": "CREATE INDEX `jobs_pick` ON `jobs` (`state`,`run_at`)"
+    },
+    {
+      "name": "sqlite_autoindex_media_assets_1",
+      "sql": null
+    },
+    {
+      "name": "media_assets_ws_sha",
+      "sql": "CREATE UNIQUE INDEX `media_assets_ws_sha` ON `media_assets` (`workspace_id`,`sha256`)"
+    },
+    {
+      "name": "jobs_ws_type_state",
+      "sql": "CREATE INDEX `jobs_ws_type_state` ON `jobs` (`workspace_id`,`type`,`state`)"
+    },
+    {
+      "name": "jobs_stalled",
+      "sql": "CREATE INDEX jobs_stalled ON jobs(state, lease_until)"
+    },
+    {
+      "name": "jobs_destination",
+      "sql": "CREATE INDEX jobs_destination ON jobs(workspace_id, type, state, json_extract(payload_json, '$.accountId'))"
+    },
+    {
+      "name": "jobs_batch",
+      "sql": "CREATE INDEX jobs_batch ON jobs(workspace_id, json_extract(payload_json, '$.batchId'))"
+    },
+    {
+      "name": "jobs_claim",
+      "sql": "CREATE INDEX jobs_claim ON jobs(state, priority DESC, run_at, created_at)"
+    },
+    {
+      "name": "jobs_type_state",
+      "sql": "CREATE INDEX jobs_type_state ON jobs(type, state)"
+    },
+    {
+      "name": "jobs_ws_state",
+      "sql": "CREATE INDEX `jobs_ws_state` ON `jobs` (`workspace_id`,`state`)"
+    },
+    {
+      "name": "media_assets_ws_imported",
+      "sql": "CREATE INDEX `media_assets_ws_imported` ON `media_assets` (`workspace_id`,\"imported_at\" desc,`id`)"
+    }
+  ],
+  "metrics": [
+    {
+      "cpu": {
+        "cumulativeCPUUsage": 1.295606,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      },
+      "pid": 5044,
+      "type": "Browser",
+      "creationTime": 1791417033333.523,
+      "memory": {
+        "workingSetSize": 357780,
+        "peakWorkingSetSize": 358548,
+        "privateBytes": 327592
+      },
+      "integrityLevel": "medium",
+      "sandboxed": false
+    },
+    {
+      "cpu": {
+        "cumulativeCPUUsage": 1.248895,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      },
+      "pid": 39272,
+      "type": "GPU",
+      "creationTime": 1791417034195.107,
+      "serviceName": "GPU",
+      "memory": {
+        "workingSetSize": 115104,
+        "peakWorkingSetSize": 115932,
+        "privateBytes": 153744
+      },
+      "integrityLevel": "low",
+      "sandboxed": true
+    },
+    {
+      "cpu": {
+        "cumulativeCPUUsage": 0.084211,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      },
+      "pid": 105728,
+      "type": "Utility",
+      "creationTime": 1791417034200.652,
+      "serviceName": "network.mojom.NetworkService",
+      "name": "Network Service",
+      "memory": {
+        "workingSetSize": 53664,
+        "peakWorkingSetSize": 53672,
+        "privateBytes": 12588
+      },
+      "integrityLevel": "medium",
+      "sandboxed": false
+    },
+    {
+      "cpu": {
+        "cumulativeCPUUsage": 0.804022,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      },
+      "pid": 95960,
+      "type": "Utility",
+      "creationTime": 1791417034328.754,
+      "serviceName": "node.mojom.NodeService",
+      "name": "Legacy worker",
+      "memory": {
+        "workingSetSize": 299460,
+        "peakWorkingSetSize": 299544,
+        "privateBytes": 330108
+      },
+      "integrityLevel": "medium",
+      "sandboxed": false
+    },
+    {
+      "cpu": {
+        "cumulativeCPUUsage": 0.773424,
+        "percentCPUUsage": 0,
+        "idleWakeupsPerSecond": 0
+      },
+      "pid": 51388,
+      "type": "Tab",
+      "creationTime": 1791417034368.808,
+      "memory": {
+        "workingSetSize": 128960,
+        "peakWorkingSetSize": 128960,
+        "privateBytes": 67236
+      },
+      "integrityLevel": "untrusted",
+      "sandboxed": true
+    }
+  ],
+  "result": "passed",
+  "externalPosts": 0
+}
