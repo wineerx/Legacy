@@ -7,7 +7,7 @@ import { Button, Spinner, Badge, Modal } from '../../components/ui'
 import { Progress } from '../../components/ui/Progress'
 import { FieldError } from '../../components/ui/Field'
 
-const KIND = { keep: 'Manter intervalo', reduce: 'Reduzir intervalo', move: 'Mover restante' } as const
+const KIND = { keep: 'Manter intervalo', reduce: 'Reduzir intervalo', move: 'Mover restante', drag: 'Movido no Calendário' } as const
 const span = (min: number) => min >= 60 ? `${Math.floor(min / 60)} h${min % 60 ? ` ${min % 60} min` : ''}` : `${min} min`
 
 /** Planned window versus current estimate of a scheduled Container, with explicit adjustment choices (PR 07). */
@@ -51,7 +51,7 @@ export function ContainerWindowPanel({ workspaceId, containerId, name, onBack }:
         {d.proposals.unavailable.map(u => <p key={u.kind} className="text-xs text-dim">{KIND[u.kind]}: {u.reason}</p>)}
       </div>}
       {d.adjustments.length > 0 && <details className="text-xs"><summary className="cursor-pointer text-dim">Ajustes registrados ({d.adjustments.length})</summary>
-        <ul className="mt-2 grid gap-1">{d.adjustments.map(a => <li key={a.id}>{when(a.createdAt)} · {KIND[a.kind]}{a.kind === 'reduce' ? `: ${a.before.intervalMin} → ${a.after.intervalMin} min` : a.kind === 'move' && a.after.plannedEndAt ? `: fim planejado ${when(a.after.plannedEndAt)}` : ''}</li>)}</ul></details>}
+        <ul className="mt-2 grid gap-1">{d.adjustments.map(a => <li key={a.id}>{when(a.createdAt)} · {KIND[a.kind]}{a.kind === 'reduce' ? `: ${a.before.intervalMin} → ${a.after.intervalMin} min` : a.kind === 'move' && a.after.plannedEndAt ? `: fim planejado ${when(a.after.plannedEndAt)}` : a.kind === 'drag' && a.after.plannedStartAt ? `: início ${when(a.before.plannedStartAt ?? a.after.plannedStartAt)} → ${when(a.after.plannedStartAt)}` : ''}</li>)}</ul></details>}
     </>}
     <Modal open={!!choice} onOpenChange={o => !o && setChoice(null)} title={choice ? `${KIND[choice.kind]}?` : ''} description={choice ? describe(choice) : ''}
       footer={<><Button onClick={() => setChoice(null)}>Voltar</Button><Button variant="primary" disabled={apply.isPending} onClick={() => choice && apply.mutate(choice)}>Confirmar ajuste</Button></>}>

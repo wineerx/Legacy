@@ -262,7 +262,7 @@ export const publicationContainerAdjustments = sqliteTable('publication_containe
   id: text('id').primaryKey(),
   workspaceId: text('workspace_id').notNull().references(() => workspaces.id, { onDelete: 'cascade' }),
   containerId: text('container_id').notNull().references(() => publicationContainers.id),
-  kind: text('kind', { enum: ['keep', 'reduce', 'move'] }).notNull(),
+  kind: text('kind', { enum: ['keep', 'reduce', 'move', 'drag'] }).notNull(),
   beforeJson: text('before_json').notNull(), afterJson: text('after_json').notNull(),
   createdAt: text('created_at').notNull()
 }, t => [index('publication_container_adjustments_ws_container').on(t.workspaceId, t.containerId, t.createdAt)])

@@ -76,7 +76,7 @@ test('identidade Legacy, personalização persistente e redução de movimento',
     await expect(hero).toHaveAttribute('data-state', 'idle')
     await changeJob('running', 'fetch_profile')
     await expect(hero).toHaveAttribute('data-state', 'searching')
-    await expect(mascotButton.locator('svg')).toHaveAttribute('data-state', 'searching')
+    await expect(mascotButton.locator('.legacy-mascot')).toHaveAttribute('data-state', 'searching')
     await changeJob('running', 'download_reel')
     await expect(hero).toHaveAttribute('data-state', 'downloading')
     await changeJob('running', 'publish_instagram')

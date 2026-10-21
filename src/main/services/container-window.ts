@@ -10,6 +10,7 @@ import { containerRow, containerScope } from '../repos/publication-containers'
 import { requireWorkspace } from './integrations'
 import { readQuotaSnapshot, quotaLedger, assertScheduleQuota } from './instagram-quota'
 import { readPeakWindows, occupied, DISTRIBUTION_HORIZON_DAYS } from './peak-windows'
+import { previewDrag, type DragPreview } from '@shared/container-drag'
 
 
 function windowInput(ctx: Ctx, ws: string, id: string) {
@@ -95,4 +96,50 @@ export function withEstimate(ctx: Ctx, ws: string, c: PublicationContainer): Pub
   const { input, snapshot } = windowInput(ctx, ws, c.id)
   const w = estimateWindow(input), fresh = snapshot?.freshness === 'fresh'
   return { ...c, estimatedEndAt: w.estimatedEndAt, delayMin: w.delayMin, quotaTotal: fresh ? snapshot!.total : null, quotaAvailable: fresh ? Math.max(0, snapshot!.total! - snapshot!.usage!) : null }
+}
+
+function dragInput(ctx: Ctx, ws: string, id: string, startAt: string) {
+  const { row, input } = windowInput(ctx, ws, id)
+  const planned = Object.fromEntries(ctx.db.select({ jobId: items.jobId, at: items.plannedPublishAt }).from(items)
+    .where(and(eq(items.workspaceId, ws), eq(items.containerId, id))).all().flatMap(r => r.jobId ? [[r.jobId, r.at]] : []))
+  const reserved = row.destinationAccountId ? occupied(ctx, ws, row.destinationAccountId, [id], id) : []
+  return { row, input, preview: previewDrag({ window: input, planned, targetStartAt: startAt, reserved, peak: readPeakWindows(ctx, ws) }) }
+}
+
+/** Impact of dropping a Container at a new start (PR 10). Read-only: nothing changes until the user confirms. */
+export function previewContainerDrag(ctx: Ctx, ws: string, id: string, startAt: string): DragPreview & { revision: number } {
+  requireWorkspace(ctx, ws)
+  const { row, preview } = dragInput(ctx, ws, id, startAt)
+  return { ...preview, revision: row.revision }
+}
+
+/**
+ * Applies a confirmed drop, all or nothing, with the same guarantees as the PR 07 adjustments: the preview
+ * is recomputed inside an IMMEDIATE transaction and must match what was shown; only fresh items move; the
+ * account quota is re-checked; the planned window shifts and the change is recorded with before and after.
+ */
+export function applyContainerDrag(ctx: Ctx, ws: string, id: string, input: { expectedRevision: number; startAt: string; slots: { jobId: string; at: string }[] }) {
+  requireWorkspace(ctx, ws)
+  return ctx.db.transaction(() => {
+    const { row, input: windowState, preview } = dragInput(ctx, ws, id, input.startAt)
+    if (row.revision !== input.expectedRevision) throw new AppError('invalid_input', 'O Container mudou. Arraste novamente para revisar o impacto.')
+    if (preview.blocked) throw new AppError('invalid_input', preview.blocked)
+    if (preview.slots.length !== input.slots.length || preview.slots.some((s, i) => s.jobId !== input.slots[i].jobId || Date.parse(s.at) !== Date.parse(input.slots[i].at)))
+      throw new AppError('invalid_input', 'Os horários mudaram desde a prévia. Arraste novamente para revisar o impacto.')
+    const now = ctx.clock().toISOString()
+    const current = ctx.db.select({ id: jobs.id, state: jobs.state, resultJson: jobs.resultJson }).from(jobs).where(and(eq(jobs.workspaceId, ws), inArray(jobs.id, preview.slots.map(s => s.jobId)))).all()
+    for (const s of preview.slots) {
+      const job = current.find(j => j.id === s.jobId)
+      if (!job || job.state !== 'queued' || remoteStarted(JSON.parse(job.resultJson ?? '{}'))) throw new AppError('invalid_input', 'Um vídeo já começou a ser enviado. Arraste novamente para revisar o impacto.')
+      ctx.db.update(jobs).set({ runAt: s.at, updatedAt: now }).where(and(eq(jobs.workspaceId, ws), eq(jobs.id, s.jobId), eq(jobs.state, 'queued'))).run()
+      ctx.db.update(items).set({ plannedPublishAt: s.at, updatedAt: now }).where(and(eq(items.workspaceId, ws), eq(items.jobId, s.jobId))).run()
+    }
+    const all = ctx.db.select({ id: items.jobId }).from(items).where(and(eq(items.workspaceId, ws), eq(items.containerId, id))).all().flatMap(r => r.id ? [r.id] : [])
+    assertScheduleQuota(ctx, ws, row.destinationAccountId!, all, row.timeZone)
+    const before: AdjustmentState = { intervalMin: row.intervalMin, plannedStartAt: row.plannedStartAt, plannedEndAt: row.plannedEndAt, delayMin: estimateWindow(windowState).delayMin, slots: preview.slots.map(s => ({ jobId: s.jobId, at: s.before })) }
+    const after: AdjustmentState = { intervalMin: row.intervalMin, plannedStartAt: preview.after.startAt, plannedEndAt: preview.after.endAt, delayMin: preview.delayMin, slots: preview.slots.map(s => ({ jobId: s.jobId, at: s.at })) }
+    ctx.db.update(containers).set({ plannedStartAt: preview.after.startAt, plannedEndAt: preview.after.endAt, revision: row.revision + 1, updatedAt: now }).where(containerScope(ws, id)).run()
+    ctx.db.insert(adjustments).values({ id: newId(), workspaceId: ws, containerId: id, kind: 'drag', beforeJson: JSON.stringify(before), afterJson: JSON.stringify(after), createdAt: now }).run()
+    return readContainerWindow(ctx, ws, id)
+  }, { behavior: 'immediate' })
 }

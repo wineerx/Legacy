@@ -38,7 +38,7 @@ import { jobDetails } from '../services/job-details'
 import { instagramAccount, instagramAccounts, connectInstagram, disconnectInstagram, scheduleInstagram, scheduleComposition, verifyInstagram, refreshInstagramQuota, setDefaultInstagramAccount } from '../services/instagram-publishing'
 import { accountQuota } from '../services/instagram-quota'
 import { readPeakWindows, savePeakWindows, planDistribution, applyDistribution } from '../services/peak-windows'
-import { readContainerWindow, applyContainerAdjustment, withEstimate } from '../services/container-window'
+import { readContainerWindow, applyContainerAdjustment, withEstimate, previewContainerDrag, applyContainerDrag } from '../services/container-window'
 import { readAgenda } from '../services/agenda'
 import type { UpdateStatus } from '@shared/ipc-contract'
 import { achievements } from '../services/achievements'
@@ -85,6 +85,9 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
     'containers.window.get': i => readContainerWindow(ctx,i.workspaceId,i.containerId),
     // Explicit choice only; recomputed and validated atomically before any job moves.
     'containers.window.adjust': i => changed(i.workspaceId,applyContainerAdjustment(ctx,i.workspaceId,i.containerId,i)),
+    'containers.drag.preview': i => previewContainerDrag(ctx,i.workspaceId,i.containerId,i.startAt),
+    // Same guarantees as adjustments: the confirmed preview is recomputed and must match before jobs move.
+    'containers.drag.apply': i => changed(i.workspaceId,applyContainerDrag(ctx,i.workspaceId,i.containerId,i)),
     'containers.schedule': i => changed(i.workspaceId,scheduleContainer(ctx,i.workspaceId,i.containerId,i.expectedRevision)),
     'containers.previewOverrides': i => visualPreviewOverrides(ctx,i.workspaceId,i.assetId,i.recipeVersionId),
     'containers.pause': i => changed(i.workspaceId,setContainerControl(ctx,i.workspaceId,i.containerId,i.expectedRevision,'paused')),

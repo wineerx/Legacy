@@ -44,7 +44,7 @@ Os números de PR identificam entregas planejadas, não pull requests existentes
 | 2 · Scheduler | 07 | Janela planejada, estimativa atual, atraso e proposta de ajuste — [entregue](../pr07-container-window.md) | 05–06; usuário escolhe alteração de intervalo/estratégia |
 | 3 · Agenda | 08 | Dia/semana/mês/timeline centrados em Containers — [entregue](../pr08-calendar.md) | 01 e 07; publicar mês/semana primeiro se necessário para manter o diff pequeno |
 | 3 · Agenda | 09 | Sheet com conta, itens, progresso, janela e ações — [entregue](../pr09-agenda-sheet.md) | 08; totais integrais e lista paginada |
-| 3 · Agenda | 10 | Drag & drop com preview de impacto e confirmação | 05–09; mesmas validações no backend e revisão otimista |
+| 3 · Agenda | 10 | Drag & drop com preview de impacto e confirmação — [entregue](../pr10-agenda-drag.md) | 05–09; mesmas validações no backend e revisão otimista |
 | 4 · Legendas | 11 | UI para legenda base persistida | Fundação em 01; não recriar o compositor atual |
 | 4 · Legendas | 12 | Override por item, herança explícita e modelos reutilizáveis | 11; legenda vazia personalizada difere de herdar |
 | 5 · Queue / workers | 13 | Visão Containers, progresso e drill-down para jobs | 01; expandir a Fila existente, resumo não depende da página |

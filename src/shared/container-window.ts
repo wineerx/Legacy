@@ -35,7 +35,7 @@ const fresh = (i: WindowItem) => !i.confirmed && i.state === 'queued' && !i.remo
 const open = (i: WindowItem) => !i.confirmed && (i.state === 'running' || (i.state === 'queued' && i.remote))
 
 /** Places times in order, each no earlier than its base nor the previous one, and within quota when known. */
-function place(bases: number[], input: WindowInput, inFlight: number[], minGapMs = 0) {
+export function place(bases: number[], input: WindowInput, inFlight: number[], minGapMs = 0) {
   const now = Date.parse(input.now)
   const timeline = quotaTimeline({ ...input.quota, now: input.now })
   const placed = timeline ? [...timeline.fixed, ...input.quota.others.map(o => Math.max(now, Date.parse(o.at))), ...inFlight] : []
@@ -112,8 +112,8 @@ export function proposeAdjustments(input: WindowInput, window: ContainerWindow, 
   return { proposals, unavailable }
 }
 
-export interface AdjustmentState { intervalMin: number; plannedEndAt: string | null; delayMin: number | null; slots?: { jobId: string; at: string }[] }
-export interface AdjustmentView { id: string; kind: 'keep' | 'reduce' | 'move'; createdAt: string; before: AdjustmentState; after: AdjustmentState }
+export interface AdjustmentState { intervalMin: number; plannedStartAt?: string | null; plannedEndAt: string | null; delayMin: number | null; slots?: { jobId: string; at: string }[] }
+export interface AdjustmentView { id: string; kind: 'keep' | 'reduce' | 'move' | 'drag'; createdAt: string; before: AdjustmentState; after: AdjustmentState }
 export interface ContainerWindowView {
   containerId: string; revision: number; timeZone: string
   window: ContainerWindow

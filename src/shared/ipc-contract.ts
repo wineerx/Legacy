@@ -7,6 +7,7 @@ import type { AchievementSummary } from './achievements'
 import type { QuotaProjection } from './quota'
 import type { PeakWindow, DistributionPlan } from './peak-windows'
 import type { ContainerWindowView } from './container-window'
+import type { DragPreview } from './container-drag'
 import type { AgendaResult } from './agenda'
 import type { AppErrorCode } from './errors'
 import type { MediaDetails, GridPage, JobView, QueuePageResult, QueueContext, JobState, JobType, DashboardSummary, IntegrationStatus } from './types'
@@ -110,6 +111,8 @@ export const contract = {
   'agenda.range': z.object({ workspaceId: ws, from: z.iso.datetime(), to: z.iso.datetime(), accountId: z.string().regex(/^\d+$/).optional() }).refine(v => Date.parse(v.to) > Date.parse(v.from) && Date.parse(v.to) - Date.parse(v.from) <= 62 * 86_400_000, 'Intervalo da agenda inválido.'),
   'containers.window.get': z.object({ workspaceId: ws, containerId: z.uuid() }),
   'containers.window.adjust': z.object({ workspaceId: ws, containerId: z.uuid(), expectedRevision: z.number().int().positive(), kind: z.enum(['keep', 'reduce', 'move']), slots: z.array(z.object({ jobId: z.string().min(1).max(64), at: z.iso.datetime() })).max(1000) }),
+  'containers.drag.preview': z.object({ workspaceId: ws, containerId: z.uuid(), startAt: z.iso.datetime() }),
+  'containers.drag.apply': z.object({ workspaceId: ws, containerId: z.uuid(), expectedRevision: z.number().int().positive(), startAt: z.iso.datetime(), slots: z.array(z.object({ jobId: z.string().min(1).max(64), at: z.iso.datetime() })).max(1000) }),
   'containers.distribution.plan': z.object({ workspaceId: ws, containerIds: z.array(z.uuid()).min(1).max(50), fromDate: z.iso.date() }),
   'containers.distribution.apply': z.object({ workspaceId: ws, fromDate: z.iso.date(), items: z.array(z.object({ containerId: z.uuid(), expectedRevision: z.number().int().positive(), start: z.iso.datetime() })).min(1).max(50) }),
   'quota.get': z.object({ workspaceId: ws, accountId: z.string().regex(/^\d+$/), slots: z.array(z.iso.datetime()).max(1000).default([]) }),
@@ -251,6 +254,8 @@ export interface Outputs {
   'agenda.range': AgendaResult
   'containers.window.get': ContainerWindowView
   'containers.window.adjust': ContainerWindowView
+  'containers.drag.preview': DragPreview & { revision: number }
+  'containers.drag.apply': ContainerWindowView
   'containers.distribution.plan': DistributionPlan
   'containers.distribution.apply': DistributionPlan
   'quota.get': QuotaProjection

@@ -231,9 +231,10 @@ test('desafios têm progresso real e filtros avançados recolhem', async () => {
   await page.evaluate(async () => { const boot = await window.legacy.invoke('app.bootstrap', {}) as { data: { workspaces: { id: string }[] } }; await window.legacy.invoke('profiles.add', { workspaceId: boot.data.workspaces[0].id, url: 'instagram.com/qa.filters' }) })
   await page.getByRole('link', { name: 'Perfis', exact: true }).click()
   await expect(page.getByLabel('Mínimo de views', { exact: true })).toBeHidden()
-  await page.getByText('Filtros avançados', { exact: true }).click()
+  await page.getByRole('button', { name: 'Filtros avançados', exact: true }).click()
   await expect(page.getByLabel('Mínimo de views', { exact: true })).toBeVisible()
-  await page.getByText('Filtros avançados', { exact: true }).click()
+  await page.keyboard.press('Escape')
+  await expect(page.getByLabel('Mínimo de views', { exact: true })).toBeHidden()
 })
 
 test('card tem métricas horizontais e fila permite ver arquivo e origem', async () => {

@@ -16,7 +16,8 @@ import { decryptSecret } from './integrations'
 import { recordQuotaReading } from './instagram-quota'
 import { deferPublicationAccount } from './instagram-publication-limit'
 import { savePeakWindows } from './peak-windows'
-import { readContainerWindow, applyContainerAdjustment } from './container-window'
+import { readContainerWindow, applyContainerAdjustment, previewContainerDrag, applyContainerDrag } from './container-window'
+import { publicationContainers } from '../db/schema'
 import { buildHandlers } from '../ipc/handlers'
 import { createDispatcher } from '../ipc/dispatcher'
 import { releaseAll } from './media-host/registry'
@@ -145,5 +146,48 @@ describe('container window', () => {
     // Unattributed usage at the reading (16:10) frees at 18:10; nothing can be placed before it.
     expect(Date.parse(view.window.estimate[0].at)).toBeGreaterThanOrEqual(Date.parse('2026-10-12T18:10:00.000Z'))
     expect(view.quota).toMatchObject({ total: 5, available: 0, freshness: 'fresh' })
+  })
+})
+
+describe('drag & drop on the Agenda (PR 10)', () => {
+  it('moves only fresh items by the dropped delta, shifts the planned window and records it; nothing changes before confirming', async () => {
+    const c = scheduled(4)
+    const other = scheduled(2, 15, '2026-10-13T16:00:00.000Z')
+    now = new Date('2026-10-12T16:20:00.000Z')
+    confirm(c.jobs[0].id)
+    ctx.db.update(jobs).set({ resultJson: JSON.stringify({ containerId: 'remote-1' }) }).where(eq(jobs.id, c.jobs[1].id)).run()
+    const target = '2026-10-12T19:00:00.000Z' // +3 h
+    const before = c.jobs.map(j => job(j.id).runAt), otherBefore = other.jobs.map(j => job(j.id).runAt)
+    const p = previewContainerDrag(ctx, ws, c.id, target)
+    expect(p).toMatchObject({ blocked: null, deltaMin: 180, unchanged: { published: 1, inFlight: 1, failed: 0 }, after: { startAt: target, endAt: '2026-10-12T19:45:00.000Z' } })
+    expect(p.slots.map(s => [s.jobId, s.at])).toEqual([[c.jobs[2].id, '2026-10-12T19:30:00.000Z'], [c.jobs[3].id, '2026-10-12T19:45:00.000Z']])
+    expect(c.jobs.map(j => job(j.id).runAt)).toEqual(before)
+    const view = applyContainerDrag(ctx, ws, c.id, { expectedRevision: p.revision, startAt: target, slots: p.slots })
+    expect(c.jobs.map(j => job(j.id).runAt)).toEqual([before[0], before[1], '2026-10-12T19:30:00.000Z', '2026-10-12T19:45:00.000Z'])
+    expect(ctx.db.select({ at: items.plannedPublishAt }).from(items).where(eq(items.jobId, c.jobs[3].id)).get()!.at).toBe('2026-10-12T19:45:00.000Z')
+    expect(other.jobs.map(j => job(j.id).runAt)).toEqual(otherBefore)
+    const row = ctx.db.select().from(publicationContainers).where(eq(publicationContainers.id, c.id)).get()!
+    expect(row).toMatchObject({ plannedStartAt: target, plannedEndAt: '2026-10-12T19:45:00.000Z', revision: p.revision + 1 })
+    expect(view.adjustments[0]).toMatchObject({ kind: 'drag', before: { plannedStartAt: '2026-10-12T16:00:00.000Z' }, after: { plannedStartAt: target } })
+    // The same confirmation cannot be replayed against the new revision.
+    expect(() => applyContainerDrag(ctx, ws, c.id, { expectedRevision: p.revision, startAt: target, slots: p.slots })).toThrow(/mudou/)
+  })
+
+  it('refuses stale previews, started items, paused Containers and other workspaces', async () => {
+    const c = scheduled(3)
+    const target = '2026-10-12T20:00:00.000Z'
+    const p = previewContainerDrag(ctx, ws, c.id, target)
+    expect(() => applyContainerDrag(ctx, ws, c.id, { expectedRevision: p.revision, startAt: target, slots: p.slots.map(s => ({ ...s, at: '2026-10-12T21:00:00.000Z' })) })).toThrow(/mudaram/)
+    ctx.db.update(jobs).set({ resultJson: JSON.stringify({ creating: true }) }).where(eq(jobs.id, c.jobs[0].id)).run()
+    // A checkpoint written after the preview: the recomputed preview no longer matches, nothing moves.
+    expect(() => applyContainerDrag(ctx, ws, c.id, { expectedRevision: p.revision, startAt: target, slots: p.slots })).toThrow()
+    expect(job(c.jobs[1].id).runAt).toBe('2026-10-12T16:15:00.000Z')
+    const paused = scheduled(2, 15, '2026-10-14T16:00:00.000Z')
+    const rev2 = readContainer(ctx, ws, paused.id).container.revision
+    setContainerControl(ctx, ws, paused.id, rev2, 'paused')
+    expect(previewContainerDrag(ctx, ws, paused.id, target).blocked).toMatch(/Retome/)
+    const dispatch = createDispatcher(buildHandlers({ ctx, dialogs: { pickVideos: async () => [], pickImage: async () => null, pickMetricsFile: async () => null }, shell: { openPath: async () => '' }, workerAlive: () => false, version: 't', onJobsChanged: () => {} }))
+    expect(await dispatch('containers.drag.preview', { workspaceId: createWorkspace(ctx.db, { name: 'Y', timeZone: 'UTC' }).id, containerId: c.id, startAt: target })).toMatchObject({ ok: false })
+    expect(await dispatch('containers.drag.preview', { workspaceId: ws, containerId: c.id, startAt: 'amanhã' })).toMatchObject({ ok: false })
   })
 })

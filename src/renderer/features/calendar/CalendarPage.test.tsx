@@ -67,3 +67,38 @@ it('a positioned draft without destination is labelled as such, never as Instagr
   expect(block).toHaveTextContent('Sem destino')
   expect(block).not.toHaveTextContent('Instagram')
 })
+
+describe('CalendarPage drag & drop', () => {
+  it('moving a Container (Alt + seta) shows the impact first and applies only after confirming', async () => {
+    const preview = { revision: 2, deltaMin: 15, blocked: null, before: { startAt: at(13), endAt: at(15, 45) }, after: { startAt: at(13, 15), endAt: at(16), estimatedEndAt: at(16) },
+      slots: [{ jobId: 'j8', at: at(15, 15), before: at(15) }], unchanged: { published: 7, inFlight: 1, failed: 0 }, quotaConsidered: true, quotaDeferred: 0, delayMin: 0,
+      conflicts: [{ start: at(15), end: at(16) }], insidePeak: false }
+    const invoke = mockBridge({ 'agenda.range': () => ({ timeZone: TZ, truncated: false, items: [item(), item({ id: 'd1', name: 'Rascunho', state: 'draft', scheduledAt: null, plannedStartAt: at(18), plannedEndAt: at(19) })] }), 'containers.drag.preview': () => preview, 'containers.drag.apply': () => ({}) })
+    renderWithApp(<CalendarPage navigate={vi.fn()} />)
+    const open = await screen.findByRole('button', { name: 'Abrir Meme' })
+    expect(screen.getByRole('button', { name: 'Abrir Rascunho' })).toHaveAttribute('title', 'Rascunhos não têm horário publicado.')
+    open.focus()
+    await userEvent.keyboard('{Alt>}{ArrowDown}{/Alt}')
+    const dialog = await screen.findByRole('dialog', { name: 'Mover Meme?' })
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith('containers.drag.preview', { workspaceId: WS_ID, containerId: 'c1', startAt: at(13, 15) }))
+    expect(await within(dialog).findByText('1 vídeo(s) reagendado(s)')).toBeInTheDocument()
+    expect(within(dialog).getByText('7 publicado(s) não mudam')).toBeInTheDocument()
+    expect(within(dialog).getByText('Sobrepõe 1 outra(s) programação(ões) desta conta.')).toBeInTheDocument()
+    expect(within(dialog).getByText('Fica fora das janelas de pico configuradas.')).toBeInTheDocument()
+    expect(invoke).not.toHaveBeenCalledWith('containers.drag.apply', expect.anything())
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Confirmar movimentação' }))
+    await waitFor(() => expect(invoke).toHaveBeenCalledWith('containers.drag.apply', { workspaceId: WS_ID, containerId: 'c1', expectedRevision: 2, startAt: at(13, 15), slots: [{ jobId: 'j8', at: at(15, 15) }] }))
+    await waitFor(() => expect(screen.queryByRole('dialog', { name: 'Mover Meme?' })).toBeNull())
+  })
+
+  it('a blocked move explains why and cannot be confirmed', async () => {
+    const invoke = mockBridge({ 'agenda.range': () => ({ timeZone: TZ, truncated: false, items: [item()] }), 'containers.drag.preview': () => ({ revision: 2, deltaMin: -60, blocked: 'Escolha um horário no futuro.', before: { startAt: at(13), endAt: at(15, 45) }, after: { startAt: at(12), endAt: at(14, 45), estimatedEndAt: null }, slots: [], unchanged: { published: 0, inFlight: 0, failed: 0 }, quotaConsidered: false, quotaDeferred: 0, delayMin: null, conflicts: [], insidePeak: null }) })
+    renderWithApp(<CalendarPage navigate={vi.fn()} />)
+    ;(await screen.findByRole('button', { name: 'Abrir Meme' })).focus()
+    await userEvent.keyboard('{Alt>}{ArrowLeft}{/Alt}')
+    const dialog = await screen.findByRole('dialog', { name: 'Mover Meme?' })
+    expect(await within(dialog).findByRole('alert')).toHaveTextContent('Escolha um horário no futuro.')
+    await userEvent.click(within(dialog).getByRole('button', { name: 'Confirmar movimentação' }))
+    expect(invoke).not.toHaveBeenCalledWith('containers.drag.apply', expect.anything())
+  })
+})
