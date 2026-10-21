@@ -127,7 +127,6 @@ body { margin: 0; background: var(--color-app); color: var(--color-fg); font-fam
 .date-picker .rdp-button_previous:focus-visible,
 .date-picker .rdp-button_next:focus-visible { outline: 2px solid var(--color-dim); outline-offset: 2px; }
 
-.guest-entry .mascot-float { animation: none !important; }
 
 .number-field[data-invalid="true"] { border-color: var(--color-danger); }
 
