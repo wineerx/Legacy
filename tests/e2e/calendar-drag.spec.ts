@@ -1,4 +1,5 @@
 import { test, expect, _electron as electron } from '@playwright/test'
+import { desktopViewport } from './helpers'
 import { mkdtempSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -15,6 +16,7 @@ test('Calendário move Container arrastando, com prévia de impacto e confirmaç
   const app = await electron.launch({ executablePath: resolve('node_modules/electron/dist/electron.exe'), args: [resolve('out/main/index.js'), '--user-data-dir=' + join(dir, 'chromium')], env: { ...process.env, LEGACY_DATA_DIR: join(dir, 'data'), LEGACY_DISABLE_DESKTOP_NOTIFICATIONS: '1', APIFY_TOKEN: '' } })
   try {
     const page = await app.firstWindow(), errors: string[] = []; page.on('pageerror', e => errors.push(e.message))
+    await desktopViewport(app, page)
     await page.getByRole('button', { name: 'Entrar como visitante', exact: true }).click()
     await expect(page.getByRole('heading', { name: 'Visão geral', exact: true })).toBeVisible()
     const boot = await page.evaluate(async () => { const r = await window.legacy.invoke('app.bootstrap', {}) as IpcResult<Outputs['app.bootstrap']>; if (!r.ok) throw Error('bootstrap'); return r.data.workspaces[0] })

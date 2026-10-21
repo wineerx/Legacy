@@ -1,4 +1,5 @@
 import type { IpcResult,Outputs } from '../../src/shared/ipc-contract'
+import { desktopViewport } from './helpers'
 import { test,expect,_electron as electron } from '@playwright/test'
 import { mkdtempSync,readFileSync,readdirSync,mkdirSync,unlinkSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -16,6 +17,7 @@ test('Builder → versão → Container independente → JIT real e retry, sem p
   const app=await electron.launch({executablePath:resolve('node_modules/electron/dist/electron.exe'),args:[resolve('out/main/index.js'),'--user-data-dir='+join(dir,'chromium')],env:{...process.env,LEGACY_DATA_DIR:join(dir,'data'),LEGACY_DISABLE_DESKTOP_NOTIFICATIONS:'1',APIFY_TOKEN:''}})
   try{
     const page=await app.firstWindow();const errors:string[]=[];page.on('pageerror',e=>errors.push(e.message))
+    await desktopViewport(app, page)
     await page.getByRole('button',{name:'Entrar como visitante',exact:true}).click()
     await expect(page.getByRole('heading',{name:'Visão geral',exact:true})).toBeVisible()
     const ws=await page.evaluate(async()=>{const r=await window.legacy.invoke('app.bootstrap',{}) as IpcResult<Outputs['app.bootstrap']>;if(!r.ok)throw Error('boot');return r.data.workspaces[0].id})

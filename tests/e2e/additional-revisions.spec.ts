@@ -1,4 +1,5 @@
 import { execFileSync } from 'node:child_process'
+import { desktopViewport } from './helpers'
 import { readFileSync } from 'node:fs'
 import type { IpcResult, Outputs } from '../../src/shared/ipc-contract'
 import { test, expect, _electron as electron } from '@playwright/test'
@@ -23,6 +24,7 @@ test('publicação identificada, Biblioteca exata, balão, badges e exclusão co
   })
   try {
     const page = await app.firstWindow()
+    await desktopViewport(app, page)
     await page
       .getByRole('button', { name: 'Entrar como visitante', exact: true })
       .click()

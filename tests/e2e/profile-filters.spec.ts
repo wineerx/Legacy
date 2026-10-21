@@ -1,4 +1,5 @@
 import { test, expect, _electron as electron } from '@playwright/test'
+import { desktopViewport } from './helpers'
 import { mkdtempSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
@@ -13,6 +14,7 @@ test('filtros alinhados, arraste para arquivar e restauração persistente', asy
   })
   try {
     const page = await app.firstWindow()
+    await desktopViewport(app, page)
     await page.emulateMedia({ reducedMotion: 'reduce' })
     page.on('pageerror', error => console.error('Renderer:', error.message))
     await page.getByRole('button', { name: 'Entrar como visitante', exact: true }).click()
