@@ -37,6 +37,7 @@ import {
   Tooltip,
   cx,
   useToast,
+  Pagination
 } from './ui'
 import {
   ScrollArea,
@@ -828,27 +829,19 @@ export function DiagnosticPanel({
               )}
             </ScrollArea>
             <div className="diagnostic-toolbar">
-              <Button
-                size="sm"
-                disabled={queuePage === 1}
-                onClick={() => setQueuePage((p) => p - 1)}
-              >
-                Anterior
-              </Button>
-              <span>
-                Página {queuePage} · {queue.data?.total ?? '…'} tarefas
-              </span>
-              <Button
-                size="sm"
-                disabled={!queue.data || queuePage * 100 >= queue.data.total}
-                onClick={() => setQueuePage((p) => p + 1)}
-              >
-                Próxima
-              </Button>
               <span className="text-dim">
                 Checkpoints reais · sucesso exige confirmação
               </span>
             </div>
+            <Pagination
+              label="Paginação das tarefas do diagnóstico"
+              page={queuePage}
+              pageSize={100}
+              total={queue.data?.total ?? 0}
+              busy={queue.isFetching}
+              noun="tarefas"
+              onPage={setQueuePage}
+            />
           </TabsContent>
           <TabsContent value="processor" className="diagnostic-content">
             <ScrollArea>

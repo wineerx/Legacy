@@ -4,7 +4,7 @@ import type { PublicationContainerState } from '@shared/publication-containers'
 import type { JobState } from '@shared/types'
 import { call } from '../../lib/api'
 import { Sheet } from '../../components/ui/Sheet'
-import { Button, Spinner, Badge } from '../../components/ui'
+import { Button, Spinner, Badge, Pagination } from '../../components/ui'
 import { Progress } from '../../components/ui/Progress'
 import { FieldError } from '../../components/ui/Field'
 import { ContainerWindowPanel } from '../library/ContainerWindowPanel'
@@ -61,7 +61,7 @@ export function AgendaSheet({ workspaceId, containerId, username, onClose, onEdi
           <span className="min-w-0 truncate">{i.position + 1}. {i.source.name}</span>
           <span className="shrink-0 text-dim">{when(i.plannedPublishAt)} · {i.confirmed ? 'Publicado' : i.jobState ? JOB[i.jobState] : 'Rascunho'}</span>
         </li>)}</ol>
-        {detail.data.total > PAGE && <div className="flex items-center justify-between gap-2"><Button size="sm" disabled={page === 1} onClick={() => setPage(p => p - 1)}>Anteriores</Button><span className="text-xs text-dim">Página {page} de {Math.ceil(detail.data.total / PAGE)}</span><Button size="sm" disabled={page * PAGE >= detail.data.total} onClick={() => setPage(p => p + 1)}>Próximos</Button></div>}
+        <Pagination compact label="Paginação dos vídeos" page={page} pageSize={PAGE} total={detail.data.total} busy={detail.isFetching} noun="vídeos" onPage={setPage} />
       </section>
     </div>}
   </Sheet>

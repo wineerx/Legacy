@@ -1,13 +1,13 @@
 import { mkdir, rm, rename } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { randomUUID } from 'node:crypto'
-import { and, desc, eq, inArray, sql } from 'drizzle-orm'
+import { and, desc, eq, inArray, isNull, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { AppError } from '@shared/errors'
 import { profileContentSource, type ProfileContentSource, type ImportProgress } from '@shared/ipc-contract'
 import { normalizeSocialUrl } from '@shared/social-url'
 import type { Ctx } from '../context'
-import { jobs, remotePosts, trackedProfiles } from '../db/schema'
+import { jobAttempts, jobs, remotePosts, trackedProfiles } from '../db/schema'
 import { enqueue, type LeasedJob } from '../queue/queue'
 import { getProfile } from '../repos/profiles'
 import { addReelLink, getRemotePost } from '../repos/remote-posts'
@@ -114,6 +114,25 @@ export function requestProfileDownload(
   )
 }
 
+/**
+ * Stops the profile's current import. A queued job is simply cancelled; a running one is marked cancelled,
+ * which revokes the worker's lease (heartbeat and completion stop being accepted) and makes the worker
+ * abort the Apify run at its next check. Posts already imported stay in the grid.
+ */
+export function cancelProfileImport(ctx: Ctx, ws: string, profileId: string): boolean {
+  if (!getProfile(ctx.db, ws, profileId)) throw new AppError('not_found', 'Perfil não encontrado.')
+  const now = ctx.clock().toISOString()
+  return ctx.db.transaction(tx => {
+    const job = tx.select({ id: jobs.id }).from(jobs).where(and(eq(jobs.workspaceId, ws), eq(jobs.type, 'fetch_profile'), inArray(jobs.state, ['queued', 'running']),
+      sql`json_extract(${jobs.payloadJson}, '$.profileId') = ${profileId}`)).orderBy(desc(jobs.createdAt)).limit(1).get()
+    if (!job) return false
+    tx.update(jobs).set({ state: 'cancelled', leaseUntil: null, lastError: IMPORT_CANCELLED, updatedAt: now }).where(and(eq(jobs.workspaceId, ws), eq(jobs.id, job.id), inArray(jobs.state, ['queued', 'running']))).run()
+    tx.update(jobAttempts).set({ finishedAt: now, outcome: 'failed', errorCode: 'cancelled', errorMessage: IMPORT_CANCELLED }).where(and(eq(jobAttempts.jobId, job.id), isNull(jobAttempts.outcome))).run()
+    return true
+  }, { behavior: 'immediate' })
+}
+export const IMPORT_CANCELLED = 'Importação cancelada pelo usuário.'
+
 export function profileImportProgress(ctx: Ctx, ws: string, profileId: string) {
   if (!getProfile(ctx.db, ws, profileId))
     throw new AppError('not_found', 'Perfil não encontrado.')
@@ -203,6 +222,13 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
       .where(condition)
       .run()
   }
+  // Cancelling from the UI marks the job cancelled; stop spending provider credits at the next check.
+  const stopIfCancelled = async () => {
+    if (ctx.db.select({ state: jobs.state }).from(jobs).where(condition).get()?.state !== 'cancelled') return
+    for (const run of [checkpoint.runId, ...Object.values(checkpoint.sourceRuns ?? {}).map(r => r.runId)])
+      if (run) await apifyJson(`actor-runs/${remoteId.parse(run)}/abort`, key, {}).catch(() => undefined)
+    throw new AppError('invalid_input', IMPORT_CANCELLED)
+  }
   saveProgress('searching', true)
   const sources = source === 'all' && discovery && profile.platform === 'instagram' ? ['posts', 'reels', 'tagged'] : [source]
   const batches: unknown[][] = []
@@ -253,6 +279,7 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
           key
         )
       ).data
+      await stopIfCancelled()
       if (run.status === 'SUCCEEDED') {
         dataset = run.defaultDatasetId
         break
@@ -302,6 +329,7 @@ export async function fetchProfile(ctx: Ctx, job: LeasedJob): Promise<unknown> {
   total = items.length
   saveProgress('importing', true)
   for (const item of items) {
+    await stopIfCancelled()
     try {
       const parsed = reelSchema.safeParse(profile.platform === 'tiktok' ? tiktokItem(item) : item)
       if (!parsed.success) {

@@ -8,11 +8,11 @@ import { createWorkspace } from '../repos/workspaces'
 import { addProfileFromUrl, getProfile } from '../repos/profiles'
 import { getAsset, listAssets } from '../repos/assets'
 import { jobs, remotePosts } from '../db/schema'
-import { leaseNext, listJobs } from '../queue/queue'
+import { leaseNext, listJobs, heartbeat, complete } from '../queue/queue'
 import type { Ctx } from '../context'
 import { makeTestVideo } from '../media/test-fixtures'
 import { apifyJson, downloadVideo, downloadPreview } from './download-http'
-import { profileImportProgress, fetchProfile, requestProfileDownload, runReelDownload, requestSelectedDownloads } from './profile-download'
+import { profileImportProgress, cancelProfileImport, fetchProfile, requestProfileDownload, runReelDownload, requestSelectedDownloads } from './profile-download'
 import { setVideoStorage } from './storage'
 import { setSetting } from '../repos/settings'
 
@@ -251,4 +251,33 @@ it('Todos preserva a criação sem confirmação de uma fonte sem repetir chamad
     .mockResolvedValueOnce([reel])
   await expect(fetchProfile(ctx, job)).rejects.toThrow('sem confirmação')
   expect(vi.mocked(apifyJson).mock.calls.some(call => call[0].startsWith('actors/'))).toBe(false)
+})
+
+describe('cancelar importação do perfil', () => {
+  it('cancela a busca na fila, e a busca em execução para na próxima verificação e aborta a execução Apify', async () => {
+    requestProfileDownload(ctx, ws, profileId, 10, true)
+    expect(cancelProfileImport(ctx, ws, profileId)).toBe(true)
+    expect(profileImportProgress(ctx, ws, profileId)).toMatchObject({ state: 'cancelled', error: 'Importação cancelada pelo usuário.' })
+    expect(cancelProfileImport(ctx, ws, profileId)).toBe(false)
+
+    requestProfileDownload(ctx, ws, profileId, 10, true)
+    const job = leaseNext(ctx.db, ctx.clock(), 60_000)!
+    vi.mocked(apifyJson).mockResolvedValueOnce({ data: { id: 'run1', status: 'READY' } })
+      .mockImplementationOnce(async () => { cancelProfileImport(ctx, ws, profileId); return { data: { id: 'run1', status: 'RUNNING' } } })
+      .mockResolvedValue({})
+    await expect(fetchProfile(ctx, job)).rejects.toThrow('Importação cancelada pelo usuário.')
+    expect(apifyJson).toHaveBeenCalledWith('actor-runs/run1/abort', 'test-token', {})
+    // The lease is revoked: the worker can no longer renew nor complete the job.
+    expect(heartbeat(ctx.db, job.id, ctx.clock(), 60_000, job.leaseVersion)).toBe(false)
+    expect(complete(ctx.db, job, ctx.clock(), {})).toBe(false)
+    expect(ctx.db.select().from(jobs).where(eq(jobs.id, job.id)).get()).toMatchObject({ state: 'cancelled' })
+    expect(ctx.db.select().from(remotePosts).all()).toHaveLength(0)
+  })
+
+  it('respeita o workspace e o perfil', () => {
+    const other = createWorkspace(ctx.db, { name: 'B', timeZone: 'UTC' }).id
+    requestProfileDownload(ctx, ws, profileId, 10, true)
+    expect(() => cancelProfileImport(ctx, other, profileId)).toThrow()
+    expect(profileImportProgress(ctx, ws, profileId)).toMatchObject({ state: 'queued' })
+  })
 })

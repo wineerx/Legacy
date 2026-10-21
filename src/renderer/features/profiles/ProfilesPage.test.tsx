@@ -150,7 +150,8 @@ describe('ProfilesPage', () => {
     })
     renderWithApp(<ProfilesPage navigate={vi.fn()} />)
     expect(await screen.findByText(/— posts/)).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Curtidas' }))
+    await userEvent.click(screen.getByRole('button', { name: /^Ordenar:/ }))
+    await userEvent.click(await screen.findByRole('option', { name: 'Curtidas' }))
     expect(invoke).toHaveBeenCalledWith('grid.query', expect.objectContaining({ workspaceId: WS_ID, source: 'remote', profileId: 'p1', sortBy: 'likes', sortDir: 'desc' }))
   })
 
@@ -193,12 +194,14 @@ it('mostra progresso indeterminado, reabre resultado real e mantém erro da tare
   let progress: any = { jobId: 'job-progress', state: 'running', error: null, progress: { phase: 'searching', processed: 0, imported: 0, skipped: 0, previewFailures: 0, total: null, percent: null } }
   mockBridge({ 'profiles.list': () => [profile], 'profiles.importProgress': () => progress, 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
   renderWithApp(<ProfilesPage navigate={vi.fn()} />)
-  await userEvent.click(await screen.findByRole('button', { name: 'Importar perfil' }))
+  // While importing, the import button becomes "Cancelar importação"; progress opens from the status line.
+  expect(await screen.findByRole('button', { name: 'Cancelar importação' })).toBeInTheDocument()
+  await userEvent.click(await screen.findByRole('button', { name: /Ver andamento/ }))
   expect(await screen.findByText('Buscando posts na Apify…')).toBeVisible()
   expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
   await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
   progress = { ...progress, state: 'failed', error: 'O provedor encerrou a busca.', progress: { phase: 'importing', processed: 32, total: 80, imported: 30, skipped: 2, previewFailures: 1, percent: 40 } }
-  await userEvent.click(screen.getByRole('button', { name: 'Importar perfil' }))
+  await userEvent.click(screen.getByRole('button', { name: /Ver andamento/ }))
   await waitFor(() => expect(screen.getByText('32 de 80 posts processados · 40%')).toBeVisible(), { timeout: 3500 })
   expect(screen.getByText('O provedor encerrou a busca.')).toBeVisible()
   expect(screen.getByRole('progressbar')).toHaveAttribute('value', '40')
@@ -233,4 +236,14 @@ it('exibe a foto do perfil a esquerda do nome no cabecalho', async () => {
   const avatar = header.querySelector('.size-14')!
   expect(avatar).toBeInTheDocument()
   expect(avatar.nextElementSibling).toContainElement(heading)
+})
+
+it('cancela a importação em andamento pelo botão e mantém os posts importados', async () => {
+  let progress: any = { jobId: 'job-progress', state: 'running', error: null, progress: { phase: 'importing', processed: 3, imported: 3, skipped: 0, previewFailures: 0, total: 10, percent: 30 } }
+  const invoke = mockBridge({ 'profiles.list': () => [profile], 'profiles.importProgress': () => progress, 'profiles.cancelImport': () => { progress = { ...progress, state: 'cancelled', error: 'Importação cancelada pelo usuário.' }; return true }, 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
+  renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+  await userEvent.click(await screen.findByRole('button', { name: 'Cancelar importação' }))
+  await waitFor(() => expect(invoke).toHaveBeenCalledWith('profiles.cancelImport', { workspaceId: WS_ID, profileId: profile.id }))
+  expect(await screen.findByText('Importação cancelada')).toBeInTheDocument()
+  expect(await screen.findByRole('button', { name: 'Importar perfil' })).toBeInTheDocument()
 })

@@ -34,7 +34,7 @@ test('Biblioteca → Container rascunho → revisão: persistência, seleção, 
     await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
     await page.getByLabel('Buscar mídia', { exact: true }).fill('video')
     await page.getByRole('button', { name: 'Próxima página', exact: true }).click()
-    await expect(page.getByText('61–120 de 205', { exact: true })).toBeVisible()
+    await expect(page.getByText('61–120 de 205 vídeos', { exact: true })).toBeVisible()
     await page.getByRole('button', { name: 'Selecionar página', exact: true }).click()
     await page.getByLabel('Quantidade Top N', { exact: true }).fill('3')
     await page.getByRole('button', { name: 'Selecionar Top N', exact: true }).click()
@@ -58,7 +58,7 @@ test('Biblioteca → Container rascunho → revisão: persistência, seleção, 
     await page.screenshot({ path: 'docs/screens/qa-containers/revisao-rascunho.png' })
     await page.getByRole('button', { name: 'Fechar', exact: true }).click()
     await expect(page.getByLabel('Buscar mídia', { exact: true })).toHaveValue('video')
-    await expect(page.getByText('61–120 de 205', { exact: true })).toBeVisible()
+    await expect(page.getByText('61–120 de 205 vídeos', { exact: true })).toBeVisible()
     await expect(page.getByText('3 selecionados', { exact: true })).toBeVisible()
     const first = await page.evaluate(async ws => {
       const r = await window.legacy.invoke('containers.query', { workspaceId: ws, state: 'draft' }) as IpcResult<Outputs['containers.query']>

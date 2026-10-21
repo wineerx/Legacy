@@ -48,7 +48,7 @@ test('measures queue interactions and bounded rendering at 100, 500, 1000 and 50
    const start=performance.now()
    await page.getByRole('link',{name:'Fila',exact:true}).click()
    await expect(page.locator('.queue-table tbody tr')).toHaveCount(25)
-   await expect(page.locator('.queue-pagination')).toContainText(`${n} tarefas`)
+   await expect(page.locator('.queue-pagination')).toContainText(`${n.toLocaleString('pt-BR')} tarefas`)
    const mountMs=performance.now()-start
    expect(mountMs,`${n} jobs: local navigation <500 ms`).toBeLessThan(500)
    // Start an independent interaction on a settled page. Playwright waits for
@@ -69,7 +69,7 @@ test('measures queue interactions and bounded rendering at 100, 500, 1000 and 50
    await page.getByRole('button',{name:'Fechar detalhes',exact:true}).click()
    await page.getByLabel('Buscar job, vídeo ou conta',{exact:true}).fill('')
    await expect(page.locator('.queue-table tbody tr')).toHaveCount(25)
-   const pagination=performance.now();await page.getByRole('button',{name:'Próxima',exact:true}).click()
+   const pagination=performance.now();await page.getByRole('button',{name:'Próxima página',exact:true}).click()
    await expect(page.locator('.queue-pagination')).toContainText('Página 2')
    const paginationMs=performance.now()-pagination;expect(paginationMs).toBeLessThan(500)
    const metrics=await app.evaluate(({app})=>app.getAppMetrics())

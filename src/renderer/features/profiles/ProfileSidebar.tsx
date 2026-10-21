@@ -27,10 +27,29 @@ export function ProfileSidebar({ children }: { children: ReactNode }) {
   }
   useEffect(() => {
     if (!dragging) return
+    const move = (event: PointerEvent) => {
+      const start = gesture.current
+      if (!start || start.pointerId !== event.pointerId) return
+      start.current = clamp(start.width + event.clientX - start.x)
+      setWidth(start.current)
+    }
+    const end = (event: PointerEvent) => {
+      const start = gesture.current
+      if (!start || start.pointerId !== event.pointerId) return
+      gesture.current = null
+      if (event.type === 'pointercancel') setWidth(start.width); else persist(clamp(start.width + event.clientX - start.x))
+      setDragging(false)
+    }
+    window.addEventListener('pointermove', move)
+    window.addEventListener('pointerup', end)
+    window.addEventListener('pointercancel', end)
     const { cursor, userSelect } = document.body.style
     document.body.style.cursor = 'col-resize'
     document.body.style.userSelect = 'none'
-    return () => { document.body.style.cursor = cursor; document.body.style.userSelect = userSelect }
+    return () => {
+      window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', end); window.removeEventListener('pointercancel', end)
+      document.body.style.cursor = cursor; document.body.style.userSelect = userSelect
+    }
   }, [dragging])
 
   return <div className="profiles-sidebar relative min-h-0 w-full shrink-0 border-b border-line xl:h-full xl:border-r xl:border-b-0"
@@ -48,32 +67,10 @@ export function ProfileSidebar({ children }: { children: ReactNode }) {
         event.preventDefault()
         event.currentTarget.focus()
         gesture.current = { x: event.clientX, width, current: width, pointerId: event.pointerId }
-        event.currentTarget.setPointerCapture(event.pointerId)
+        // Track the pointer on the window as well: if the handle loses pointer capture mid-drag
+        // (a re-render or another layer taking the pointer), the gesture still ends where the pointer is.
+        try { event.currentTarget.setPointerCapture(event.pointerId) } catch { /* window listeners below still track it */ }
         setDragging(true)
-      }}
-      onPointerMove={event => {
-        const start = gesture.current
-        if (!start || start.pointerId !== event.pointerId) return
-        start.current = clamp(start.width + event.clientX - start.x)
-        setWidth(start.current)
-      }}
-      onPointerUp={event => {
-        const start = gesture.current
-        if (!start || start.pointerId !== event.pointerId) return
-        gesture.current = null
-        persist(start.current)
-        setDragging(false)
-        event.currentTarget.releasePointerCapture(event.pointerId)
-      }}
-      onPointerCancel={() => {
-        if (gesture.current) setWidth(gesture.current.width)
-        gesture.current = null
-        setDragging(false)
-      }}
-      onLostPointerCapture={() => {
-        if (gesture.current) persist(gesture.current.current)
-        gesture.current = null
-        setDragging(false)
       }}
       onDoubleClick={() => persist(DEFAULT_WIDTH)}
       onKeyDown={event => {

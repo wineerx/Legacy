@@ -112,3 +112,18 @@
 .ds-chart-tip > span > b { margin-left:auto; color:var(--color-fg); font-weight:600; font-variant-numeric:tabular-nums; }
 .ds-meter { display:inline-block; width:56px; height:5px; flex-shrink:0; overflow:hidden; border-radius:999px; background:var(--color-raised); }
 .ds-meter > span { display:block; height:100%; border-radius:inherit; background:var(--color-chart-1); }
+
+/* Pagination (api keys reference: "1 – 6 of 6 keys" with square arrow buttons). */
+.ds-pagination { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; min-height:48px; padding:8px 14px; border-top:1px solid var(--color-line); color:var(--color-dim); font-size:12px; }
+.ds-pagination-compact { min-height:40px; padding:6px 0 0; border-top:0; font-size:11px; }
+.ds-page-button { display:grid; width:28px; height:28px; place-items:center; border:1px solid var(--color-line); border-radius:7px; background:var(--color-app); color:var(--color-fg); transition:background-color 140ms,border-color 140ms; }
+.ds-page-button:hover:not(:disabled) { background:var(--color-raised); border-color:var(--color-line-strong); }
+.ds-page-button:disabled { opacity:.4; cursor:not-allowed; }
+.ds-page-size { display:inline-flex; height:28px; align-items:center; gap:6px; padding:0 8px; border:1px solid var(--color-line); border-radius:7px; background:var(--color-app); color:var(--color-fg); font-size:12px; font-variant-numeric:tabular-nums; }
+.ds-page-size:hover { border-color:var(--color-line-strong); }
+
+/* Sort menu and selection bar. */
+.ds-sort-trigger { border-style:solid; border-color:var(--color-line); }
+.ds-selection-bar { position:sticky; top:0; z-index:20; display:flex; flex-wrap:wrap; align-items:center; gap:8px; padding:8px 12px; border:1px solid var(--color-line-strong); border-radius:var(--radius-card); background:var(--color-raised); box-shadow:0 8px 24px #0006; }
+.ds-selection-hint { display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px; padding:2px 2px; color:var(--color-dim); font-size:12px; }
+.ds-profile-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:10px 12px; padding:8px 12px; border:1px solid var(--color-line); border-radius:var(--radius-card); background:var(--color-panel); }

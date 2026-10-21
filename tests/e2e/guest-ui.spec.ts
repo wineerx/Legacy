@@ -225,7 +225,9 @@ test('progresso persistido reabre, controles funcionam e publicação confirmada
       page.getByRole('heading', { name: 'Instagram', exact: true })
     ).toBeVisible()
     await page
-      .getByRole('button', { name: 'Importar perfil', exact: true })
+      .getByRole('button', { name: /Ver andamento/ })
+      .or(page.getByRole('button', { name: 'Importar perfil', exact: true }))
+      .first()
       .click()
     await expect(
       page.getByRole('dialog', { name: 'Andamento da importação' })
@@ -233,7 +235,9 @@ test('progresso persistido reabre, controles funcionam e publicação confirmada
     await page.screenshot({ path: 'docs/screens/qa-ui-guest/importacao.png' })
     await page.getByRole('button', { name: 'Fechar', exact: true }).click()
     await page
-      .getByRole('button', { name: 'Importar perfil', exact: true })
+      .getByRole('button', { name: /Ver andamento/ })
+      .or(page.getByRole('button', { name: 'Importar perfil', exact: true }))
+      .first()
       .click()
     await expect(page.getByRole('dialog')).toContainText(
       '30 importados · 2 ignorados'
@@ -265,7 +269,9 @@ test('progresso persistido reabre, controles funcionam e publicação confirmada
       ]
     )
     await page
-      .getByRole('button', { name: 'Importar perfil', exact: true })
+      .getByRole('button', { name: /Ver andamento/ })
+      .or(page.getByRole('button', { name: 'Importar perfil', exact: true }))
+      .first()
       .click()
     await expect(page.getByRole('dialog')).toContainText('Grade carregada')
     await page.keyboard.press('Escape')

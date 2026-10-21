@@ -35,7 +35,7 @@ describe('Container draft flow', () => {
     expect(payload.draft).toMatchObject({ name: 'Lote da Biblioteca', destinationAccountId: '123', provider: 'instagram', items: [{ assetId: 'video-61' }] })
     await userEvent.click(screen.getByRole('button', { name: 'Fechar' }))
     expect(screen.getByLabelText('Buscar mídia')).toHaveValue('video')
-    expect(screen.getByText('61–65 de 65')).toBeInTheDocument()
+    expect(screen.getByText('61–65 de 65 vídeos')).toBeInTheDocument()
     expect(screen.getByRole('checkbox', { name: 'Selecionar video-60.mp4' })).toBeChecked()
     expect(screen.getByRole('checkbox', { name: 'Selecionar video-61.mp4' })).toBeChecked()
     const channels = invoke.mock.calls.map(c => c[0])
@@ -57,7 +57,7 @@ describe('Container draft flow', () => {
     const d = detail(); let updated: any
     const invoke = mockBridge({ 'accounts.instagramList': () => [account], 'containers.query': ({ page }) => ({ items: page === 1 ? [{ ...d.container, name: 'Primeiro' }] : [d.container], total: 11 }), 'containers.get': () => d, 'containers.updateDraft': input => { updated = input; return { ...d, container: { ...d.container, revision: 2 } } } })
     sheet('manage', [])
-    await userEvent.click(await screen.findByRole('button', { name: 'Próximos rascunhos' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Próxima página' }))
     await userEvent.click(await screen.findByRole('button', { name: /Meu lote/ }))
     await userEvent.clear(screen.getByLabelText('Nome do Container')); await userEvent.type(screen.getByLabelText('Nome do Container'), 'Renomeado')
     fireEvent.keyDown(screen.getByRole('combobox', { name: 'Destino do Container' }), { key: 'ArrowDown' }); await userEvent.click(await screen.findByRole('option', { name: 'Instagram · @destino' }))

@@ -13,7 +13,7 @@ import { ContainerWindowPanel } from './ContainerWindowPanel'
 import { VisualLayoutEditor } from '../templates/VisualLayoutEditor'
 import type { GridItem } from '@shared/types'
 import { call, mediaUrl } from '../../lib/api'
-import { Button, Select, Input, EmptyState, Spinner, Badge, Modal, CollapsibleCard, DeliveryTime, deliveryError, Pills, Toggle } from '../../components/ui'
+import { Button, Select, Input, EmptyState, Spinner, Badge, Modal, CollapsibleCard, DeliveryTime, deliveryError, Pills, Toggle, Pagination } from '../../components/ui'
 import { Sheet } from '../../components/ui/Sheet'
 import { Field, FieldGroup, FieldDescription, FieldError } from '../../components/ui/Field'
 import { appendVideos, draftPayload, editableDraft, existingVideo, libraryVideo, loadFullDraft, moveVideo, type DraftVideo } from './container-draft'
@@ -158,7 +158,7 @@ export function ContainerDraftSheet({ workspaceId, timeZone, request, onClose }:
           <Button className="w-full justify-between" onClick={() => setWindowOf({ id: c.id, name: c.name })}><span className="truncate">{c.name}</span>
             <Badge tone={c.delayMin ? 'error' : 'default'}>{c.state === 'paused' ? 'Pausado' : c.delayMin ? `+${c.delayMin} min` : 'No prazo'} · {c.counts.confirmed}/{c.counts.total}</Badge></Button>
         </li>)}</ul>
-        {!!scheduled.data && scheduled.data.total > 10 && <div className="flex items-center justify-between gap-2"><Button size="sm" disabled={scheduledPage === 1} onClick={() => setScheduledPage(p => p - 1)}>Anteriores</Button><span className="text-xs text-dim">Página {scheduledPage}</span><Button size="sm" disabled={scheduledPage * 10 >= scheduled.data.total} onClick={() => setScheduledPage(p => p + 1)}>Próximos</Button></div>}
+        {!!scheduled.data && <Pagination compact label="Paginação dos Containers agendados" page={scheduledPage} pageSize={10} total={scheduled.data.total} busy={scheduled.isFetching} noun="Containers" onPage={setScheduledPage} />}
       </> : !editing ? <>
         {drafts.isError && <FieldError>Não foi possível carregar rascunhos. <Button size="sm" onClick={() => void drafts.refetch()}>Tentar novamente</Button></FieldError>}
         {drafts.isLoading && <Spinner label="Carregando rascunhos" />}
@@ -170,7 +170,7 @@ export function ContainerDraftSheet({ workspaceId, timeZone, request, onClose }:
         {distributeIds.length > 0 && !distributing && <Button onClick={() => setDistributing(true)}>Distribuir em horários de pico ({distributeIds.length})</Button>}
         {distributing && <DistributionPanel workspaceId={workspaceId} containerIds={distributeIds} timeZone={timeZone} onClose={() => setDistributing(false)}
           onApplied={count => { setDistributing(false); setDistributeIds([]); setNotice(`Horários aplicados a ${count} rascunho(s). Nenhum job foi criado; revise e agende cada Container.`) }} />}
-        {!!drafts.data && drafts.data.total > 10 && <div className="flex items-center justify-between gap-2"><Button size="sm" disabled={busy || page === 1} onClick={() => setPage(p => p - 1)}>Rascunhos anteriores</Button><span className="text-xs text-dim">Página {page}</span><Button size="sm" disabled={busy || page * 10 >= drafts.data.total} onClick={() => setPage(p => p + 1)}>Próximos rascunhos</Button></div>}
+        {!!drafts.data && <Pagination compact label="Paginação dos rascunhos" page={page} pageSize={10} total={drafts.data.total} busy={busy || drafts.isFetching} noun="rascunhos" onPage={setPage} />}
       </> : <>
         <FieldGroup>
           <Field data-invalid={Boolean(validation) || undefined}><Input label="Nome do Container" value={name} maxLength={120} disabled={locked} aria-invalid={Boolean(!name.trim())} onChange={e => { setName(e.target.value); changed() }} /></Field>

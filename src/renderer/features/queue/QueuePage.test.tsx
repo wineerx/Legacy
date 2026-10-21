@@ -65,7 +65,7 @@ describe('Queue monitor', () => {
     renderWithApp(<QueuePage navigate={vi.fn()}/>)
     await screen.findByText(/60 tarefas/)
     await userEvent.click(screen.getByLabelText('Tipo'));await userEvent.click(await screen.findByRole('option',{name:'Publicação Instagram'}))
-    await userEvent.click(screen.getByRole('button',{name:'Próxima'}))
+    await userEvent.click(screen.getByRole('button',{name:'Próxima página'}))
     await waitFor(()=>expect(invoke).toHaveBeenCalledWith('jobs.query',expect.objectContaining({page:2,type:'publish_instagram'})))
     await userEvent.type(screen.getByLabelText('Buscar job, vídeo ou conta'),'teste')
     await waitFor(()=>expect(invoke).toHaveBeenCalledWith('jobs.query',expect.objectContaining({page:1,search:'teste',type:'publish_instagram'})))

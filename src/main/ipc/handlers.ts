@@ -44,7 +44,7 @@ import type { UpdateStatus } from '@shared/ipc-contract'
 import { achievements } from '../services/achievements'
 import { history, publicationFeedback, acknowledgePublications } from '../services/publication-history'
 import { createGuestSession } from '../services/guest-session'
-import { profileImportProgress } from '../services/profile-download'
+import { profileImportProgress, cancelProfileImport } from '../services/profile-download'
 import { pipelineSnapshot } from '../services/pipeline-observability'
 import { schedulePublicationBatch } from '../services/instagram-publishing'
 import { createContainer, updateContainerDraft, readContainer, listContainers, scheduleContainer, setContainerControl, cancelContainer } from '../services/publication-containers'
@@ -114,6 +114,7 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
     'session.enterGuest': () => session.enter(),
     'session.exit': () => session.exit(),
     'profiles.importProgress': i => { requireWorkspace(ctx, i.workspaceId); return profileImportProgress(ctx, i.workspaceId, i.profileId) },
+    'profiles.cancelImport': i => { requireWorkspace(ctx, i.workspaceId); return changed(i.workspaceId, cancelProfileImport(ctx, i.workspaceId, i.profileId)) },
     'publications.feedback': i => { requireWorkspace(ctx, i.workspaceId); return publicationFeedback(ctx, i.workspaceId) },
     'publications.acknowledge': i => { requireWorkspace(ctx, i.workspaceId); acknowledgePublications(ctx, i.workspaceId, i.ids); return null },
     'app.bootstrap': () => ({ workspaces: listWorkspaces(ctx.db).map(({ id, name, timeZone }) => ({ id, name, timeZone })), version: deps.version, buildCommit: deps.buildCommit, buildTime: deps.buildTime, workerAlive: deps.workerAlive(), dataDir: ctx.dataRoot }),

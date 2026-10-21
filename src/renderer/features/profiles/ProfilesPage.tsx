@@ -16,6 +16,7 @@ import {
   Download,
   ListOrdered,
   Archive,
+  Pause,
   X
 } from 'lucide-react'
 import type { SortDir, GridItem } from '@shared/types'
@@ -37,6 +38,9 @@ import {
   ActiveFilters,
   ChipGroup,
   Segmented,
+  Pagination,
+  SortMenu,
+  SelectionBar,
   type ActiveFilter
 } from '../../components/ui'
 import { ActionIcon } from '../../components/ActionIcon'
@@ -136,6 +140,15 @@ export function ProfilesPage({ navigate }: PageProps) {
         : false
   })
   const importing = ['queued', 'running'].includes(progress.data?.state ?? '')
+  const cancelImport = useMutation({
+    mutationFn: (profileId: string) => call('profiles.cancelImport', { workspaceId: workspace.id, profileId }),
+    onSuccess: (stopped) => {
+      void qc.invalidateQueries({ queryKey: ['profile-import-progress', workspace.id] })
+      void qc.invalidateQueries({ queryKey: ['grid'] })
+      toast.show(stopped ? { title: 'Importação cancelada', body: 'Os posts já importados continuam na grade.' } : { title: 'A importação já tinha terminado' })
+    },
+    onError: e => toast.show({ title: 'Não foi possível cancelar a importação', body: e instanceof Error ? e.message : undefined, tone: 'error' })
+  })
   useEffect(() => {
     if (progress.data?.progress?.processed) {
       void qc.invalidateQueries({ queryKey: ['grid'] })
@@ -170,6 +183,7 @@ export function ProfilesPage({ navigate }: PageProps) {
   const [minComments, setMinComments] = useState('')
   const [mediaKind, setMediaKind] = useState<'all' | 'videos' | 'images'>('all')
   const [topItems, setTopItems] = useState<GridItem[]>([])
+  const [gridPage, setGridPage] = useState(1), [gridPageSize, setGridPageSize] = useState(60)
   const ids = selection.mode === 'ids' ? [...selection.ids] : []
   const account = useQuery({
     queryKey: ['instagram-account', workspace.id],
@@ -299,7 +313,9 @@ export function ProfilesPage({ navigate }: PageProps) {
       minComments: minComments ? Number(minComments) : undefined,
       mediaKind
     },
-    Boolean(active)
+    Boolean(active),
+    gridPage,
+    gridPageSize
   )
 
   const activeFilters: ActiveFilter[] = [
@@ -338,6 +354,7 @@ export function ProfilesPage({ navigate }: PageProps) {
 
   useEffect(() => {
     setSelection(emptySelection())
+    setGridPage(1)
   }, [
     active?.id,
     sortBy,
@@ -507,26 +524,32 @@ export function ProfilesPage({ navigate }: PageProps) {
               </div>
               <Popover.Anchor asChild>
                 <span className="shrink-0">
-                  <ActionIcon
+                  {importing ? <ActionIcon
+                    label="Cancelar importação"
+                    type="button"
+                    variant="primary"
+                    loading={cancelImport.isPending}
+                    className="import-cancel group/import w-9 px-0 hover:bg-danger hover:text-white focus-visible:bg-danger focus-visible:text-white"
+                    onClick={() => cancelImport.mutate(active!.id)}
+                  >
+                    {!cancelImport.isPending && <>
+                      <span className="group-hover/import:hidden group-focus-visible/import:hidden"><Spinner label="Importando perfil" /></span>
+                      <Pause size={16} aria-hidden className="hidden group-hover/import:block group-focus-visible/import:block" />
+                    </>}
+                  </ActionIcon> : <ActionIcon
                     label="Importar perfil"
                     type="button"
                     variant="primary"
                     disabledReason={
-                      !importing &&
-                      (!Number.isInteger(Number(discoveryLimit)) ||
-                        Number(discoveryLimit) < 1 ||
-                        Number(discoveryLimit) > 1000)
+                      !Number.isInteger(Number(discoveryLimit)) ||
+                      Number(discoveryLimit) < 1 ||
+                      Number(discoveryLimit) > 1000
                         ? 'Use um limite entre 1 e 1000 posts.'
                         : undefined
                     }
                     className="w-9 px-0"
                     onClick={() => {
-                      if (
-                        importing ||
-                        add.isPending ||
-                        discover.isPending ||
-                        (!url.trim() && progress.data)
-                      )
+                      if (add.isPending || discover.isPending || (!url.trim() && progress.data))
                         setProgressOpen(true)
                       else if (url.trim()) {
                         setProgressOpen(true)
@@ -534,15 +557,20 @@ export function ProfilesPage({ navigate }: PageProps) {
                       }
                     }}
                   >
-                    {importing || add.isPending || discover.isPending ? (
+                    {add.isPending || discover.isPending ? (
                       <Spinner label="Importando perfil" />
                     ) : (
                       <UserSearch size={16} />
                     )}
-                  </ActionIcon>
+                  </ActionIcon>}
                 </span>
               </Popover.Anchor>
             </div>
+            {importing && !progressOpen && <button type="button" onClick={() => setProgressOpen(true)} className="flex items-center gap-1.5 self-start text-[11px] text-dim hover:text-fg">
+              <span aria-hidden className="size-1.5 animate-pulse rounded-full bg-tone-orange" />
+              {progress.data?.progress?.total != null ? `Importando · ${progress.data.progress.processed} de ${progress.data.progress.total}` : 'Importando perfil…'}
+              <span className="underline">Ver andamento</span>
+            </button>}
             <Popover.Portal>
               <Popover.Content
                 className="ds-dropdown w-72 p-4"
@@ -609,10 +637,12 @@ export function ProfilesPage({ navigate }: PageProps) {
                     ) : (
                       importing && <Spinner label="Buscando posts" />
                     )}
-                    {progress.data.error && (
+                    {progress.data.error && progress.data.state !== 'cancelled' && (
                       <p className="text-danger-fg">{progress.data.error}</p>
                     )}
-                    {['failed', 'cancelled'].includes(progress.data.state) && (
+                    {importing && <Button size="sm" variant="danger" icon={<Pause size={13} aria-hidden />} loading={cancelImport.isPending} onClick={() => cancelImport.mutate(active!.id)}>Cancelar importação</Button>}
+                    {progress.data.state === 'cancelled' && <p className="text-dim">Os posts já importados continuam na grade. Importe de novo para continuar.</p>}
+                    {progress.data.state === 'failed' && (
                       <Button size="sm" onClick={() => navigate('queue')}>
                         Ver tarefa na fila
                       </Button>
@@ -712,62 +742,42 @@ export function ProfilesPage({ navigate }: PageProps) {
                 )}
                 </div>
               </div>
-              <Button
-                aria-label="Baixar vídeos do perfil"
-                icon={<Download size={14} />}
-                onClick={() => setDownloadOpen(true)}
-              >
-                Baixar vídeos
-              </Button>
-              {active.platform === 'instagram' && <ContentSourcePicker label="Origem da atualização" value={activeSource} onChange={(source) => setSourceOverrides(prev => ({ ...prev, [active.id]: source }))} />}
-              <Button
-                disabled={
-                  !downloadStatus.data?.configured ||
-                  importing ||
-                  discover.isPending ||
-                  !Number.isInteger(Number(discoveryLimit)) ||
-                  Number(discoveryLimit) < 1 ||
-                  Number(discoveryLimit) > 1000
-                }
-                onClick={() =>
-                  discover.mutate({
-                    profileId: active.id,
-                    source: activeSource,
-                    limit: Number(discoveryLimit)
-                  })
-                }
-              >
-                Atualizar grade
-              </Button>
-              {active.platform === 'instagram' && <Button size="sm" icon={<RefreshCw size={14} />} loading={profileRefresh.isPending && profileRefresh.variables === active.id}
-                disabled={refresh.isPending || profileRefresh.isPending || !downloadStatus.data?.configured}
-                onClick={() => profileRefresh.mutate(active.id)}>Atualizar métricas</Button>}
-              <ActionIcon label="Ver fila" onClick={() => navigate('queue')}>
-                <ListOrdered size={16} />
-              </ActionIcon>
-              <ActionIcon
-                label="Adicionar link de reel"
-                onClick={() => setReelOpen(true)}
-              >
-                <Link2 size={16} />
-              </ActionIcon>
-              <ActionIcon
-                label="Importar métricas (CSV/JSON)"
-                onClick={() => importFile.mutate()}
-              >
-                <FileUp size={16} />
-              </ActionIcon>
             </header>
-            <section aria-label="Filtros dos posts" className="ds-filter-card shrink-0">
-              <FilterBar label="Filtrar posts" actions={<>
-                <Segmented<Sort> size="sm" label="Ordenar" value={sortBy} onChange={setSortBy} options={[
-                  { value: 'views', label: 'Views' }, { value: 'likes', label: 'Curtidas' },
-                  { value: 'comments', label: 'Comentários' }, { value: 'postedAt', label: 'Recentes' }
-                ]} />
-                <Button size="sm" variant="ghost" icon={<ArrowDownUp size={12} />} onClick={() => setSortDir(sortDir === 'desc' ? 'asc' : 'desc')}>
-                  {sortBy === 'postedAt' ? (sortDir === 'desc' ? 'Recentes primeiro' : 'Antigos primeiro') : (sortDir === 'desc' ? 'Maior primeiro' : 'Menor primeiro')}
+            <div role="toolbar" aria-label="Ações do perfil" className="ds-profile-toolbar">
+              <div className="flex flex-wrap items-center gap-2">
+                {active.platform === 'instagram' && <><span className="text-xs text-dim">Origem</span>
+                  <ContentSourcePicker label="Origem da atualização" value={activeSource} onChange={(source) => setSourceOverrides(prev => ({ ...prev, [active.id]: source }))} />
+                  <span className="min-w-16 text-xs font-medium">{sourceLabels[activeSource]}</span></>}
+                <Button size="sm" variant="primary"
+                  disabledReason={!downloadStatus.data?.configured ? 'Configure a Apify na Visão geral para buscar posts.' : importing ? 'Uma importação já está em andamento.' : !Number.isInteger(Number(discoveryLimit)) || Number(discoveryLimit) < 1 || Number(discoveryLimit) > 1000 ? 'Use um limite entre 1 e 1000 posts.' : undefined}
+                  disabled={discover.isPending}
+                  onClick={() => discover.mutate({ profileId: active.id, source: activeSource, limit: Number(discoveryLimit) })}>
+                  Atualizar grade
                 </Button>
-              </>}>
+              </div>
+              <span aria-hidden className="h-6 w-px bg-line" />
+              <div className="flex flex-wrap items-center gap-2">
+                {active.platform === 'instagram' && <Button size="sm" icon={<RefreshCw size={13} />} loading={profileRefresh.isPending && profileRefresh.variables === active.id}
+                  disabledReason={!downloadStatus.data?.configured ? 'Configure a Apify na Visão geral.' : undefined}
+                  disabled={refresh.isPending || profileRefresh.isPending}
+                  onClick={() => profileRefresh.mutate(active.id)}>Atualizar métricas</Button>}
+                <Button size="sm" aria-label="Baixar vídeos do perfil" icon={<Download size={13} />} onClick={() => setDownloadOpen(true)}>Baixar vídeos</Button>
+              </div>
+              <div className="ml-auto flex items-center gap-1">
+                <ActionIcon size="sm" variant="ghost" label="Ver fila" onClick={() => navigate('queue')}><ListOrdered size={15} /></ActionIcon>
+                <ActionIcon size="sm" variant="ghost" label="Adicionar link de reel" onClick={() => setReelOpen(true)}><Link2 size={15} /></ActionIcon>
+                <ActionIcon size="sm" variant="ghost" label="Importar métricas (CSV/JSON)" onClick={() => importFile.mutate()}><FileUp size={15} /></ActionIcon>
+              </div>
+            </div>
+            <section aria-label="Filtros dos posts" className="ds-filter-card shrink-0">
+              <FilterBar label="Filtrar posts" actions={
+                <SortMenu<Sort> value={sortBy} onChange={setSortBy} direction={sortDir} onDirection={setSortDir} options={[
+                  { value: 'views', label: 'Visualizações', directions: ['Mais vistos primeiro', 'Menos vistos primeiro'] },
+                  { value: 'likes', label: 'Curtidas', directions: ['Mais curtidos primeiro', 'Menos curtidos primeiro'] },
+                  { value: 'comments', label: 'Comentários', directions: ['Mais comentados primeiro', 'Menos comentados primeiro'] },
+                  { value: 'postedAt', label: 'Data de publicação', directions: ['Recentes primeiro', 'Antigos primeiro'] }
+                ]} />
+              }>
                 <FilterSearch label="Texto na legenda" placeholder="Buscar palavras na legenda" value={text} onChange={setText} />
                 <FacetFilter label="Tipo de mídia" value={mediaKind === 'all' ? [] : [mediaKind]} onChange={v => setMediaKind((v[0] ?? 'all') as typeof mediaKind)} options={[{ value: 'videos', label: 'Vídeos/reels' }, { value: 'images', label: 'Fotos/carrosséis' }]} />
                 <FilterPopover label="Filtros avançados" width={420} count={[hashtag, minViews, minLikes, minComments].filter(Boolean).length} total={grid.total} onReset={() => { setHashtag(''); setMinViews(''); setMinLikes(''); setMinComments('') }}>
@@ -790,75 +800,25 @@ export function ProfilesPage({ navigate }: PageProps) {
                 { id: 'loved', label: 'Muito curtidos (10 mil+)', active: minLikes === '10000' && !minViews && !minComments, apply: () => { clearFilters(); setMinLikes('10000'); setSortBy('likes') } },
                 { id: 'videos', label: 'Só vídeos recentes', active: mediaKind === 'videos' && sortBy === 'postedAt', apply: () => { clearFilters(); setMediaKind('videos'); setSortBy('postedAt'); setSortDir('desc') } }
               ]} />
-              <ActiveFilters filters={activeFilters} total={grid.total} onClear={clearFilters} />
+              <ActiveFilters filters={activeFilters} total={grid.total} noun="posts" onClear={clearFilters} />
             </section>
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-panel p-4 text-xs text-dim">
-              <div className="flex flex-wrap items-center gap-2">
-              <span>{selectionLabel(selection)}</span>
-              <Button
-                size="sm"
-                variant="ghost"
-                onClick={() =>
-                  setSelection(
-                    selectPage(
-                      selection,
-                      grid.items.map((i) => i.id)
-                    )
-                  )
-                }
-              >
-                Selecionar página
-              </Button>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-              <span>Melhores posts</span>
-              <Input
-                aria-label="Quantidade de virais"
-                type="number"
-                min={1}
-                max={100}
-                value={topCount}
-                onChange={(e) => setTopCount(e.target.value)}
-                className="w-28"
-              />
-              <Button
-                size="sm"
-                disabled={
-                  sortBy === 'postedAt' ||
-                  selectTop.isPending ||
-                  !Number.isInteger(Number(topCount)) ||
-                  Number(topCount) < 1 ||
-                  Number(topCount) > 100
-                }
-                onClick={() => selectTop.mutate()}
-              >
-                Selecionar top {topCount || 'X'}
-              </Button>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
-              <Button
-                size="sm"
-                disabled={!ids.length || selectedDownload.isPending}
-                onClick={() => selectedDownload.mutate()}
-              >
-                Baixar selecionados
-              </Button>
-              <Button
-                size="sm"
-                disabled={!selectionCount(selection) || prepare.isPending}
-                onClick={() => prepare.mutate()}
-              >
-                Preparar lote selecionado
-              </Button>
-              <Button
-                size="sm"
-                disabled={!ids.length}
-                onClick={() => setScheduleOpen(true)}
-              >
-                Programar selecionados
-              </Button>
-              </div>
-            </div>
+            <SelectionBar count={selectionCount(selection)} label={selectionLabel(selection)} onClear={() => setSelection(emptySelection())}
+              hint="Selecione posts (ou Ctrl + clique nos cards) para baixar os vídeos, preparar um lote ou programar no Instagram."
+              helpers={<>
+                <Button size="sm" variant="ghost" onClick={() => setSelection(selectPage(selection, grid.items.map((i) => i.id)))}>Selecionar página</Button>
+                <span aria-hidden className="h-5 w-px bg-line" />
+                <span className="text-xs text-dim">Melhores</span>
+                <Input aria-label="Quantidade de virais" type="number" min={1} max={100} value={topCount} onChange={(e) => setTopCount(e.target.value)} className="w-24" />
+                <Button size="sm"
+                  disabledReason={sortBy === 'postedAt' ? 'Ordene por visualizações, curtidas ou comentários para escolher os melhores.' : undefined}
+                  disabled={selectTop.isPending || !Number.isInteger(Number(topCount)) || Number(topCount) < 1 || Number(topCount) > 100}
+                  onClick={() => selectTop.mutate()}>Selecionar top {topCount || 'X'}</Button>
+              </>}
+              actions={<>
+                <Button size="sm" variant="primary" icon={<Download size={13} aria-hidden />} disabledReason={!ids.length ? 'Selecione posts desta grade.' : undefined} disabled={selectedDownload.isPending} onClick={() => selectedDownload.mutate()}>Baixar selecionados</Button>
+                <Button size="sm" disabled={!selectionCount(selection) || prepare.isPending} onClick={() => prepare.mutate()}>Preparar lote selecionado</Button>
+                <Button size="sm" disabledReason={!ids.length ? 'Selecione posts desta grade.' : undefined} onClick={() => setScheduleOpen(true)}>Programar selecionados</Button>
+              </>} />
             {grid.isError ? (
               <p className="text-sm text-danger-fg">
                 Não foi possível carregar os posts.{' '}
@@ -878,11 +838,9 @@ export function ProfilesPage({ navigate }: PageProps) {
                 selection={selection}
                 onToggleSelect={(id) => setSelection(previous => toggleId(previous, id))}
                 onOpen={setPreview}
-                onEndReached={
-                  grid.hasNextPage ? () => void grid.fetchNextPage() : undefined
-                }
               />
             )}
+            <Pagination className="rounded-card border border-line bg-panel" label="Paginação dos posts" page={gridPage} pageSize={gridPageSize} total={grid.total} busy={grid.isFetching} noun="posts" pageSizes={[30, 60, 120]} onPageSize={setGridPageSize} onPage={setGridPage} />
           </>
         )}
       </section>

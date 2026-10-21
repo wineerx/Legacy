@@ -56,6 +56,7 @@ export const contract = {
   'session.enterGuest': z.object({}),
   'session.exit': z.object({}),
   'profiles.importProgress': z.object({ workspaceId: ws, profileId: id }),
+  'profiles.cancelImport': z.object({ workspaceId: ws, profileId: id }),
   'publications.feedback': z.object({ workspaceId: ws }),
   'publications.acknowledge': z.object({ workspaceId: ws, ids: z.array(id).max(100) }),
   'dashboard.get': z.object({ workspaceId: ws }),
@@ -203,6 +204,7 @@ export interface Outputs {
   'session.enterGuest': GuestSessionDto
   'session.exit': GuestSessionDto
   'profiles.importProgress': { jobId: string; state: string; error: string | null; progress: ImportProgress | null } | null
+  'profiles.cancelImport': boolean
   'publications.feedback': { jobId: string; username: string }[]
   'publications.acknowledge': null
   'diagnostics.export': { saved: boolean },

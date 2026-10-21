@@ -27,7 +27,7 @@ describe('AgendaSheet', () => {
     expect(screen.getByText('2 aguardando quota')).toBeInTheDocument()
     expect(screen.getByText('12/10, 13:00')).toBeInTheDocument()
     expect(screen.getByText('Página 1 de 3')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Próximos' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Próxima página' }))
     await waitFor(() => expect(invoke).toHaveBeenCalledWith('containers.get', { workspaceId: WS_ID, containerId: ID, page: 2, pageSize: 20 }))
     expect(screen.queryByRole('button', { name: 'Editar' })).toBeNull()
   })

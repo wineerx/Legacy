@@ -9,7 +9,7 @@ import type { ImportResultDto } from '@shared/ipc-contract'
 import type { GridItem, GridQuery } from '@shared/types'
 import { call, pathForFile, ApiError } from '../../lib/api'
 import { useWorkspace } from '../../lib/workspace'
-import { Button, EmptyState, DatePicker, Input, Modal, useToast, cx, FilterBar, FilterSearch, FacetFilter, FilterPopover, FilterSection, FilterPresets, ActiveFilters, ChipGroup, Segmented, type ActiveFilter, type FacetOption } from '../../components/ui'
+import { Button, EmptyState, DatePicker, Input, Modal, useToast, cx, FilterBar, FilterSearch, FacetFilter, Pagination, FilterPopover, FilterSection, FilterPresets, ActiveFilters, ChipGroup, Segmented, SortMenu, SelectionBar, type ActiveFilter, type FacetOption } from '../../components/ui'
 import { localDate } from '@shared/agenda'
 import { MediaPreview } from '../../components/MediaPreview'
 import { MediaGrid } from '../../components/MediaGrid'
@@ -42,7 +42,9 @@ export function LibraryPage({ navigate }: PageProps) {
   const [results, setResults] = useState<ImportResultDto[] | null>(null)
   const [dragging, setDragging] = useState(false)
   const prefs = useMediaPreferences()
-  const [offset, setOffset] = useState(0)
+  const [pageNo, setPageNo] = useState(1), [pageSize, setPageSize] = useState(60)
+  const offset = (pageNo - 1) * pageSize
+  const setOffset = (value: number) => setPageNo(Math.floor(value / pageSize) + 1)
   const [text, setText] = useState('')
   const [status, setStatus] = useState<GridQuery['status']>()
   const [sourceProfile, setSourceProfile] = useState('')
@@ -58,7 +60,7 @@ export function LibraryPage({ navigate }: PageProps) {
   const queryIdentity = JSON.stringify(q)
   const latestQuery = useRef(queryIdentity)
   latestQuery.current = queryIdentity
-  const page = useQuery({ queryKey: ['grid', q, offset], queryFn: () => call('grid.query', { ...q, limit: 60, offset }), refetchInterval: 3000 })
+  const page = useQuery({ queryKey: ['grid', q, offset, pageSize], queryFn: () => call('grid.query', { ...q, limit: pageSize, offset }), refetchInterval: 3000 })
   useEffect(() => { for (const item of page.data?.items ?? []) selectedMedia.current.set(item.id, item) }, [page.data])
   const selectTop = useMutation({ mutationFn: async () => ({ items: await topLibraryVideos(q, Number(topN)), identity: queryIdentity }), onSuccess: ({ items, identity }) => {
     if (latestQuery.current !== identity) return
@@ -86,7 +88,6 @@ export function LibraryPage({ navigate }: PageProps) {
     toast.show({ title: `${result.deleted.length} vídeo(s) excluído(s)`, body: `${result.blocked.length} em uso preservados; ${result.failed.length} falhas.`, tone: result.failed.length ? 'error' : 'info' })
   }, onError: e => toast.show({ title: 'Não foi possível excluir', body: e instanceof Error ? e.message : undefined, tone: 'error' }) })
   useEffect(() => { setOffset(0); setSelection(emptySelection()) }, [sortBy, favoritesOnly, text, status, sourceProfile, publicationAccount, platform, from])
-  useEffect(() => { if (page.data && offset > 0 && offset >= page.data.total) setOffset(0) }, [page.data?.total, offset])
   const onDone = (r: ImportResultDto[]) => {
     void qc.invalidateQueries()
     if (r.length && r.some((x) => x.status !== 'imported' || x.warnings.length || x.errors.length)) setResults(r)
@@ -141,6 +142,7 @@ export function LibraryPage({ navigate }: PageProps) {
       </header>
       <section aria-label="Filtros da biblioteca" className="ds-filter-card">
         <FilterBar label="Filtrar biblioteca" actions={<>
+          <SortMenu<Sort> value={sortBy} onChange={setSortBy} options={[{ value: 'importedAt', label: 'Mais recentes' }, { value: 'durationMs', label: 'Mais longos' }, { value: 'views', label: 'Mais vistos' }, { value: 'likes', label: 'Mais curtidos' }, { value: 'comments', label: 'Mais comentados' }]} />
           <Segmented<'grid' | 'list'> label="Visualização" value={prefs.list ? 'list' : 'grid'} onChange={v => prefs.save.mutate({ key: 'mediaViewList', value: v === 'list' })} options={[{ value: 'grid', label: '', icon: <Grid2X2 size={14} aria-hidden />, ariaLabel: 'Visualização em grade' }, { value: 'list', label: '', icon: <List size={14} aria-hidden />, ariaLabel: 'Visualização em lista' }]} />
         </>}>
           <FilterSearch label="Buscar mídia" placeholder="Nome, perfil, legenda ou origem" value={text} onChange={setText} />
@@ -160,7 +162,7 @@ export function LibraryPage({ navigate }: PageProps) {
             </FilterSection>
           </FilterPopover>
         </FilterBar>
-        <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <FilterPresets presets={[
             { id: 'fav', label: 'Favoritos', icon: <Star size={11} aria-hidden />, active: favoritesOnly && !status, apply: () => { const next = !favoritesOnly; clearFilters(); setFavoritesOnly(next) } },
             { id: 'ready', label: 'Prontos e não publicados', active: status === 'unpublished' && !favoritesOnly, apply: () => { clearFilters(); setStatus('unpublished') } },
@@ -168,25 +170,25 @@ export function LibraryPage({ navigate }: PageProps) {
             { id: 'scheduled', label: 'Agendados', active: status === 'scheduled', apply: () => { clearFilters(); setStatus('scheduled') } },
             { id: 'failed', label: 'Com erro', active: status === 'failed', apply: () => { clearFilters(); setStatus('failed') } }
           ]} />
-          <div data-tour="library-selection" className="flex items-center gap-2"><span className="text-[11px] text-dim">Ordenar por</span><Segmented<Sort> size="sm" label="Ordenar" value={sortBy} onChange={setSortBy} options={[{ value: 'importedAt', label: 'Recentes' }, { value: 'durationMs', label: 'Duração' }, { value: 'views', label: 'Views' }, { value: 'likes', label: 'Curtidas' }, { value: 'comments', label: 'Comentários' }]} /></div>
         </div>
-        <ActiveFilters filters={libraryFilters} total={grid.total} onClear={clearFilters} />
+        <ActiveFilters filters={libraryFilters} total={grid.total} noun="vídeos" onClear={clearFilters} />
       </section>
-      <div className="flex flex-wrap items-center justify-end gap-2">
-        <Button size="sm" variant="ghost" onClick={() => setSelection(selectPage(selection, grid.items.map((i) => i.id)))}>Selecionar página</Button>
-        <Input aria-label="Quantidade Top N" type="number" min={1} max={1000} value={topN} onChange={e => setTopN(e.target.value)} className="w-20" />
-        <Button size="sm" disabled={selectTop.isPending || openContainer.isPending || grid.isLoading} onClick={() => selectTop.mutate()}>Selecionar Top N</Button>
-      </div>
       {/* Actions on the selection appear only when something is selected, instead of a row of disabled buttons. */}
-      {selectionCount(selection) > 0 ? <div role="toolbar" aria-label="Ações da seleção" className="sticky top-0 z-20 flex flex-wrap items-center gap-2 rounded-card border border-line-strong bg-raised px-3 py-2 shadow-lg">
-        <span className="text-sm font-semibold" aria-live="polite">{selectionLabel(selection)}</span>
-        <Button size="sm" variant="ghost" onClick={() => setSelection(emptySelection())}>Limpar</Button>
-        <span aria-hidden className="mx-1 h-5 w-px bg-line" />
-        <Button size="sm" variant="primary" disabled={openContainer.isPending || selectTop.isPending} disabledReason={selectionCount(selection) > 1000 ? 'Use até 1.000 vídeos por Container.' : undefined} onClick={() => openContainer.mutate('new')}>Criar novo Container</Button>
-        <Button size="sm" disabled={openContainer.isPending || selectTop.isPending} disabledReason={selectionCount(selection) > 1000 ? 'Use até 1.000 vídeos por Container.' : undefined} onClick={() => openContainer.mutate('append')}>Adicionar ao Container</Button>
-        <Button size="sm" disabledReason={selectionCount(selection) > 100 ? 'Prepare até 100 vídeos por lote.' : undefined} onClick={prepare}>Preparar lote</Button>
-        <Button size="sm" variant="danger" className="ml-auto" disabledReason={selectionCount(selection) > 200 ? 'Exclua até 200 arquivos por vez.' : undefined} onClick={() => selection.mode === 'ids' && setDeleteIds([...selection.ids])}><Trash2 size={12} />Excluir selecionados</Button>
-      </div> : <p className="text-xs text-dim">Selecione vídeos (ou Ctrl + clique nos cards) para criar um Container, adicionar a um rascunho ou preparar um lote.</p>}
+      <div data-tour="library-selection"><SelectionBar count={selectionCount(selection)} label={selectionLabel(selection)} onClear={() => setSelection(emptySelection())}
+        hint="Selecione vídeos (ou Ctrl + clique nos cards) para criar um Container, adicionar a um rascunho ou preparar um lote."
+        helpers={<>
+          <Button size="sm" variant="ghost" onClick={() => setSelection(selectPage(selection, grid.items.map((i) => i.id)))}>Selecionar página</Button>
+          <span aria-hidden className="h-5 w-px bg-line" />
+          <span className="text-xs text-dim">Melhores</span>
+          <Input aria-label="Quantidade Top N" type="number" min={1} max={1000} value={topN} onChange={e => setTopN(e.target.value)} className="w-24" />
+          <Button size="sm" disabled={selectTop.isPending || openContainer.isPending || grid.isLoading} onClick={() => selectTop.mutate()}>Selecionar Top N</Button>
+        </>}
+        actions={<>
+          <Button size="sm" variant="primary" disabled={openContainer.isPending || selectTop.isPending} disabledReason={selectionCount(selection) > 1000 ? 'Use até 1.000 vídeos por Container.' : undefined} onClick={() => openContainer.mutate('new')}>Criar novo Container</Button>
+          <Button size="sm" disabled={openContainer.isPending || selectTop.isPending} disabledReason={selectionCount(selection) > 1000 ? 'Use até 1.000 vídeos por Container.' : undefined} onClick={() => openContainer.mutate('append')}>Adicionar ao Container</Button>
+          <Button size="sm" disabledReason={selectionCount(selection) > 100 ? 'Prepare até 100 vídeos por lote.' : undefined} onClick={prepare}>Preparar lote</Button>
+          <Button size="sm" variant="danger" disabledReason={selectionCount(selection) > 200 ? 'Exclua até 200 arquivos por vez.' : undefined} onClick={() => selection.mode === 'ids' && setDeleteIds([...selection.ids])}><Trash2 size={12} />Excluir selecionados</Button>
+        </>} /></div>
       {(pick.isPending || byPaths.isPending) && <p role="status" className="rounded-ctl border border-line p-3 text-xs">Importando e verificando arquivos…</p>}
       {!!pending.data?.length && <CollapsibleCard defaultOpen title={<>Fila de mídia · {pending.data.length} tarefa(s) recentes</>}><ul className="max-h-44 overflow-y-auto divide-y divide-line">{pending.data.map(job => <li key={job.id} className="flex flex-wrap justify-between gap-2 py-2 text-xs"><span>{job.label}</span><span className={job.state === 'failed' ? 'text-danger-fg' : 'text-dim'}>{job.state === 'running' ? 'Processando…' : job.state === 'queued' ? 'Aguardando' : 'Falhou'}</span>{job.error && <p className="w-full text-danger-fg">{job.error}</p>}</li>)}</ul></CollapsibleCard>}
       {pending.isError && <p role="alert" className="text-xs text-danger-fg">Fila de mídia indisponível. <button onClick={() => void pending.refetch()}>Tentar novamente</button></p>}
@@ -202,7 +204,7 @@ export function LibraryPage({ navigate }: PageProps) {
                 <Button size="sm" variant="secondary" aria-label="Excluir" onClick={() => setToDelete(i)}><Trash2 size={12} /></Button>
               </>
             )} />}
-      {grid.total > 60 && <div className="flex items-center justify-end gap-3 text-xs"><span>{offset + 1}–{Math.min(offset + 60, grid.total)} de {grid.total}</span><Button size="sm" disabled={offset === 0} onClick={() => setOffset(Math.max(0, offset - 60))}>Anterior</Button><Button size="sm" disabled={offset + 60 >= grid.total} onClick={() => setOffset(offset + 60)}>Próxima página</Button></div>}
+      <Pagination className="rounded-card border border-line bg-panel" label="Paginação da biblioteca" page={pageNo} pageSize={pageSize} total={grid.total} busy={page.isFetching} noun="vídeos" pageSizes={[30, 60, 120]} onPageSize={setPageSize} onPage={setPageNo} />
       {preview && <MediaPreview key={preview.id} item={preview} onClose={() => setPreview(null)} />}
       {draftRequest && <ContainerDraftSheet key={draftRequest.key} workspaceId={workspace.id} timeZone={workspace.timeZone} request={draftRequest} onClose={() => setDraftRequest(null)} />}
       <Modal open={deleteIds !== null} onOpenChange={o => !o && !bulkDelete.isPending && setDeleteIds(null)} title={`Excluir ${deleteIds?.length ?? 0} vídeos?`} description="Remove as cópias da Biblioteca. Originais importados e histórico de publicação permanecem. Arquivos relacionados a tarefas ativas ou agendadas serão preservados."
