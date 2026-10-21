@@ -7,10 +7,11 @@ import { execFileSync } from 'node:child_process'
 import { tmpdir } from 'node:os'
 
 // Build fixada (BtbN autobuild versionado, LGPL, win64). Nunca usar a tag móvel "latest".
-const RELEASE = 'autobuild-2026-10-03-18-14'
-const NAME = 'ffmpeg-n8.1.3-14-g330caae0c1-win64-lgpl-8.1'
+// Use a build do último dia do mês: o BtbN apaga os autobuilds diários depois de alguns dias e mantém os mensais.
+const RELEASE = 'autobuild-2026-09-30-13-08'
+const NAME = 'ffmpeg-n8.1.3-9-g29e619e767-win64-lgpl-8.1'
 const URL_ZIP = `https://github.com/BtbN/FFmpeg-Builds/releases/download/${RELEASE}/${NAME}.zip`
-const EXPECTED_SHA256 = process.env.FFMPEG_SHA256 || '32311af342f7dcfaee91e34eef3a1e3b71ee27ee4129e8d37a26402a16d4504b'
+const EXPECTED_SHA256 = process.env.FFMPEG_SHA256 || '4a7642b2264c03e8a0ce8a3825b933ee5580656f45695a086fe7e294045ffc0a'
 const outDir = join('resources', 'bin', 'win32-x64')
 
 if (existsSync(join(outDir, 'ffmpeg.exe')) && existsSync(join(outDir, 'ffprobe.exe'))) {
