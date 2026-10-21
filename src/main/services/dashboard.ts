@@ -5,6 +5,7 @@ import { instagramAccount } from './instagram-publishing'
 import { readQuotaSnapshot } from './instagram-quota'
 import { unreadCount } from '../repos/notifications'
 import { requireWorkspace } from './integrations'
+import { analytics } from './analytics'
 
 export function dashboard(ctx: Ctx, ws: string) {
   requireWorkspace(ctx, ws)
@@ -30,5 +31,5 @@ export function dashboard(ctx: Ctx, ws: string) {
   const account = instagramAccount(ctx, ws)
   const reading = account ? readQuotaSnapshot(ctx.db, ws, account.id, ctx.clock()) : null
   const quota = account ? { username: account.username, usage: reading?.usage ?? null, total: reading?.total ?? null, durationSec: reading?.durationSec ?? null, fetchedAt: reading?.fetchedAt ?? null, freshness: reading?.freshness ?? 'missing' as const } : null
-  return { tasks, library, profiles: metrics, recent, unread: unreadCount(ctx.db, ws, ctx.clock()), nextContainer: next, quota }
+  return { tasks, library, profiles: metrics, recent, unread: unreadCount(ctx.db, ws, ctx.clock()), nextContainer: next, quota, analytics: analytics(ctx, ws) }
 }

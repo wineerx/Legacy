@@ -4,10 +4,12 @@ import { Bell, Download, Send, CheckCheck, Check, FolderOpen, ListOrdered, Circl
 import type { NotificationDto } from '@shared/ipc-contract'
 import { call, ApiError } from '../../lib/api'
 import { useWorkspace } from '../../lib/workspace'
-import { Button, CollapsibleCard, EmptyState, Pills, useToast, cx, Modal, Checkbox } from '../../components/ui'
+import { Button, CollapsibleCard, EmptyState, useToast, cx, Modal, Checkbox, FilterBar, FilterSearch, Segmented, ActiveFilters } from '../../components/ui'
 import { ActionIcon } from '../../components/ActionIcon'
 import type { PageProps } from '../../routes'
 import { groupNotifications } from './groups'
+
+const CATEGORIES = [{ value: 'all', label: 'Todas' }, { value: 'unread', label: 'Não lidas' }, { value: 'download', label: 'Downloads' }, { value: 'publication', label: 'Publicações' }, { value: 'error', label: 'Falhas' }, { value: 'system', label: 'Sistema' }]
 
 function parseAction(json: string | null): { type: string; path?: string; jobId?: string } | null {
   try { const a = JSON.parse(json ?? '{}'); return a.type === 'open_folder' || a.type === 'open_queue' ? a : null } catch { return null }
@@ -34,13 +36,28 @@ export function NotificationsPage({ navigate }: PageProps) {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [deleting, setDeleting] = useState<{ ids?: string[]; all?: boolean } | null>(null)
   const remove = useMutation({ mutationFn: (input: { ids?: string[]; all?: boolean }) => call('notifications.delete', { workspaceId: workspace.id, ...input }), onSuccess: () => { setSelected(new Set()); setDeleting(null); void qc.invalidateQueries() }, onError: fail })
-  const groups = groupNotifications(list.data ?? [], filter)
+  const [text, setText] = useState('')
+  const needle = text.trim().toLowerCase()
+  const source = (list.data ?? []).filter(n => !needle || `${n.title} ${n.body}`.toLowerCase().includes(needle))
+  const groups = groupNotifications(source, filter)
   const visibleIds = groups.flatMap(g => g.items.map(n => n.id))
   return <div className="mx-auto flex max-w-5xl min-w-0 flex-col gap-4 p-6">
     <header data-tour="notifications" className="flex flex-wrap items-center justify-between gap-3"><h1 className="text-lg font-semibold">Notificações</h1><ActionIcon label="Marcar todas como lidas" disabled={readAll.isPending || !list.data?.some(n => !n.readAt)} onClick={() => readAll.mutate()}><CheckCheck size={18} /></ActionIcon></header>
-    <div className="flex flex-wrap items-center gap-2"><Button size="sm" onClick={() => {setSelecting(!selecting);setSelected(new Set())}}>{selecting ? 'Cancelar seleção' : 'Selecionar notificações'}</Button><Button size="sm" disabled={!list.data?.length || remove.isPending} onClick={() => setDeleting({ all: true })}>Excluir todas</Button>{selecting && <><Checkbox variant="compact" label="Selecionar todas" disabled={!visibleIds.length || list.isPending || remove.isPending} checked={visibleIds.length > 0 && visibleIds.every(id => selected.has(id))} onChange={e => setSelected(new Set(e.target.checked ? visibleIds : []))}/><Button size="sm" disabled={!selected.size || remove.isPending} onClick={() => selected.size > 1 ? setDeleting({ ids: [...selected] }) : remove.mutate({ ids: [...selected] })}>Excluir selecionadas ({selected.size})</Button></>}</div>
+    <section aria-label="Filtros das notificações" className="ds-filter-card">
+      <FilterBar label="Filtrar notificações" actions={<>
+        <Button size="sm" onClick={() => {setSelecting(!selecting);setSelected(new Set())}}>{selecting ? 'Cancelar seleção' : 'Selecionar notificações'}</Button>
+        <Button size="sm" variant="ghost" disabled={!list.data?.length || remove.isPending} onClick={() => setDeleting({ all: true })}>Excluir todas</Button>
+      </>}>
+        <FilterSearch label="Buscar notificações" placeholder="Título ou mensagem…" value={text} onChange={setText} />
+        <Segmented label="Filtrar notificações" value={filter} onChange={setFilter} options={CATEGORIES.map(c => ({ value: c.value, label: c.label, ariaLabel: c.label, count: groupNotifications(source, c.value).reduce((n, g) => n + g.items.length, 0) }))} />
+      </FilterBar>
+      {selecting && <div className="flex flex-wrap items-center gap-2"><Checkbox variant="compact" label="Selecionar todas" disabled={!visibleIds.length || list.isPending || remove.isPending} checked={visibleIds.length > 0 && visibleIds.every(id => selected.has(id))} onChange={e => setSelected(new Set(e.target.checked ? visibleIds : []))}/><Button size="sm" disabled={!selected.size || remove.isPending} onClick={() => selected.size > 1 ? setDeleting({ ids: [...selected] }) : remove.mutate({ ids: [...selected] })}>Excluir selecionadas ({selected.size})</Button></div>}
+      <ActiveFilters noun="notificação(ões)" total={list.data ? visibleIds.length : undefined} onClear={() => { setText(''); setFilter('all') }} filters={[
+        ...(text ? [{ key: 'text', label: `Busca: ${text}`, clear: () => setText('') }] : []),
+        ...(filter !== 'all' ? [{ key: 'cat', label: CATEGORIES.find(c => c.value === filter)!.label, clear: () => setFilter('all') }] : [])
+      ]} />
+    </section>
     <Modal open={!!deleting} onOpenChange={open => !open && setDeleting(null)} title="Excluir notificações?" description={deleting?.all ? 'Todas as notificações deste workspace serão excluídas. As tarefas e o histórico de publicação permanecem.' : `${deleting?.ids?.length ?? 0} notificações serão excluídas.`} footer={<><Button onClick={() => setDeleting(null)}>Cancelar</Button><Button variant="primary" loading={remove.isPending} onClick={() => deleting && remove.mutate(deleting)}>Confirmar exclusão</Button></>}/>
-    <Pills label="Filtrar notificações" value={filter} onChange={setFilter} options={[{value:'all',label:'Todas'},{value:'unread',label:'Não lidas'},{value:'download',label:'Downloads'},{value:'publication',label:'Publicações'},{value:'error',label:'Falhas'},{value:'system',label:'Sistema'}]} />
     {list.isError && <p role="alert" className="text-sm text-danger-fg">Não foi possível carregar as notificações.</p>}
     {list.isLoading && <p role="status">Carregando…</p>}
     {!groups.length && !list.isLoading && !list.isError && <EmptyState icon={<Bell size={28} />} title="Tudo em dia" body="Nenhuma notificação neste filtro." />}

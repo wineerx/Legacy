@@ -27,8 +27,17 @@ import {
   Spinner,
   Input,
   Modal,
-  Pills,
-  useToast
+  useToast,
+  FilterBar,
+  FilterSearch,
+  FacetFilter,
+  FilterPopover,
+  FilterSection,
+  FilterPresets,
+  ActiveFilters,
+  ChipGroup,
+  Segmented,
+  type ActiveFilter
 } from '../../components/ui'
 import { ActionIcon } from '../../components/ActionIcon'
 import { MediaPreview } from '../../components/MediaPreview'
@@ -293,13 +302,13 @@ export function ProfilesPage({ navigate }: PageProps) {
     Boolean(active)
   )
 
-  const activeFilters = [
-    ...(text ? [{ label: 'Legenda: ' + text, clear: () => setText('') }] : []),
-    ...(hashtag ? [{ label: 'Hashtag: ' + hashtag, clear: () => setHashtag('') }] : []),
-    ...(minViews ? [{ label: 'Views ≥ ' + minViews, clear: () => setMinViews('') }] : []),
-    ...(minLikes ? [{ label: 'Curtidas ≥ ' + minLikes, clear: () => setMinLikes('') }] : []),
-    ...(minComments ? [{ label: 'Comentários ≥ ' + minComments, clear: () => setMinComments('') }] : []),
-    ...(mediaKind !== 'all' ? [{ label: mediaKind === 'videos' ? 'Vídeos/reels' : 'Fotos/carrosséis', clear: () => setMediaKind('all') }] : [])
+  const activeFilters: ActiveFilter[] = [
+    ...(text ? [{ key: 'text', label: 'Legenda: ' + text, clear: () => setText('') }] : []),
+    ...(hashtag ? [{ key: 'hashtag', label: 'Hashtag: ' + hashtag, clear: () => setHashtag('') }] : []),
+    ...(minViews ? [{ key: 'views', label: 'Views ≥ ' + Number(minViews).toLocaleString('pt-BR'), clear: () => setMinViews('') }] : []),
+    ...(minLikes ? [{ key: 'likes', label: 'Curtidas ≥ ' + Number(minLikes).toLocaleString('pt-BR'), clear: () => setMinLikes('') }] : []),
+    ...(minComments ? [{ key: 'comments', label: 'Comentários ≥ ' + Number(minComments).toLocaleString('pt-BR'), clear: () => setMinComments('') }] : []),
+    ...(mediaKind !== 'all' ? [{ key: 'kind', label: mediaKind === 'videos' ? 'Vídeos/reels' : 'Fotos/carrosséis', clear: () => setMediaKind('all') }] : [])
   ]
   const clearFilters = () => { setText(''); setHashtag(''); setMinViews(''); setMinLikes(''); setMinComments(''); setMediaKind('all') }
 
@@ -749,55 +758,39 @@ export function ProfilesPage({ navigate }: PageProps) {
                 <FileUp size={16} />
               </ActionIcon>
             </header>
-            <section aria-label="Filtros dos posts" className="filters-panel shrink-0 overflow-hidden rounded-card border border-line bg-panel">
-              <div className="flex flex-wrap items-end justify-between gap-4 p-4">
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs font-medium text-dim">Ordenar por</span>
-                  <Pills<Sort> label="Ordenar" value={sortBy} onChange={setSortBy} options={[
-                    { value: 'views', label: 'Mais vistos' }, { value: 'likes', label: 'Mais curtidos' },
-                    { value: 'comments', label: 'Mais comentados' }, { value: 'postedAt', label: 'Mais recentes' }
-                  ]} />
-                </div>
+            <section aria-label="Filtros dos posts" className="ds-filter-card shrink-0">
+              <FilterBar label="Filtrar posts" actions={<>
+                <Segmented<Sort> size="sm" label="Ordenar" value={sortBy} onChange={setSortBy} options={[
+                  { value: 'views', label: 'Views' }, { value: 'likes', label: 'Curtidas' },
+                  { value: 'comments', label: 'Comentários' }, { value: 'postedAt', label: 'Recentes' }
+                ]} />
                 <Button size="sm" variant="ghost" icon={<ArrowDownUp size={12} />} onClick={() => setSortDir(sortDir === 'desc' ? 'asc' : 'desc')}>
                   {sortBy === 'postedAt' ? (sortDir === 'desc' ? 'Recentes primeiro' : 'Antigos primeiro') : (sortDir === 'desc' ? 'Maior primeiro' : 'Menor primeiro')}
                 </Button>
-              </div>
-              <CollapsibleCard className="border-x-0 border-b-0 rounded-none" title="Filtros avançados"
-                description="Refine o conteúdo e o desempenho dos posts carregados.">
-                <div className="flex flex-col gap-5">
-                  <fieldset className="min-w-0">
-                    <legend className="mb-3 text-xs font-semibold">Conteúdo</legend>
-                    <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-2">
-                      <Input label="Texto na legenda" placeholder="Buscar palavras na legenda" value={text} onChange={e => setText(e.target.value)} className="w-full" />
-                      <Input label="Hashtag" placeholder="#viagem" value={hashtag} onChange={e => setHashtag(e.target.value)} className="w-full" />
-                    </div>
-                    <div className="mt-4 flex flex-col gap-2">
-                      <span className="text-xs text-dim">Tipo de mídia</span>
-                      <Pills<'all' | 'videos' | 'images'> label="Tipo de mídia" value={mediaKind} onChange={setMediaKind} options={[
-                        { value: 'all', label: 'Todos' }, { value: 'videos', label: 'Vídeos/reels' }, { value: 'images', label: 'Fotos/carrosséis' }
-                      ]} />
-                    </div>
-                  </fieldset>
-                  <fieldset className="min-w-0 border-t border-line pt-4">
-                    <legend className="text-xs font-semibold">Desempenho mínimo</legend>
-                    <div className="grid min-w-0 grid-cols-1 gap-4 sm:grid-cols-3">
+              </>}>
+                <FilterSearch label="Texto na legenda" placeholder="Buscar palavras na legenda" value={text} onChange={setText} />
+                <FacetFilter label="Tipo de mídia" value={mediaKind === 'all' ? [] : [mediaKind]} onChange={v => setMediaKind((v[0] ?? 'all') as typeof mediaKind)} options={[{ value: 'videos', label: 'Vídeos/reels' }, { value: 'images', label: 'Fotos/carrosséis' }]} />
+                <FilterPopover label="Filtros avançados" width={420} count={[hashtag, minViews, minLikes, minComments].filter(Boolean).length} total={grid.total} onReset={() => { setHashtag(''); setMinViews(''); setMinLikes(''); setMinComments('') }}>
+                  <FilterSection title="Conteúdo">
+                    <Input label="Hashtag" placeholder="#viagem" value={hashtag} onChange={e => setHashtag(e.target.value)} className="w-full" />
+                  </FilterSection>
+                  <FilterSection title="Desempenho mínimo">
+                    <ChipGroup label="Views mínimas rápidas" value={['', '1000', '10000', '100000', '1000000'].includes(minViews) ? minViews || 'any' : 'custom'} onChange={v => v !== 'custom' && setMinViews(v === 'any' ? '' : v)} options={[{ value: 'any', label: 'Qualquer' }, { value: '1000', label: '1 mil+' }, { value: '10000', label: '10 mil+' }, { value: '100000', label: '100 mil+' }, { value: '1000000', label: '1 mi+' }]} />
+                    <div className="grid grid-cols-3 items-end gap-3">
                       <Input label="Mínimo de views" placeholder="Sem mínimo" type="number" min={0} value={minViews} onChange={e => setMinViews(e.target.value.replace(/\D/g, ''))} className="w-full" />
                       <Input label="Mínimo de curtidas" placeholder="Sem mínimo" type="number" min={0} value={minLikes} onChange={e => setMinLikes(e.target.value.replace(/\D/g, ''))} className="w-full" />
                       <Input label="Mínimo de comentários" placeholder="Sem mínimo" type="number" min={0} value={minComments} onChange={e => setMinComments(e.target.value.replace(/\D/g, ''))} className="w-full" />
                     </div>
-                  </fieldset>
-                </div>
-              </CollapsibleCard>
-              <div className="flex flex-wrap items-center gap-2 border-t border-line px-4 py-3 text-xs" aria-live="polite">
-                <span className="text-dim">{grid.total} resultado(s)</span>
-                {activeFilters.length ? <>
-                  {activeFilters.map(filter => <button key={filter.label} type="button" aria-label={'Remover filtro: ' + filter.label} onClick={filter.clear}
-                    className="flex max-w-full items-center gap-1 rounded-ctl border border-line bg-raised px-2 py-1">
-                    <span className="truncate">{filter.label}</span><X size={12} className="shrink-0" aria-hidden />
-                  </button>)}
-                  <Button size="sm" variant="ghost" onClick={clearFilters}>Limpar filtros</Button>
-                </> : <span className="text-dim">Sem filtros aplicados</span>}
-              </div>
+                  </FilterSection>
+                </FilterPopover>
+              </FilterBar>
+              <FilterPresets presets={[
+                { id: 'viral', label: 'Virais (100 mil+ views)', active: minViews === '100000' && !minLikes && !minComments, apply: () => { clearFilters(); setMinViews('100000'); setSortBy('views') } },
+                { id: 'talk', label: 'Muito comentados (100+)', active: minComments === '100' && !minViews && !minLikes, apply: () => { clearFilters(); setMinComments('100'); setSortBy('comments') } },
+                { id: 'loved', label: 'Muito curtidos (10 mil+)', active: minLikes === '10000' && !minViews && !minComments, apply: () => { clearFilters(); setMinLikes('10000'); setSortBy('likes') } },
+                { id: 'videos', label: 'Só vídeos recentes', active: mediaKind === 'videos' && sortBy === 'postedAt', apply: () => { clearFilters(); setMediaKind('videos'); setSortBy('postedAt'); setSortDir('desc') } }
+              ]} />
+              <ActiveFilters filters={activeFilters} total={grid.total} onClear={clearFilters} />
             </section>
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-card border border-line bg-panel p-4 text-xs text-dim">
               <div className="flex flex-wrap items-center gap-2">

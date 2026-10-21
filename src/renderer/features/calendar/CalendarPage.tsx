@@ -2,17 +2,18 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { AgendaSheet } from './AgendaSheet'
 import { ContainerDraftSheet } from '../library/ContainerDraftSheet'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Users } from 'lucide-react'
 import { agendaRange, shiftAnchor, layoutDay, localDate, addDays, dayStart, type AgendaItem, type AgendaView } from '@shared/agenda'
 import type { PublicationContainerState } from '@shared/publication-containers'
 import { call } from '../../lib/api'
 import { useWorkspace } from '../../lib/workspace'
-import { Button, Pills, Select, Spinner, EmptyState, Badge, cx } from '../../components/ui'
+import { Button, Spinner, EmptyState, cx, FilterBar, FacetFilter, ActiveFilters, Segmented, type Tone } from '../../components/ui'
 import { Progress } from '../../components/ui/Progress'
 import { FieldError } from '../../components/ui/Field'
 import type { PageProps } from '../../routes'
 
 const STATE: Record<PublicationContainerState, string> = { draft: 'Rascunho', scheduled: 'Agendado', in_progress: 'Em andamento', paused: 'Pausado', completed: 'Concluído', completed_with_failures: 'Concluído com falhas', cancelled: 'Cancelado' }
+const STATE_TONES: Record<PublicationContainerState, Tone> = { draft: 'neutral', scheduled: 'blue', in_progress: 'orange', paused: 'yellow', completed: 'green', completed_with_failures: 'red', cancelled: 'neutral' }
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb']
 const HOUR_PX = 48
 const startOf = (i: AgendaItem) => Date.parse(i.plannedStartAt!)
@@ -85,7 +86,7 @@ function Timeline({ days, items, timeZone, onOpen }: { days: string[]; items: Ag
 export function CalendarPage(_: PageProps) {
   const { workspace } = useWorkspace(), timeZone = workspace.timeZone
   const today = localDate(Date.now(), timeZone)
-  const [view, setView] = useState<AgendaView>('week'), [anchor, setAnchor] = useState(today), [accountId, setAccountId] = useState('')
+  const [view, setView] = useState<AgendaView>('week'), [anchor, setAnchor] = useState(today), [accountId, setAccountId] = useState(''), [states, setStates] = useState<string[]>([])
   const [open, setOpen] = useState<AgendaItem | null>(null), [editing, setEditing] = useState<string | null>(null)
   const qc = useQueryClient()
   const range = useMemo(() => agendaRange(view, anchor, timeZone), [view, anchor, timeZone])
@@ -96,26 +97,31 @@ export function CalendarPage(_: PageProps) {
   const label = view === 'month' ? new Date(`${anchor.slice(0, 7)}-15T12:00:00Z`).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric', timeZone: 'UTC' })
     : view === 'day' ? new Date(`${anchor}T12:00:00Z`).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', timeZone: 'UTC' })
       : `${range.days[0].slice(8)}/${range.days[0].slice(5, 7)} – ${range.days[6].slice(8)}/${range.days[6].slice(5, 7)}/${range.days[6].slice(0, 4)}`
-  const items = agenda.data?.items ?? []
+  const allItems = agenda.data?.items ?? []
+  const items = states.length ? allItems.filter(i => states.includes(i.state)) : allItems
   return <section className="flex flex-col gap-4 p-5">
     <header className="flex flex-wrap items-end justify-between gap-3">
       <div><h1 className="text-xl font-semibold">Calendário</h1><p className="text-xs text-dim">Containers por janela planejada, no fuso {timeZone}. Cada bloco reúne todas as publicações do Container.</p></div>
-      <div className="flex flex-wrap items-end gap-2">
-        <Select label="Conta" value={accountId} onChange={e => setAccountId(e.target.value)}><option value="">Todas as contas</option>{accounts.data?.map(a => <option key={a.id} value={a.id}>@{a.username}</option>)}</Select>
-        <Pills<AgendaView> label="Visualização" value={view} onChange={setView} options={[{ value: 'day', label: 'Dia' }, { value: 'week', label: 'Semana' }, { value: 'month', label: 'Mês' }, { value: 'timeline', label: 'Timeline' }]} />
-      </div>
     </header>
-    <div className="flex flex-wrap items-center gap-2">
-      <Button size="sm" aria-label="Período anterior" onClick={() => setAnchor(a => shiftAnchor(view, a, -1))}><ChevronLeft size={14} aria-hidden /></Button>
-      <Button size="sm" onClick={() => setAnchor(today)}>Hoje</Button>
-      <Button size="sm" aria-label="Próximo período" onClick={() => setAnchor(a => shiftAnchor(view, a, 1))}><ChevronRight size={14} aria-hidden /></Button>
-      <h2 className="text-sm font-semibold" aria-live="polite">{sentence(label)}</h2>
-      {agenda.data && <Badge>{items.length} Container(s)</Badge>}
-    </div>
+    <section aria-label="Filtros do calendário" className="ds-filter-card">
+      <FilterBar label="Navegar e filtrar calendário" actions={<Segmented<AgendaView> label="Visualização" value={view} onChange={setView} options={[{ value: 'day', label: 'Dia' }, { value: 'week', label: 'Semana' }, { value: 'month', label: 'Mês' }, { value: 'timeline', label: 'Timeline' }]} />}>
+        <Button size="sm" onClick={() => setAnchor(today)}>Hoje</Button>
+        <Button size="sm" variant="ghost" aria-label="Período anterior" onClick={() => setAnchor(a => shiftAnchor(view, a, -1))}><ChevronLeft size={14} aria-hidden /></Button>
+        <h2 className="min-w-40 text-sm font-semibold" aria-live="polite">{sentence(label)}</h2>
+        <Button size="sm" variant="ghost" aria-label="Próximo período" onClick={() => setAnchor(a => shiftAnchor(view, a, 1))}><ChevronRight size={14} aria-hidden /></Button>
+        <span aria-hidden className="mx-1 h-5 w-px bg-line" />
+        <FacetFilter label="Conta" icon={<Users size={13} aria-hidden />} value={accountId ? [accountId] : []} onChange={v => setAccountId(v[0] ?? '')} options={(accounts.data ?? []).map(a => ({ value: a.id, label: `@${a.username}` }))} />
+        <FacetFilter multiple label="Estado" value={states} onChange={setStates} options={Object.entries(STATE).map(([key, value]) => ({ value: key, label: value, tone: STATE_TONES[key as PublicationContainerState], count: allItems.filter(i => i.state === key).length }))} />
+      </FilterBar>
+      <ActiveFilters noun="Container(s)" total={agenda.data ? items.length : undefined} onClear={() => { setAccountId(''); setStates([]) }} filters={[
+        ...(accountId ? [{ key: 'account', label: `Conta: @${accounts.data?.find(a => a.id === accountId)?.username ?? '—'}`, clear: () => setAccountId('') }] : []),
+        ...states.map(st => ({ key: st, label: STATE[st as PublicationContainerState], clear: () => setStates(states.filter(x => x !== st)) }))
+      ]} />
+    </section>
     {agenda.isLoading && <Spinner label="Carregando agenda" />}
     {agenda.isError && <FieldError>Não foi possível carregar a agenda. <Button size="sm" onClick={() => void agenda.refetch()}>Tentar novamente</Button></FieldError>}
     {agenda.data?.truncated && <p role="status" className="text-xs text-warn">Muitos Containers neste período; exibindo os primeiros. Use o filtro por conta ou uma visualização menor.</p>}
-    {agenda.data && !items.length && <EmptyState icon={null} title="Nenhum Container neste período" body="Agende ou distribua Containers pela Biblioteca para vê-los aqui." />}
+    {agenda.data && !items.length && <EmptyState icon={null} title={allItems.length ? 'Nenhum Container com estes filtros' : 'Nenhum Container neste período'} body="Agende ou distribua Containers pela Biblioteca para vê-los aqui." />}
     {agenda.data && items.length > 0 && (view === 'month' ? <MonthGrid days={range.days} items={items} timeZone={timeZone} month={anchor.slice(0, 7)} today={today} onOpen={setOpen} />
       : view === 'timeline' ? <Timeline days={range.days} items={items} timeZone={timeZone} onOpen={setOpen} />
         : <TimeGrid days={range.days} items={items} timeZone={timeZone} today={today} onOpen={setOpen} />)}

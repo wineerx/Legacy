@@ -37,13 +37,13 @@ test('measures queue interactions and bounded rendering at 100, 500, 1000 and 50
    await page.getByRole('link',{name:'Biblioteca',exact:true}).click()
    if(n===100) {
     await page.locator('main .page-enter').evaluate(async el=>{await Promise.all(el.getAnimations().map(a=>a.finished))})
-    const trigger=page.getByRole('button',{name:'Filtros de origem e publicação',exact:true}),started=performance.now()
+    const trigger=page.getByRole('button',{name:'Filtros',exact:true}),started=performance.now()
     await trigger.click();await expect(page.getByLabel('Perfil de origem',{exact:true})).toBeVisible()
     await page.waitForFunction(()=>(window as any).__interactionAudit.events.at(-1)?.paintMs>0)
     const paintMs=await page.evaluate(()=>(window as any).__interactionAudit.events.at(-1).paintMs as number)
-    expect(paintMs,'Collapsible click to paint opportunity <200 ms').toBeLessThan(200)
-    samples.push({action:'expandir Collapsible',automationMs:performance.now()-started,paintMs})
-    await trigger.click()
+    expect(paintMs,'Filter panel click to paint opportunity <200 ms').toBeLessThan(200)
+    samples.push({action:'abrir painel de filtros',automationMs:performance.now()-started,paintMs})
+    await page.keyboard.press('Escape')
    }
    const start=performance.now()
    await page.getByRole('link',{name:'Fila',exact:true}).click()
@@ -54,8 +54,8 @@ test('measures queue interactions and bounded rendering at 100, 500, 1000 and 50
    // Start an independent interaction on a settled page. Playwright waits for
    // moving targets; that actionability delay is distinct from handler latency.
    await page.locator('main .page-enter').evaluate(async el=>{await Promise.all(el.getAnimations().map(a=>a.finished))})
-   const more=performance.now();await page.getByRole('button',{name:'Mais filtros',exact:true}).click()
-   await expect(page.getByLabel('Prioridade',{exact:true})).toBeVisible()
+   const more=performance.now();await page.getByRole('button',{name:'Filtros',exact:true}).click()
+   await expect(page.getByRole('group',{name:'Prioridade',exact:true})).toBeVisible()
    const filtersAutomationMs=performance.now()-more
    await page.waitForFunction(()=>(window as any).__interactionAudit.events.at(-1)?.paintMs>0)
    const filtersMs=await page.evaluate(()=>(window as any).__interactionAudit.events.at(-1).paintMs as number)

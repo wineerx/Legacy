@@ -43,7 +43,7 @@ test('captura auditoria de UI', async () => {
     const shots: [string, string][] = [['Visão geral', '01-overview'], ['Perfis', '02-profiles'], ['Biblioteca', '03-library'], ['Criar postagem', '04-compose'], ['Templates', '05-templates'], ['Calendário', '06-calendar'], ['Fila', '07-queue'], ['Contas', '08-accounts'], ['Notificações', '09-notifications'], ['Desafios e conquistas', '10-achievements'], ['Tutoriais', '11-tutorial']]
     for (const [label, name] of shots) { await page.getByRole('link', { name: label, exact: true }).click(); await page.waitForTimeout(700); await page.screenshot({ path: join(out, `${name}.png`) }) }
     await page.getByRole('link', { name: 'Biblioteca', exact: true }).click(); await page.waitForTimeout(400)
-    await page.getByText('Filtros de origem e publicação').first().click().catch(() => {}); await page.waitForTimeout(400)
+    await page.getByRole('button', { name: 'Filtros', exact: true }).first().click().catch(() => {}); await page.waitForTimeout(400)
     await page.screenshot({ path: join(out, '12-library-filters.png') })
     await page.getByRole('checkbox', { name: 'Selecionar meme-23.mp4' }).check().catch(() => {}); await page.waitForTimeout(300)
     await page.screenshot({ path: join(out, '12b-library-selection.png') })

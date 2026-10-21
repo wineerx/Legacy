@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./tokens.css";
 @import "./controls.css";
+@import "./patterns.css";
 
 .collapsible { min-width: 0; border: 1px solid color-mix(in srgb, var(--color-line) 65%, transparent); border-radius: var(--radius-card); background: var(--color-panel); transition: border-color 220ms ease, background-color 220ms ease; }
 .collapsible[data-state="open"] { border-color: var(--color-line); background: color-mix(in srgb, var(--color-panel) 90%, var(--color-raised)); }

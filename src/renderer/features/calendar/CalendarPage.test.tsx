@@ -41,7 +41,7 @@ describe('CalendarPage', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Próximo período' }))
     const tomorrow = agendaRange('day', new Date(Date.parse(`${today}T12:00:00Z`) + 86_400_000).toISOString().slice(0, 10), TZ)
     await waitFor(() => expect(invoke).toHaveBeenCalledWith('agenda.range', { workspaceId: WS_ID, from: tomorrow.from, to: tomorrow.to }))
-    await userEvent.click(screen.getByRole('combobox', { name: 'Conta' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Conta' }))
     await userEvent.click(await screen.findByRole('option', { name: '@meme.a' }))
     await waitFor(() => expect(invoke).toHaveBeenCalledWith('agenda.range', { workspaceId: WS_ID, from: tomorrow.from, to: tomorrow.to, accountId: '111' }))
   })

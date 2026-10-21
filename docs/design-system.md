@@ -33,3 +33,17 @@ Estados obrigatórios: foco visível, desabilitado com motivo, carregando (Skele
 ## Regras de texto
 
 pt-BR, sentence case, sem "por favor", sem "com sucesso", sem exclamação. Itens indisponíveis aparecem com "em breve" e o motivo. Métrica ausente: "—", nunca zero.
+
+## Padrão de filtros (todas as telas)
+
+Fonte: `components/ui/Filters.tsx`, estilos em `styles/patterns.css`. Ordem fixa dentro de um `ds-filter-card`:
+
+1. `FilterBar`: `FilterSearch` → `FacetFilter` (estado, plataforma, tipo; pontos coloridos e contagem) → `FilterPopover` ("Filtros", com contador, seções `FilterSection`, "Redefinir" e "Ver N resultado(s)"). À direita: visualização (`Segmented`) e ações.
+2. `FilterPresets`: combinações rápidas que substituem os filtros atuais (ex.: "Precisam atenção", "Falhas aguardando retry", "Virais (100 mil+ views)").
+3. `ActiveFilters`: total, chips "Remover filtro: …", "Limpar filtros" ou "Sem filtros aplicados".
+
+Aplicado em Fila, Biblioteca, Perfis, Calendário e Notificações.
+
+## Cards, estados e gráficos
+
+`Card`/`CardHeader` (cabeçalho com divisória), `StatusBadge`/`ToneDot` (tons `green`, `red`, `orange`, `blue`, `purple`, `yellow`; o texto sempre diz o estado), `Segmented`, `ChipGroup`. Gráficos em `components/charts/Charts.tsx` (SVG/CSS, sem dependência): `StatCard`, `DeltaBadge` ("—" sem período anterior), `BarChart`, `LineChart`, `DonutChart`, `PipelineList`, `Meter`, `Sparkline`. Paleta monocromática `--color-chart-1..5`. Todo gráfico tem resumo textual em `aria-label`. Dados vêm de `dashboard.get` → `analytics` (14 dias no fuso do workspace).

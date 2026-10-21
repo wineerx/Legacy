@@ -9,7 +9,8 @@ import type { ImportResultDto } from '@shared/ipc-contract'
 import type { GridItem, GridQuery } from '@shared/types'
 import { call, pathForFile, ApiError } from '../../lib/api'
 import { useWorkspace } from '../../lib/workspace'
-import { Button, EmptyState, Select, DatePicker, Input, Modal, Pills, useToast, cx } from '../../components/ui'
+import { Button, EmptyState, DatePicker, Input, Modal, useToast, cx, FilterBar, FilterSearch, FacetFilter, FilterPopover, FilterSection, FilterPresets, ActiveFilters, ChipGroup, Segmented, type ActiveFilter, type FacetOption } from '../../components/ui'
+import { localDate } from '@shared/agenda'
 import { MediaPreview } from '../../components/MediaPreview'
 import { MediaGrid } from '../../components/MediaGrid'
 import { useMediaPreferences } from '../../lib/media-preferences'
@@ -25,6 +26,7 @@ import { ContainerDraftSheet, type DraftSheetRequest } from './ContainerDraftShe
 import { libraryVideo, topLibraryVideos } from './container-draft'
 
 type Sort = 'importedAt' | 'durationMs' | 'views' | 'likes' | 'comments'
+const STATUS_OPTIONS: FacetOption[] = [{ value: 'ready', label: 'Prontos', tone: 'green' }, { value: 'processing', label: 'Processando', tone: 'orange' }, { value: 'published', label: 'Publicados', tone: 'blue' }, { value: 'unpublished', label: 'Não publicados', tone: 'neutral' }, { value: 'scheduled', label: 'Agendados', tone: 'purple' }, { value: 'failed', label: 'Com erro', tone: 'red' }]
 
 export function LibraryPage({ navigate }: PageProps) {
   const { workspace } = useWorkspace()
@@ -112,15 +114,17 @@ export function LibraryPage({ navigate }: PageProps) {
     setComposeSelection(await resolveSelectedIds(selection, q))
     navigate('compose')
   }
-  const libraryFilters = [
-    ...(text ? [{ label: 'Busca: ' + text, clear: () => setText('') }] : []),
-    ...(status ? [{ label: 'Estado: ' + MEDIA_STATE_LABELS[status], clear: () => setStatus(undefined) }] : []),
-    ...(sourceProfile ? [{ label: 'Origem: ' + sourceProfile, clear: () => setSourceProfile('') }] : []),
-    ...(publicationAccount ? [{ label: 'Publicado por: ' + publicationAccount, clear: () => setPublicationAccount('') }] : []),
-    ...(platform ? [{ label: platform === 'instagram' ? 'Instagram' : 'TikTok', clear: () => setPlatform(undefined) }] : []),
-    ...(from ? [{ label: 'Importado desde: ' + from.split('-').reverse().join('/'), clear: () => setFrom('') }] : []),
-    ...(favoritesOnly ? [{ label: 'Favoritos', clear: () => setFavoritesOnly(false) }] : [])
+  const libraryFilters: ActiveFilter[] = [
+    ...(text ? [{ key: 'text', label: 'Busca: ' + text, clear: () => setText('') }] : []),
+    ...(status ? [{ key: 'status', label: 'Estado: ' + MEDIA_STATE_LABELS[status], clear: () => setStatus(undefined) }] : []),
+    ...(sourceProfile ? [{ key: 'source', label: 'Origem: ' + sourceProfile, clear: () => setSourceProfile('') }] : []),
+    ...(publicationAccount ? [{ key: 'account', label: 'Publicado por: ' + publicationAccount, clear: () => setPublicationAccount('') }] : []),
+    ...(platform ? [{ key: 'platform', label: platform === 'instagram' ? 'Instagram' : 'TikTok', clear: () => setPlatform(undefined) }] : []),
+    ...(from ? [{ key: 'from', label: 'Importado desde: ' + from.split('-').reverse().join('/'), clear: () => setFrom('') }] : []),
+    ...(favoritesOnly ? [{ key: 'fav', label: 'Somente favoritos', clear: () => setFavoritesOnly(false) }] : [])
   ]
+  const daysAgo = (n: number) => localDate(Date.now() - (n - 1) * 86_400_000, workspace.timeZone)
+  const IMPORT_RANGES = [{ value: 'any', label: 'Qualquer data', from: () => '' }, { value: 'today', label: 'Hoje', from: () => daysAgo(1) }, { value: '7', label: '7 dias', from: () => daysAgo(7) }, { value: '30', label: '30 dias', from: () => daysAgo(30) }]
   const clearFilters = () => { setText(''); setStatus(undefined); setSourceProfile(''); setPublicationAccount(''); setPlatform(undefined); setFrom(''); setFavoritesOnly(false) }
   const importButton = <Button data-tour="library-import" variant="primary" icon={<Upload size={14} />} disabled={pick.isPending || byPaths.isPending} onClick={() => pick.mutate()}>Importar vídeos</Button>
 
@@ -135,41 +139,43 @@ export function LibraryPage({ navigate }: PageProps) {
         </div>
         <div className="flex flex-wrap gap-2"><Button icon={<FolderOpen size={14} />} onClick={() => setDraftRequest({ mode: 'manage', videos: [], key: crypto.randomUUID() })}>Containers em rascunho</Button>{importButton}</div>
       </header>
-      <section aria-label="Filtros da biblioteca" className="filters-panel shrink-0 overflow-hidden rounded-card border border-line bg-panel">
-        <div className="grid grid-cols-1 items-end gap-4 p-4 sm:grid-cols-2 xl:grid-cols-[minmax(240px,1fr)_180px_auto]">
-          <Input label="Buscar mídia" placeholder="Nome, perfil, legenda ou origem" value={text} onChange={e => setText(e.target.value)} className="w-full" />
-          <Select label="Estado" aria-label="Estado da mídia" value={status ?? ''} onChange={e => setStatus((e.target.value || undefined) as GridQuery['status'])}><option value="">Todos</option><option value="ready">Prontos</option><option value="processing">Processando</option><option value="published">Publicados</option><option value="unpublished">Não publicados</option><option value="scheduled">Agendados</option><option value="failed">Com erro</option></Select>
-          <div className="flex flex-wrap items-center gap-3">
-            <div className="flex gap-1"><Button aria-label="Visualização em grade" aria-pressed={!prefs.list} onClick={() => prefs.save.mutate({ key: 'mediaViewList', value: false })}><Grid2X2 size={14} /></Button><Button aria-label="Visualização em lista" aria-pressed={prefs.list} onClick={() => prefs.save.mutate({ key: 'mediaViewList', value: true })}><List size={14} /></Button></div>
-            <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={prefs.showBanner} onChange={e => prefs.save.mutate({ key: 'mediaShowBanner', value: e.target.checked })} />Exibir banner</label>
-          </div>
+      <section aria-label="Filtros da biblioteca" className="ds-filter-card">
+        <FilterBar label="Filtrar biblioteca" actions={<>
+          <Segmented<'grid' | 'list'> label="Visualização" value={prefs.list ? 'list' : 'grid'} onChange={v => prefs.save.mutate({ key: 'mediaViewList', value: v === 'list' })} options={[{ value: 'grid', label: '', icon: <Grid2X2 size={14} aria-hidden />, ariaLabel: 'Visualização em grade' }, { value: 'list', label: '', icon: <List size={14} aria-hidden />, ariaLabel: 'Visualização em lista' }]} />
+        </>}>
+          <FilterSearch label="Buscar mídia" placeholder="Nome, perfil, legenda ou origem" value={text} onChange={setText} />
+          <FacetFilter label="Estado" value={status ? [status] : []} onChange={v => setStatus((v[0] || undefined) as GridQuery['status'])} options={STATUS_OPTIONS} />
+          <FacetFilter label="Plataforma" value={platform ? [platform] : []} onChange={v => setPlatform((v[0] || undefined) as GridQuery['platform'])} options={[{ value: 'instagram', label: 'Instagram' }, { value: 'tiktok', label: 'TikTok' }]} />
+          <FilterPopover count={[sourceProfile, publicationAccount, from].filter(Boolean).length} total={grid.total} onReset={() => { setSourceProfile(''); setPublicationAccount(''); setFrom('') }}>
+            <FilterSection title="Origem e publicação">
+              <Input label="Perfil de origem" placeholder="@perfil" value={sourceProfile} onChange={e => setSourceProfile(e.target.value)} className="w-full" />
+              <Input label="Conta que publicou" placeholder="@conta" value={publicationAccount} onChange={e => setPublicationAccount(e.target.value)} className="w-full" />
+            </FilterSection>
+            <FilterSection title="Importação">
+              <ChipGroup label="Período de importação" value={IMPORT_RANGES.find(r => r.from() === from)?.value ?? (from ? 'custom' : 'any')} onChange={v => { const r = IMPORT_RANGES.find(x => x.value === v); if (r) setFrom(r.from()) }} options={[...IMPORT_RANGES.map(r => ({ value: r.value, label: r.label })), ...(from && !IMPORT_RANGES.some(r => r.from() === from) ? [{ value: 'custom', label: 'Personalizado' }] : [])]} />
+              <DatePicker label="Importado a partir de" value={from} onChange={setFrom} clearable />
+            </FilterSection>
+            <FilterSection title="Exibição">
+              <label className="flex items-center gap-2 text-xs"><input type="checkbox" checked={prefs.showBanner} onChange={e => prefs.save.mutate({ key: 'mediaShowBanner', value: e.target.checked })} />Exibir banner nas miniaturas</label>
+            </FilterSection>
+          </FilterPopover>
+        </FilterBar>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <FilterPresets presets={[
+            { id: 'fav', label: 'Favoritos', icon: <Star size={11} aria-hidden />, active: favoritesOnly && !status, apply: () => { const next = !favoritesOnly; clearFilters(); setFavoritesOnly(next) } },
+            { id: 'ready', label: 'Prontos e não publicados', active: status === 'unpublished' && !favoritesOnly, apply: () => { clearFilters(); setStatus('unpublished') } },
+            { id: 'week', label: 'Importados nos últimos 7 dias', active: from === daysAgo(7) && !status, apply: () => { clearFilters(); setFrom(daysAgo(7)) } },
+            { id: 'scheduled', label: 'Agendados', active: status === 'scheduled', apply: () => { clearFilters(); setStatus('scheduled') } },
+            { id: 'failed', label: 'Com erro', active: status === 'failed', apply: () => { clearFilters(); setStatus('failed') } }
+          ]} />
+          <div data-tour="library-selection" className="flex items-center gap-2"><span className="text-[11px] text-dim">Ordenar por</span><Segmented<Sort> size="sm" label="Ordenar" value={sortBy} onChange={setSortBy} options={[{ value: 'importedAt', label: 'Recentes' }, { value: 'durationMs', label: 'Duração' }, { value: 'views', label: 'Views' }, { value: 'likes', label: 'Curtidas' }, { value: 'comments', label: 'Comentários' }]} /></div>
         </div>
-        <CollapsibleCard className="border-x-0 border-b-0 rounded-none" title="Filtros de origem e publicação" description="Encontre mídia pela origem, conta de publicação e data de importação.">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <Input label="Perfil de origem" placeholder="@perfil" value={sourceProfile} onChange={e => setSourceProfile(e.target.value)} className="w-full" />
-            <Input label="Conta que publicou" placeholder="@conta" value={publicationAccount} onChange={e => setPublicationAccount(e.target.value)} className="w-full" />
-            <DatePicker label="Importado a partir de" value={from} onChange={setFrom} clearable />
-            <Select label="Plataforma" value={platform ?? ''} onChange={e => setPlatform((e.target.value || undefined) as GridQuery['platform'])}><option value="">Todas</option><option value="instagram">Instagram</option><option value="tiktok">TikTok</option></Select>
-          </div>
-        </CollapsibleCard>
-        <div className="flex flex-wrap items-center gap-2 border-t border-line px-4 py-3 text-xs" aria-live="polite">
-          <span className="text-dim">{grid.total} resultado(s)</span>
-          {libraryFilters.length ? <>
-            {libraryFilters.map(filter => <button type="button" key={filter.label} aria-label={'Remover filtro: ' + filter.label} onClick={filter.clear}
-              className="flex max-w-full items-center gap-1 rounded-ctl border border-line bg-raised px-2 py-1"><span className="truncate">{filter.label}</span><X size={12} className="shrink-0" aria-hidden /></button>)}
-            <Button size="sm" variant="ghost" onClick={clearFilters}>Limpar filtros</Button>
-          </> : <span className="text-dim">Sem filtros aplicados</span>}
-        </div>
+        <ActiveFilters filters={libraryFilters} total={grid.total} onClear={clearFilters} />
       </section>
-      <div data-tour="library-selection" className="flex flex-wrap items-center gap-2">
-        <Pills<Sort> label="Ordenar" value={sortBy} onChange={setSortBy} options={[{ value: 'importedAt', label: 'Mais recentes' }, { value: 'durationMs', label: 'Mais longos' }, { value: 'views', label: 'Views' }, { value: 'likes', label: 'Curtidas' }, { value: 'comments', label: 'Comentários' }]} />
-        <span aria-hidden className="mx-1 h-5 w-px bg-line" />
-        <Pills label="Filtro" value={favoritesOnly ? 'fav' : 'all'} onChange={(v) => setFavoritesOnly(v === 'fav')} options={[{ value: 'all', label: 'Todos' }, { value: 'fav', label: 'Favoritos' }]} />
-        <div className="ml-auto flex items-center gap-2">
-          <Button size="sm" variant="ghost" onClick={() => setSelection(selectPage(selection, grid.items.map((i) => i.id)))}>Selecionar página</Button>
-          <Input aria-label="Quantidade Top N" type="number" min={1} max={1000} value={topN} onChange={e => setTopN(e.target.value)} className="w-20" />
-          <Button size="sm" disabled={selectTop.isPending || openContainer.isPending || grid.isLoading} onClick={() => selectTop.mutate()}>Selecionar Top N</Button>
-        </div>
+      <div className="flex flex-wrap items-center justify-end gap-2">
+        <Button size="sm" variant="ghost" onClick={() => setSelection(selectPage(selection, grid.items.map((i) => i.id)))}>Selecionar página</Button>
+        <Input aria-label="Quantidade Top N" type="number" min={1} max={1000} value={topN} onChange={e => setTopN(e.target.value)} className="w-20" />
+        <Button size="sm" disabled={selectTop.isPending || openContainer.isPending || grid.isLoading} onClick={() => selectTop.mutate()}>Selecionar Top N</Button>
       </div>
       {/* Actions on the selection appear only when something is selected, instead of a row of disabled buttons. */}
       {selectionCount(selection) > 0 ? <div role="toolbar" aria-label="Ações da seleção" className="sticky top-0 z-20 flex flex-wrap items-center gap-2 rounded-card border border-line-strong bg-raised px-3 py-2 shadow-lg">

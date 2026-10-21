@@ -15,6 +15,19 @@
   --color-danger-icon: #fca5a5;
   --color-ok: #4f9d69;
   --color-warn: #c9a24a;
+  /* Status tones (badges and dots), each >= 4.5:1 on panel. */
+  --color-tone-green: #4ade80;
+  --color-tone-red: #f87171;
+  --color-tone-orange: #fb923c;
+  --color-tone-blue: #60a5fa;
+  --color-tone-purple: #c084fc;
+  --color-tone-yellow: #facc15;
+  /* Monochrome chart ramp, as in the shadcn references. */
+  --color-chart-1: #e5e5e5;
+  --color-chart-2: #8a8a8a;
+  --color-chart-3: #5c5c5c;
+  --color-chart-4: #404040;
+  --color-chart-5: #2e2e2e;
   --radius-ctl: 8px;
   --radius-card: 12px;
   --font-sans: "Inter Variable", "Segoe UI", system-ui, sans-serif;

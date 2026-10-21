@@ -27,11 +27,11 @@ describe('ProfilesPage', () => {
   it('mostra e remove filtros ativos mesmo com o painel fechado', async () => {
     const invoke = mockBridge({ 'profiles.list': () => [profile], 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
     renderWithApp(<ProfilesPage navigate={vi.fn()} />)
-    const toggle = await screen.findByRole('button', { name: 'Filtros avançados' })
+    await userEvent.type(await screen.findByLabelText('Texto na legenda'), 'viagem')
+    const toggle = screen.getByRole('button', { name: 'Filtros avançados' })
     await userEvent.click(toggle)
-    await userEvent.type(screen.getByLabelText('Texto na legenda'), 'viagem')
     await userEvent.type(screen.getByLabelText('Mínimo de curtidas'), '100')
-    await userEvent.click(toggle)
+    await userEvent.click(screen.getByRole('button', { name: /^Ver .* resultado/ }))
     expect(screen.getByRole('button', { name: 'Remover filtro: Legenda: viagem' })).toBeInTheDocument()
     expect(screen.getByText('Nenhum post corresponde aos filtros')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Remover filtro: Legenda: viagem' }))
@@ -150,7 +150,7 @@ describe('ProfilesPage', () => {
     })
     renderWithApp(<ProfilesPage navigate={vi.fn()} />)
     expect(await screen.findByText(/— posts/)).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Mais curtidos' }))
+    await userEvent.click(screen.getByRole('button', { name: 'Curtidas' }))
     expect(invoke).toHaveBeenCalledWith('grid.query', expect.objectContaining({ workspaceId: WS_ID, source: 'remote', profileId: 'p1', sortBy: 'likes', sortDir: 'desc' }))
   })
 

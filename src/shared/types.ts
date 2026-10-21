@@ -80,6 +80,15 @@ export interface DashboardSummary {
   nextContainer: { id: string; name: string; plannedStartAt: string | null; plannedEndAt: string | null } | null
   /** Last quota reading of the active account; values are null when Meta was never read. */
   quota: { username: string; usage: number | null; total: number | null; durationSec: number | null; fetchedAt: string | null; freshness: 'fresh' | 'stale' | 'missing' } | null
+  analytics: DashboardAnalytics
+}
+export interface DashboardAnalytics {
+  /** Last 14 local days of the workspace, oldest first. */
+  activity: { day: string; published: number; imported: number; failed: number }[]
+  origins: { origin: 'pc' | 'ig_own' | 'ig_third_party' | 'tiktok_third_party' | 'link_ref'; count: number }[]
+  jobTypes: { type: string; done: number; failed: number; total: number }[]
+  topPosts: { id: string; username: string; caption: string | null; permalink: string; thumbnailPath: string | null; views: number | null; likes: number | null; comments: number | null }[]
+  accounts: { username: string; count: number; lastAt: string }[]
 }
 export interface IntegrationStatus {
   apify: { configured: boolean; source: 'saved' | 'environment' | 'none'; lastValidatedAt: string | null }
