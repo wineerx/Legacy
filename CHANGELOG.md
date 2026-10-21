@@ -1,3 +1,14 @@
+# 0.8.0 — Containers, Agenda e painel
+
+- Containers de publicação: criar e adicionar rascunhos pela Biblioteca (página ou Top N), configuração visual com marca d'água e banner, Templates versionados e snapshot congelado ao agendar.
+- Agendamento por quota da conta, janelas de pico configuráveis e distribuição de Containers; janela planejada × término estimado, atraso e ajustes confirmados (manter, reduzir intervalo, mover restante).
+- Calendário centrado em Containers (Dia, Semana, Mês e Timeline) com Sheet de detalhes, pausar/retomar e reagendar.
+- Arrastar Containers no Calendário (ou Alt + setas) com prévia de impacto: horários antes e depois, quota, conflitos e janelas de pico; nada muda antes da confirmação, e a mudança fica no histórico.
+- Padrão único de filtros em Fila, Biblioteca, Perfis, Calendário e Notificações: busca, filtros por categoria com contagem, painel "Filtros", combinações rápidas e chips removíveis.
+- Visão geral como dashboard com dados reais dos últimos 14 dias: publicações, importações e falhas com variação semanal, origem da biblioteca, tarefas por tipo, posts mais vistos, publicações por conta e engajamento por perfil. Métricas ausentes continuam como —.
+- Novo mascote Legacy, desenhado em canvas, com estados que acompanham a fila.
+- Preserva todas as revisões da 0.7.5.
+
 # 0.7.5 — atualização de todos os perfis
 
 - Botão de atualizar no cabeçalho Instagram consulta identidade e métricas de todos os perfis, sem importar posts nem iniciar downloads.
