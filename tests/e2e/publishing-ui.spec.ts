@@ -75,7 +75,7 @@ test('destinos, calendário, fila real, modal de contas e sidebar acessível',as
  await expect(page.getByRole('button',{name:'Revisar lote',exact:true})).toHaveAttribute('aria-disabled','true')
  await page.getByRole('button',{name:'Sem capa',exact:true}).click()
  await page.getByLabel('Data',{exact:true}).click()
- await page.getByRole('button',{name:new RegExp(`, ${new Date(Date.now()+86400000).getDate()} de `)}).click()
+ await page.getByRole('button',{name:new RegExp(`, ${new Intl.DateTimeFormat('pt-BR',{day:'numeric',month:'long',year:'numeric'}).format(new Date(Date.now()+86400000))}$`)}).click()
  await page.getByRole('radio',{name:'18:30',exact:true}).click()
  await measure('abrir revisão de agendamento',()=>page.getByRole('button',{name:'Revisar lote',exact:true}).click(),()=>expect(page.getByRole('dialog',{name:'Revisar lote'})).toContainText('Instagram — @qa.destino'))
  await page.screenshot({path:'docs/screens/qa-publishing/revisar-instagram.png'})
