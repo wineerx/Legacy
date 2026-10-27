@@ -79,6 +79,8 @@ export const contract = {
   'workspaces.create': z.object({ name: z.string().min(1).max(80), timeZone: z.string().min(1) }),
   'library.pickAndImport': z.object({ workspaceId: ws }),
   'library.importPaths': z.object({ workspaceId: ws, paths: z.array(z.string().min(1).max(1024)).min(1).max(200) }),
+  'audio.importPath': z.object({ workspaceId: ws, path: z.string().min(1).max(1024) }),
+  'audio.list': z.object({ workspaceId: ws }),
   'library.details': z.object({ workspaceId: ws, id, offset: z.number().int().min(0).default(0) }),
   'library.pending': z.object({ workspaceId: ws }),
   'library.deleteMany': z.object({ workspaceId: ws, ids: z.array(id).min(1).max(200) }),
@@ -169,6 +171,7 @@ export type Channel = keyof typeof contract
 export type Input<C extends Channel> = z.infer<(typeof contract)[C]>
 
 export interface WorkspaceDto { id: string; name: string; timeZone: string }
+export interface AudioTrackDto { sha256: string; ext: 'mp3' | 'm4a' | 'aac' | 'wav'; name: string; durationMs: number; sizeBytes: number; importedAt: string }
 export interface ImportResultDto { path: string; status: 'imported' | 'duplicate' | 'rejected'; assetId?: string; errors: string[]; warnings: string[] }
 export interface GuestSessionDto { entered: boolean; email: 'guest@legacy.com'; mode: 'development' }
 export interface ImportProgress { phase: 'searching' | 'importing' | 'done'; processed: number; total: number | null; imported: number; skipped: number; previewFailures: number; percent: number | null }
@@ -231,6 +234,8 @@ export interface Outputs {
   'workspaces.create': WorkspaceDto
   'library.pickAndImport': ImportResultDto[]
   'library.importPaths': ImportResultDto[]
+  'audio.importPath': AudioTrackDto
+  'audio.list': AudioTrackDto[]
   'library.details': MediaDetails
   'library.pending': { id: string; label: string; state: 'queued' | 'running' | 'failed'; error: string | null }[]
   'library.deleteMany': { deleted: string[]; blocked: string[]; failed: string[] }
