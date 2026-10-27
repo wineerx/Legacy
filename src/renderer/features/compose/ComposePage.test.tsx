@@ -15,9 +15,10 @@ describe('ComposePage', () => {
     const navigate=vi.fn();renderWithApp(<ComposePage navigate={navigate}/>)
     await userEvent.click(await screen.findByRole('checkbox',{name:'Instagram — @destino'}))
     expect(screen.getByRole('checkbox',{name:'TikTok — exportação manual'})).not.toBeChecked()
-    const tomorrow=new Date(Date.now()+86400000).toISOString().slice(0,10)
+    // The calendar also shows outside days; month and year keep the day number unambiguous.
+    const tomorrow=new Intl.DateTimeFormat('pt-BR',{day:'numeric',month:'long',year:'numeric'}).format(new Date(Date.now()+86400000))
     await userEvent.click(screen.getByLabelText('Data'))
-    await userEvent.click(screen.getByRole('button', { name: new RegExp(`, ${Number(tomorrow.slice(-2))} de `) }))
+    await userEvent.click(screen.getByRole('button', { name: new RegExp(`, ${tomorrow}$`) }))
     fireEvent.change(screen.getByLabelText('Horário'),{target:{value:'18:30'}})
     await userEvent.click(screen.getByRole('button',{name:'Revisar lote'}))
     await userEvent.click(screen.getByRole('button',{name:'Agendar no Instagram'}))
