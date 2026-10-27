@@ -13,6 +13,14 @@ interface FfStream {
   tags?: { rotate?: string }; side_data_list?: { rotation?: number }[]
 }
 
+export async function probeAudio(file: string): Promise<{ durationMs: number; codec: string }> {
+  const { stdout } = await runTool(ffmpegPaths().ffprobe, ['-v', 'error', '-protocol_whitelist', 'file', '-print_format', 'json', '-show_format', '-show_streams', file], { timeoutMs: 60_000 })
+  const data = JSON.parse(stdout) as { streams: FfStream[]; format: { duration?: string } }
+  const audio = data.streams.find((s) => s.codec_type === 'audio')
+  if (!audio) throw new AppError('invalid_media', 'O arquivo não tem faixa de áudio.')
+  return { durationMs: Math.round(Number(data.format.duration ?? 0) * 1000), codec: audio.codec_name }
+}
+
 export async function probe(file: string, videoContainerOnly = false): Promise<ProbeResult> {
   const { stdout } = await runTool(ffmpegPaths().ffprobe, [
     '-v', 'error', '-protocol_whitelist', 'file', ...(videoContainerOnly ? ['-format_whitelist', 'mov'] : []), '-print_format', 'json', '-show_format', '-show_streams', file
