@@ -1,0 +1,14 @@
+name = "legacy-broker"
+main = "src/index.ts"
+compatibility_date = "2026-10-01"
+
+[vars]
+GRAPH_VERSION = "v25.0"
+# Public HTTPS origin of this Worker; the callback URL registered in Meta is PUBLIC_ORIGIN + /v1/facebook/callback.
+PUBLIC_ORIGIN = "https://legacy-broker.example.workers.dev"
+# App ID is public. The secrets FB_APP_SECRET and SESSION_KEY are set with `wrangler secret put`.
+FB_APP_ID = ""
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = ""

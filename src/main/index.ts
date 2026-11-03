@@ -118,7 +118,7 @@ if (gotLock) {
     buildCommit: process.env.LEGACY_BUILD_COMMIT, buildTime: process.env.LEGACY_BUILD_TIME,
     ctx, vault, onSecretsChanged: () => worker.updateSecrets(), version: process.env.LEGACY_APP_VERSION ?? app.getVersion(), workerAlive: () => worker.isAlive(), workerPaused: () => worker.isPaused(), pauseWorker: paused => worker.setPaused(paused),
     onJobsChanged: (workspaceId) => send(EVENTS.jobsChanged, { workspaceId }),
-    shell: { openPath: (p) => shell.openPath(p) },
+    shell: { openPath: (p) => shell.openPath(p), openExternal: (url) => new URL(url).hostname === 'www.facebook.com' ? shell.openExternal(url) : Promise.reject(new Error('Endereço externo recusado.')) },
     dialogs: {
       saveDiagnostic: async name => (await dialog.showSaveDialog(win!, { title: 'Exportar diagnóstico Legacy', defaultPath: name, filters: [{ name: 'Diagnóstico JSON', extensions: ['json'] }] })).filePath ?? null,
       saveVideo: async name => (await dialog.showSaveDialog(win!, { title: 'Salvar cópia do vídeo', defaultPath: name, filters: [{ name: 'Vídeos', extensions: ['mp4', 'mov', 'm4v'] }] })).filePath ?? null,

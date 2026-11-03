@@ -11,7 +11,9 @@ const buildTime = new Date().toISOString()
 const buildDefine = {
   'process.env.LEGACY_BUILD_COMMIT': JSON.stringify(buildCommit),
   'process.env.LEGACY_BUILD_TIME': JSON.stringify(buildTime),
-  'process.env.LEGACY_APP_VERSION': JSON.stringify(appVersion)
+  'process.env.LEGACY_APP_VERSION': JSON.stringify(appVersion),
+  // Public broker origin baked at build time (LEGACY_BROKER_URL=https://... npm run build); empty disables Facebook Login.
+  'process.env.LEGACY_BROKER_URL': JSON.stringify(process.env.LEGACY_BROKER_URL ?? '')
 }
 
 const alias = { '@shared': resolve('src/shared'), '@renderer': resolve('src/renderer') }

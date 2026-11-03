@@ -10,6 +10,7 @@ import type { ContainerWindowView } from './container-window'
 import type { DragPreview } from './container-drag'
 import type { AgendaResult } from './agenda'
 import type { AppErrorCode } from './errors'
+import { catalogAudioChoice, type CatalogAudioTrack } from './catalog-audio'
 import type { MediaDetails, GridPage, JobView, QueuePageResult, QueueContext, JobState, JobType, DashboardSummary, IntegrationStatus } from './types'
 
 export const profileContentSource = z.enum(['posts', 'reels', 'tagged', 'all'])
@@ -121,10 +122,13 @@ export const contract = {
   'quota.get': z.object({ workspaceId: ws, accountId: z.string().regex(/^\d+$/), slots: z.array(z.iso.datetime()).max(1000).default([]) }),
   'quota.refresh': z.object({ workspaceId: ws, accountId: z.string().regex(/^\d+$/), slots: z.array(z.iso.datetime()).max(1000).default([]) }),
   'publications.schedule': z.object({ workspaceId:ws,batchId:z.uuid(),items:z.array(z.object({media:id,provider:z.literal('instagram'),destinationAccount:z.string().regex(/^\d+$/),accountRevision:z.string().min(1),publishAt:z.iso.datetime(),caption:z.string().max(2200),versionId:id.optional(),shareToFeed:z.boolean().default(true),allowRepost:z.boolean().default(false)})).min(1).max(1000) }),
-  'compose.scheduleInstagram': z.object({ workspaceId: ws, assetIds: z.array(id).min(1).max(100), accountId: z.string().regex(/^\d+$/), accountRevision: z.string().min(1), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), captions: z.record(z.string(),z.string().max(2200)), allowRepost: z.boolean().optional(), cleanupAfterPublish: z.boolean().default(false), shareToFeed: z.boolean().default(true), versionIds: z.record(id, id).optional() }),
+  'compose.scheduleInstagram': z.object({ workspaceId: ws, assetIds: z.array(id).min(1).max(100), accountId: z.string().regex(/^\d+$/), accountRevision: z.string().min(1), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), captions: z.record(z.string(),z.string().max(2200)), allowRepost: z.boolean().optional(), cleanupAfterPublish: z.boolean().default(false), shareToFeed: z.boolean().default(true), versionIds: z.record(id, id).optional(), audio: z.record(id, catalogAudioChoice).optional() }),
   'accounts.verifyInstagram': z.object({ workspaceId: ws, accountId: z.string().regex(/^\d+$/).optional() }),
   'accounts.connectInstagram': z.object({ workspaceId: ws, token: z.string().trim().min(20).max(4096).regex(/^[A-Za-z0-9_.-]+$/) }),
   'accounts.disconnectInstagram': z.object({ workspaceId: ws, accountId: z.string().regex(/^\d+$/).optional() }),
+  'accounts.facebookLogin': z.object({ workspaceId: ws }),
+  'accounts.connectFacebook': z.object({ workspaceId: ws, handle: z.uuid(), accountId: z.string().regex(/^\d+$/) }),
+  'audio.searchCatalog': z.object({ workspaceId: ws, accountId: z.string().regex(/^\d+$/), query: z.string().trim().min(1).max(200) }),
   'profiles.scheduleInstagram': z.object({ workspaceId: ws, postIds: z.array(id).min(1).max(100), firstAt: z.iso.datetime(), intervalMin: z.number().int().min(15).max(10080), caption: z.string().max(2200).optional(), allowRepost: z.boolean().optional(), cleanupAfterPublish: z.boolean().default(false), shareToFeed: z.boolean().default(true) }),
   'profiles.archive': z.object({ workspaceId: ws, profileId: id, archived: z.boolean() }),
   'profiles.archived': z.object({ workspaceId: ws }),
@@ -253,8 +257,8 @@ export interface Outputs {
   'profiles.discover': JobView
   'profiles.downloadSelected': JobView[]
   'profiles.prepareSelected': string[]
-  'accounts.instagram': { id: string; username: string; revision: string; validatedAt: string } | null
-  'accounts.instagramList': { id: string; username: string; revision: string; validatedAt: string }[]
+  'accounts.instagram': { id: string; username: string; revision: string; validatedAt: string; authKind: 'instagram_login' | 'facebook_login'; expiresAt: string | null } | null
+  'accounts.instagramList': { id: string; username: string; revision: string; validatedAt: string; authKind: 'instagram_login' | 'facebook_login'; expiresAt: string | null }[]
   'accounts.setDefault': { id: string; username: string; revision: string; validatedAt: string }
   'scheduler.windows.get': { windows: PeakWindow[]; timeZone: string }
   'scheduler.windows.save': { windows: PeakWindow[]; timeZone: string }
@@ -271,6 +275,9 @@ export interface Outputs {
   'accounts.verifyInstagram': { id: string; username: string; revision: string; validatedAt: string }
   'accounts.connectInstagram': { id: string; username: string; revision: string; validatedAt: string }
   'accounts.disconnectInstagram': null
+  'accounts.facebookLogin': { handle: string; accounts: { id: string; username: string; pageName: string }[] }
+  'accounts.connectFacebook': { id: string; username: string; revision: string; validatedAt: string; authKind: 'instagram_login' | 'facebook_login'; expiresAt: string | null }
+  'audio.searchCatalog': CatalogAudioTrack[]
   'profiles.scheduleInstagram': JobView[]
   'profiles.archive': null
   'profiles.archived': ProfileDto[]

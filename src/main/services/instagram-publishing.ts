@@ -4,6 +4,7 @@ import { randomUUID } from 'node:crypto'
 import { and, eq, desc, inArray, sql } from 'drizzle-orm'
 import { z } from 'zod'
 import { AppError } from '@shared/errors'
+import { catalogAudioChoice, sameAudio, DEFAULT_AUDIO_VOLUME, DEFAULT_VIDEO_VOLUME, type CatalogAudioChoice } from '@shared/catalog-audio'
 import type { JobView } from '@shared/types'
 import type { Ctx } from '../context'
 import { jobs, remotePosts, destinationAccounts, publicationHistory, publicationContainerItems } from '../db/schema'
@@ -29,26 +30,45 @@ import type { MediaHost } from './media-host/types'
 
 const numericId = z.string().regex(/^\d+$/)
 const accountSchema = z.object({ id: numericId, username: z.string().min(1), revision: z.string(), validatedAt: z.string() })
+export type AuthKind = 'instagram_login' | 'facebook_login'
 export class InstagramApiError extends AppError {
-  constructor(public status: number, public apiCode: number, public retryAfterMs?: number, public apiSubcode?: number) {
+  constructor(public status: number, public apiCode: number, public retryAfterMs?: number, public apiSubcode?: number, public login: AuthKind = 'instagram_login') {
     if (status === 400 && apiCode === 9 && apiSubcode === 2207042) {
       super('internal', 'Instagram · Limite de publicações da conta atingido. Publicação adiada automaticamente.')
       return
     }
     const transient=status===429 || status>=500 || [4,17,32,613,80002].includes(apiCode)
+    if (!transient && login === 'facebook_login') {
+      super('invalid_input', apiCode === 190 ? 'Token Facebook inválido ou expirado. Entre com Facebook novamente em Contas.' : apiCode === 10 || apiCode === 200 || apiCode === 514 ? `Permissão recusada (código ${apiCode}). Autorize instagram_basic, instagram_content_publish, pages_show_list e pages_read_engagement, com a conta profissional vinculada a uma Página.` : apiCode === 100 ? 'Parâmetro recusado. Confira a conta profissional, a música escolhida e se o vídeo atende às especificações de Reels.' : `Instagram recusou a operação (HTTP ${status}, código ${apiCode || 'indisponível'}). Confira token, permissões e limite de publicação.`)
+      return
+    }
     super(transient?'internal':'invalid_input', transient ? `Instagram temporariamente indisponível ou limitado (HTTP ${status}, código ${apiCode || 'indisponível'}). O checkpoint foi preservado para retentativa segura.` : apiCode === 190 ? 'Token Instagram inválido ou expirado. Gere um token Instagram User na Meta e reconecte em Contas.' : apiCode === 10 || apiCode === 200 ? 'Permissão recusada. Autorize instagram_business_basic e instagram_business_content_publish; em modo de teste a conta deve aceitar o convite do app.' : apiCode === 100 ? 'Parâmetro recusado. Confira a conta profissional e se o vídeo atende às especificações de Reels.' : `Instagram recusou a operação (HTTP ${status}, código ${apiCode || 'indisponível'}). Confira token, permissões e limite de publicação.`)
   }
   get publicationLimited() { return this.status === 400 && this.apiCode === 9 && this.apiSubcode === 2207042 }
   get retryable() { return this.publicationLimited || this.status === 429 || this.status >= 500 || [4,17,32,613,80002].includes(this.apiCode) }
 }
+const publishingPath = /^(me|\d+)(\/(media|media_publish|content_publishing_limit))?(\?fields=[a-z_,]+)?$/
+export const GRAPH_VERSION = 'v25.0'
+export type GraphRequest = (path: string, token: string, body?: Record<string, string>) => Promise<unknown>
 export async function instagramJson(path: string, token: string, body?: Record<string, string>): Promise<unknown> {
-  if (!/^(me|\d+)(\/(media|media_publish|content_publishing_limit))?(\?fields=[a-z_,]+)?$/.test(path)) throw new AppError('invalid_input', 'Consulta Instagram inválida.')
+  if (!publishingPath.test(path)) throw new AppError('invalid_input', 'Consulta Instagram inválida.')
+  return metaJson('instagram_login', path, token, body)
+}
+/** Facebook Login transport: the same publishing paths plus Page discovery and the audio catalog. */
+export async function facebookJson(path: string, token: string, body?: Record<string, string>): Promise<unknown> {
+  const discovery = /^me\/accounts\?fields=[a-z_,{}]+(&limit=\d{1,3})?$/
+  const audio = /^ig_audio\?[\w=&%.~+-]+$/
+  if (!publishingPath.test(path) && !discovery.test(path) && !(audio.test(path) && !body)) throw new AppError('invalid_input', 'Consulta Facebook inválida.')
+  return metaJson('facebook_login', path, token, body)
+}
+function metaJson(login: AuthKind, path: string, token: string, body?: Record<string, string>): Promise<unknown> {
   // Test runs set this so no request ever leaves the machine, including automatic quota reads.
   if (process.env.LEGACY_PROVIDER_NETWORK === 'off') return Promise.reject(new AppError('internal', 'Rede de provedores desativada neste ambiente.'))
   rememberDiagnosticSecret(token)
+  const host = login === 'facebook_login' ? 'graph.facebook.com' : 'graph.instagram.com'
   return new Promise((resolve, reject) => {
     const data = body ? new URLSearchParams(body).toString() : undefined
-    const req = request(`https://graph.instagram.com/v25.0/${path}`, { method: body ? 'POST' : 'GET', signal: AbortSignal.timeout(30_000), headers: { Authorization: `Bearer ${token}`, ...(data ? { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(data) } : {}) } }, res => {
+    const req = request(`https://${host}/${GRAPH_VERSION}/${path}`, { method: body ? 'POST' : 'GET', signal: AbortSignal.timeout(30_000), headers: { Authorization: `Bearer ${token}`, ...(data ? { 'Content-Type': 'application/x-www-form-urlencoded', 'Content-Length': Buffer.byteLength(data) } : {}) } }, res => {
       let text = ''; res.setEncoding('utf8')
       res.on('data', chunk => { text += chunk; if (text.length > 1024 * 1024) res.destroy() })
       res.on('error', () => reject(new AppError('internal', 'Resposta Instagram interrompida.')))
@@ -56,7 +76,7 @@ export async function instagramJson(path: string, token: string, body?: Record<s
         try {
           const parsed = JSON.parse(text)
           if (parsed.error) diagnosticResponse(req, { error: { code: parsed.error.code, subcode: parsed.error.error_subcode, type: parsed.error.type, traceId: parsed.error.fbtrace_id } })
-          if ((res.statusCode ?? 500) >= 400 || parsed.error) return reject(new InstagramApiError(res.statusCode ?? 500, Number(parsed.error?.code) || 0, retryAfterMs(res.headers['retry-after']), Number(parsed.error?.error_subcode) || undefined))
+          if ((res.statusCode ?? 500) >= 400 || parsed.error) return reject(new InstagramApiError(res.statusCode ?? 500, Number(parsed.error?.code) || 0, retryAfterMs(res.headers['retry-after']), Number(parsed.error?.error_subcode) || undefined, login))
           resolve(parsed)
         } catch { reject(new AppError('internal', 'Resposta Instagram inválida.')) }
       })
@@ -66,13 +86,21 @@ export async function instagramJson(path: string, token: string, body?: Record<s
 }
 export function instagramAccounts(ctx: Ctx, ws: string) {
   requireWorkspace(ctx,ws)
-  return ctx.db.select().from(destinationAccounts).where(and(eq(destinationAccounts.workspaceId,ws),eq(destinationAccounts.provider,'instagram'),eq(destinationAccounts.state,'connected'))).all().map(r => ({id:r.providerId,username:r.username,revision:r.revision,validatedAt:r.validatedAt}))
+  return ctx.db.select().from(destinationAccounts).where(and(eq(destinationAccounts.workspaceId,ws),eq(destinationAccounts.provider,'instagram'),eq(destinationAccounts.state,'connected'))).all().map(r => ({id:r.providerId,username:r.username,revision:r.revision,validatedAt:r.validatedAt,authKind:r.authKind as AuthKind,expiresAt:r.expiresAt}))
+}
+export function accountAuthKind(ctx: Ctx, ws: string, accountId: string): AuthKind {
+  const row = ctx.db.select({ authKind: destinationAccounts.authKind }).from(destinationAccounts).where(and(eq(destinationAccounts.workspaceId,ws),eq(destinationAccounts.provider,'instagram'),eq(destinationAccounts.providerId,accountId))).get()
+  return (row?.authKind as AuthKind | undefined) ?? 'instagram_login'
+}
+/** Publishing host follows how the account was connected; Instagram Login accounts keep graph.instagram.com. */
+export function accountTransport(ctx: Ctx, ws: string, accountId: string): GraphRequest {
+  return accountAuthKind(ctx, ws, accountId) === 'facebook_login' ? facebookJson : instagramJson
 }
 export function instagramAccount(ctx: Ctx, ws: string, accountId?: string) {
   requireWorkspace(ctx, ws)
   if(accountId) {
     const record=ctx.db.select().from(destinationAccounts).where(and(eq(destinationAccounts.workspaceId,ws),eq(destinationAccounts.provider,'instagram'),eq(destinationAccounts.providerId,accountId))).get()
-    if(record) return record.state==='connected' && getSecret(ctx,ws,`instagramToken:${accountId}`) ? {id:record.providerId,username:record.username,revision:record.revision,validatedAt:record.validatedAt} : null
+    if(record) return record.state==='connected' && getSecret(ctx,ws,`instagramToken:${accountId}`) ? {id:record.providerId,username:record.username,revision:record.revision,validatedAt:record.validatedAt,authKind:record.authKind as AuthKind,expiresAt:record.expiresAt} : null
   }
   const saved = getSetting(ctx.db, ws, 'instagramAccount')
   let value: ReturnType<typeof accountSchema.safeParse> | null=null
@@ -83,7 +111,7 @@ export function instagramAccount(ctx: Ctx, ws: string, accountId?: string) {
     const record=accounts.find(a=>a.id===selected)
     if(record) return getSecret(ctx,ws,`instagramToken:${selected}`) ? record : null
   }
-  return value?.success && (!accountId || value.data.id===accountId) && getSecret(ctx, ws, 'instagramToken') ? value.data : null
+  return value?.success && (!accountId || value.data.id===accountId) && getSecret(ctx, ws, 'instagramToken') ? { ...value.data, authKind: 'instagram_login' as AuthKind, expiresAt: null } : null
 }
 /** The active account: default destination of new publications. Only connected accounts of the workspace. */
 export function setDefaultInstagramAccount(ctx: Ctx, ws: string, accountId: string) {
@@ -94,8 +122,9 @@ export function setDefaultInstagramAccount(ctx: Ctx, ws: string, accountId: stri
   return account
 }
 /** Reads the account's publishing limit from Meta and stores the snapshot. Never publishes. */
-export async function refreshInstagramQuota(ctx: Ctx, ws: string, accountId: string, requestApi: (path: string, token: string) => Promise<unknown> = instagramJson) {
+export async function refreshInstagramQuota(ctx: Ctx, ws: string, accountId: string, requestApi?: (path: string, token: string) => Promise<unknown>) {
   requireWorkspace(ctx, ws)
+  requestApi ??= accountTransport(ctx, ws, accountId)
   const account = instagramAccount(ctx, ws, accountId)
   return fetchQuota(ctx, ws, accountId, account?.id === accountId ? accountToken(ctx, ws, accountId) : null, requestApi)
 }
@@ -114,7 +143,7 @@ export async function connectInstagram(ctx: Ctx, vault: SecretVault, ws: string,
   // Querying account identity does not prove publish permission; the API enforces it at execution.
   const storedAccount=ctx.db.select().from(destinationAccounts).where(and(eq(destinationAccounts.workspaceId,ws),eq(destinationAccounts.provider,'instagram'),eq(destinationAccounts.providerId,data.id))).get()
   const previous = storedAccount ? {id:storedAccount.providerId,revision:storedAccount.revision} : instagramAccount(ctx, ws, data.id)
-  const account = { ...data, revision: previous?.id === data.id ? previous.revision : randomUUID(), validatedAt: ctx.clock().toISOString() }
+  const account = { ...data, revision: previous?.id === data.id ? previous.revision : randomUUID(), validatedAt: ctx.clock().toISOString(), authKind: 'instagram_login' as AuthKind, expiresAt: null }
   ctx.db.transaction(() => {
     // Import legacy destination before updating the default selection, keeping its jobs and credentials valid.
     const legacy=instagramAccount(ctx,ws)
@@ -126,7 +155,22 @@ export async function connectInstagram(ctx: Ctx, vault: SecretVault, ws: string,
     // Compatibility default for existing UI callers, never used to select credentials during execution.
     saveSecret(ctx, vault, ws, 'instagramToken', token)
     setSetting(ctx.db, ws, 'instagramAccount', JSON.stringify(account))
-    ctx.db.insert(destinationAccounts).values({workspaceId:ws,provider:'instagram',providerId:data.id,username:data.username,revision:account.revision,validatedAt:account.validatedAt}).onConflictDoUpdate({target:[destinationAccounts.workspaceId,destinationAccounts.provider,destinationAccounts.providerId],set:{username:data.username,revision:account.revision,validatedAt:account.validatedAt,state:'connected'}}).run()
+    ctx.db.insert(destinationAccounts).values({workspaceId:ws,provider:'instagram',providerId:data.id,username:data.username,revision:account.revision,validatedAt:account.validatedAt}).onConflictDoUpdate({target:[destinationAccounts.workspaceId,destinationAccounts.provider,destinationAccounts.providerId],set:{username:data.username,revision:account.revision,validatedAt:account.validatedAt,state:'connected',authKind:'instagram_login',expiresAt:null,permissionsJson:'[]'}}).run()
+  })
+  return account
+}
+/** Stores an Instagram account discovered through its Facebook Page. Reconnecting the same id keeps its revision and scheduled jobs. */
+export function connectFacebookAccount(ctx: Ctx, vault: SecretVault, ws: string, input: { token: string; id: string; username: string; expiresAt: string | null; scopes: string[] }) {
+  requireWorkspace(ctx, ws)
+  const id = numericId.parse(input.id)
+  const stored = ctx.db.select().from(destinationAccounts).where(and(eq(destinationAccounts.workspaceId,ws),eq(destinationAccounts.provider,'instagram'),eq(destinationAccounts.providerId,id))).get()
+  const account = { id, username: input.username, revision: stored?.revision ?? randomUUID(), validatedAt: ctx.clock().toISOString(), authKind: 'facebook_login' as AuthKind, expiresAt: input.expiresAt }
+  ctx.db.transaction(() => {
+    saveSecret(ctx, vault, ws, `instagramToken:${id}`, input.token)
+    const values = { username: account.username, revision: account.revision, validatedAt: account.validatedAt, state: 'connected', authKind: 'facebook_login' as const, expiresAt: input.expiresAt, permissionsJson: JSON.stringify(input.scopes) }
+    ctx.db.insert(destinationAccounts).values({ workspaceId: ws, provider: 'instagram', providerId: id, ...values })
+      .onConflictDoUpdate({ target: [destinationAccounts.workspaceId,destinationAccounts.provider,destinationAccounts.providerId], set: values }).run()
+    if (!instagramAccount(ctx, ws)) setSetting(ctx.db, ws, 'instagramAccount', JSON.stringify(account))
   })
   return account
 }
@@ -135,6 +179,13 @@ export async function verifyInstagram(ctx: Ctx, vault: SecretVault, ws: string, 
   const selected=instagramAccount(ctx,ws,accountId)
   const token = selected ? accountToken(ctx,ws,selected.id) : null
   if (!token) throw new AppError('invalid_input', 'Conecte uma conta primeiro.')
+  if (selected!.authKind === 'facebook_login') {
+    const raw = await (requestApi === instagramJson ? facebookJson : requestApi)(`${selected!.id}?fields=id,username`, token)
+    const identity = z.object({ id: numericId, username: z.string().min(1).max(80) }).safeParse(raw)
+    if (!identity.success || identity.data.id !== selected!.id) throw new AppError('invalid_input', 'A conta não respondeu pelo Facebook Login. Entre com Facebook novamente em Contas.')
+    const row = ctx.db.select().from(destinationAccounts).where(and(eq(destinationAccounts.workspaceId,ws),eq(destinationAccounts.provider,'instagram'),eq(destinationAccounts.providerId,selected!.id))).get()!
+    return connectFacebookAccount(ctx, vault, ws, { token, id: selected!.id, username: identity.data.username, expiresAt: row.expiresAt, scopes: JSON.parse(row.permissionsJson) })
+  }
   return connectInstagram(ctx, vault, ws, token, requestApi)
 }
 export function disconnectInstagram(ctx: Ctx, vault: SecretVault, ws: string, accountId?: string) {
@@ -148,7 +199,13 @@ export function disconnectInstagram(ctx: Ctx, vault: SecretVault, ws: string, ac
   })
 }
 type PublishItem = { postId: string | null; localAssetId: string; caption: string }
-type ScheduleInput = { batchId?: string; accountId?: string; firstAt: string; intervalMin: number; cleanupAfterPublish?: boolean; shareToFeed?: boolean; allowRepost?: boolean; versionIds?: Record<string,string>; freshOnly?: boolean; trialGraduation?: 'MANUAL' | 'SS_PERFORMANCE' }
+type ScheduleInput = { batchId?: string; accountId?: string; firstAt: string; intervalMin: number; cleanupAfterPublish?: boolean; shareToFeed?: boolean; allowRepost?: boolean; versionIds?: Record<string,string>; freshOnly?: boolean; trialGraduation?: 'MANUAL' | 'SS_PERFORMANCE'; audio?: Record<string, CatalogAudioChoice> }
+/** Job payload fields for catalog music; absent when the video keeps its own audio, so older payloads compare equal. */
+export function audioPayload(choice?: CatalogAudioChoice | null) {
+  return choice?.audioId ? { audioId: choice.audioId, audioVolume: choice.audioVolume, videoVolume: choice.videoVolume } : {}
+}
+const payloadAudio = (p: { audioId?: string; audioVolume?: number; videoVolume?: number }): CatalogAudioChoice | null =>
+  p.audioId ? { audioId: p.audioId, audioVolume: p.audioVolume ?? DEFAULT_AUDIO_VOLUME, videoVolume: p.videoVolume ?? DEFAULT_VIDEO_VOLUME } : null
 function enqueuePublications(ctx: Ctx, ws: string, account: NonNullable<ReturnType<typeof instagramAccount>>, posts: PublishItem[], input: ScheduleInput): JobView[] {
   const first = new Date(input.firstAt)
   const last = first.getTime() + (posts.length - 1) * input.intervalMin * 60000
@@ -168,11 +225,11 @@ function enqueuePublications(ctx: Ctx, ws: string, account: NonNullable<ReturnTy
     if (input.freshOnly && repeated.some(Boolean)) throw new AppError('duplicate','Esta intenção já pertence a outro Container ou lote legado.')
     for(const [i,row] of repeated.entries()) if(row) {
       const p=JSON.parse(row.payloadJson)
-      if(p.caption!==posts[i].caption || (p.shareToFeed??true)!==(input.shareToFeed??true) || p.versionId!==input.versionIds?.[posts[i].localAssetId]) throw new AppError('duplicate','Já existe uma intenção para esta mídia, conta e horário com outra configuração. Edite ou reagende a tarefa existente.')
+      if(p.caption!==posts[i].caption || (p.shareToFeed??true)!==(input.shareToFeed??true) || p.versionId!==input.versionIds?.[posts[i].localAssetId] || !sameAudio(payloadAudio(p), input.audio?.[posts[i].localAssetId])) throw new AppError('duplicate','Já existe uma intenção para esta mídia, conta e horário com outra configuração. Edite ou reagende a tarefa existente.')
     }
     if (repeated.every(Boolean)) return repeated.map(r => ({id:r!.id,workspaceId:r!.workspaceId,type:'publish_instagram',state:r!.state,attempts:r!.attempts,maxAttempts:r!.maxAttempts,runAt:r!.runAt,lastError:r!.lastError,label:r!.label,createdAt:r!.createdAt,updatedAt:r!.updatedAt}))
     if (!input.allowRepost && repostWarnings(ctx, ws, account.id, { postIds: posts.flatMap(p => p.postId ? [p.postId] : []), assetIds: posts.filter(p => !p.postId).map(p => p.localAssetId) }).length) throw new AppError('duplicate', 'Possível repostagem nesta conta. Revise o aviso e confirme antes de agendar novamente.')
-    return posts.map((post, i) => enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', label: `Publicar reel em @${account.username}`, payload: { ...post, media:post.localAssetId, provider:'instagram', destinationAccount:account.id, publishAt:new Date(first.getTime() + i * input.intervalMin * 60000).toISOString(), username: account.username, accountId: account.id, accountRevision: account.revision, cleanupAfterPublish: input.cleanupAfterPublish ?? false, shareToFeed: input.shareToFeed ?? true, versionId: input.versionIds?.[post.localAssetId], allowRepost: input.allowRepost ?? false, batchId, ...(input.trialGraduation ? { trialGraduation: input.trialGraduation } : {}) }, runAt: new Date(first.getTime() + i * input.intervalMin * 60000), maxAttempts: pipelineConfig.maxRetries, idempotencyKey: key(post, i) }, ctx.clock()))
+    return posts.map((post, i) => enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', label: `Publicar reel em @${account.username}`, payload: { ...post, media:post.localAssetId, provider:'instagram', destinationAccount:account.id, publishAt:new Date(first.getTime() + i * input.intervalMin * 60000).toISOString(), username: account.username, accountId: account.id, accountRevision: account.revision, cleanupAfterPublish: input.cleanupAfterPublish ?? false, shareToFeed: input.shareToFeed ?? true, versionId: input.versionIds?.[post.localAssetId], allowRepost: input.allowRepost ?? false, batchId, ...audioPayload(input.audio?.[post.localAssetId]), ...(input.trialGraduation ? { trialGraduation: input.trialGraduation } : {}) }, runAt: new Date(first.getTime() + i * input.intervalMin * 60000), maxAttempts: pipelineConfig.maxRetries, idempotencyKey: key(post, i) }, ctx.clock()))
   })
 }
 export function scheduleInstagram(ctx: Ctx, ws: string, input: ScheduleInput & { postIds: string[]; caption?: string; captions?: Record<string,string> }) {
@@ -189,12 +246,12 @@ export function scheduleInstagram(ctx: Ctx, ws: string, input: ScheduleInput & {
     accountRevision:account.revision, publishAt:new Date(Date.parse(input.firstAt)+i*input.intervalMin*60000).toISOString(), caption:post.caption,
     versionId:input.versionIds?.[post.localAssetId], sourcePostId:post.postId ?? undefined, shareToFeed:input.shareToFeed ?? true, allowRepost:input.allowRepost ?? false })), input.batchId, input.intervalMin)
 }
-type CompositionInput = { batchId?: string; assetIds: string[]; accountId: string; accountRevision: string; firstAt: string; intervalMin: number; captions: Record<string,string>; cleanupAfterPublish: boolean; shareToFeed?: boolean; versionIds?: Record<string,string>; allowRepost?: boolean; freshOnly?: boolean; sourcePostIds?: Record<string,string>; trialGraduation?: 'MANUAL' | 'SS_PERFORMANCE' }
+type CompositionInput = { batchId?: string; assetIds: string[]; accountId: string; accountRevision: string; firstAt: string; intervalMin: number; captions: Record<string,string>; cleanupAfterPublish: boolean; shareToFeed?: boolean; versionIds?: Record<string,string>; allowRepost?: boolean; freshOnly?: boolean; sourcePostIds?: Record<string,string>; trialGraduation?: 'MANUAL' | 'SS_PERFORMANCE'; audio?: Record<string, CatalogAudioChoice> }
 export function scheduleComposition(ctx: Ctx, ws: string, input: CompositionInput) {
   if (!Number.isInteger(input.intervalMin) || input.intervalMin<15 || input.intervalMin>10080 || !Number.isFinite(Date.parse(input.firstAt))) throw new AppError('invalid_input','Horário ou intervalo inválido.')
   return scheduleContainerIntents(ctx, ws, [...new Set(input.assetIds)].map((media,i) => ({ media, provider:'instagram', destinationAccount:input.accountId,
     accountRevision:input.accountRevision, publishAt:new Date(Date.parse(input.firstAt)+i*input.intervalMin*60000).toISOString(),
-    caption:input.captions[media] ?? '', versionId:input.versionIds?.[media], shareToFeed:input.shareToFeed ?? true, allowRepost:input.allowRepost ?? false })), input.batchId, input.intervalMin)
+    caption:input.captions[media] ?? '', versionId:input.versionIds?.[media], shareToFeed:input.shareToFeed ?? true, allowRepost:input.allowRepost ?? false, audio:input.audio?.[media] })), input.batchId, input.intervalMin)
 }
 /** Internal job creation: called only inside the Container scheduling transaction. */
 export function scheduleCompositionRaw(ctx: Ctx, ws: string, input: CompositionInput) {
@@ -211,14 +268,22 @@ export function scheduleCompositionRaw(ctx: Ctx, ws: string, input: CompositionI
 export function schedulePublicationBatch(ctx: Ctx, ws: string, batchId: string, items: {media:string;provider:'instagram';destinationAccount:string;accountRevision:string;publishAt:string;caption:string;versionId?:string;shareToFeed:boolean;allowRepost:boolean}[]) {
   return scheduleContainerIntents(ctx,ws,items,batchId)
 }
+/** Container field for catalog music, sent with the Reel creation (before media_publish). Empty without music. */
+export function reelAudioConfiguration(audio: CatalogAudioChoice | null): { audio_configuration?: string } {
+  return audio ? { audio_configuration: JSON.stringify({ audio_id: audio.audioId, audio_volume: audio.audioVolume, video_volume: audio.videoVolume }) } : {}
+}
 export class InstagramPending extends AppError { constructor(public retryAfterMs = pipelineConfig.pollMs) { super('internal', 'O Instagram ainda está preparando o vídeo. Nova consulta em instantes.') } }
 export type PublishDeps = { host: MediaHost; prepare: (input: string, tmpDir: string) => Promise<PreparedCopy> }
 export const defaultPublishDeps = (): PublishDeps => ({ host: defaultMediaHost(), prepare: preparePublishCopy })
 const PUBLISH_FAILED = 'O Instagram não conseguiu processar o vídeo enviado pelo link temporário.'
 const quietly = (p: Promise<void>) => p.catch(() => {})
 
-export async function publishInstagram(ctx: Ctx, job: LeasedJob, requestApi = instagramJson, deps: PublishDeps = defaultPublishDeps()) {
-  const payload = z.object({ postId: z.string().nullish(), localAssetId: z.string().nullish(), versionId: z.string().optional(), allowRepost: z.boolean().default(false), caption: z.string().max(2200), accountId: numericId, accountRevision: z.string(), cleanupAfterPublish: z.boolean().default(false), shareToFeed: z.boolean().default(true), trialGraduation: z.enum(['MANUAL', 'SS_PERFORMANCE']).optional() }).parse(job.payload)
+export async function publishInstagram(ctx: Ctx, job: LeasedJob, requestApi?: GraphRequest, deps: PublishDeps = defaultPublishDeps()) {
+  const payload = z.object({ postId: z.string().nullish(), localAssetId: z.string().nullish(), versionId: z.string().optional(), allowRepost: z.boolean().default(false), caption: z.string().max(2200), accountId: numericId, accountRevision: z.string(), cleanupAfterPublish: z.boolean().default(false), shareToFeed: z.boolean().default(true), trialGraduation: z.enum(['MANUAL', 'SS_PERFORMANCE']).optional(),
+    audioId: catalogAudioChoice.shape.audioId.optional(), audioVolume: catalogAudioChoice.shape.audioVolume.optional(), videoVolume: catalogAudioChoice.shape.videoVolume.optional() }).parse(job.payload)
+  const audio = payloadAudio(payload)
+  if (audio && accountAuthKind(ctx, job.workspaceId, payload.accountId) !== 'facebook_login') throw new AppError('invalid_input', 'Música do catálogo exige a conta conectada por Facebook Login. Entre com Facebook em Contas ou remova a música e reagende.')
+  requestApi ??= accountTransport(ctx, job.workspaceId, payload.accountId)
   // Cleanup of stale exposures (any job) must never fail this publication.
   await quietly(releaseExpired())
   const recorded = ctx.db.select().from(publicationHistory).where(and(eq(publicationHistory.workspaceId,job.workspaceId),eq(publicationHistory.jobId,job.id))).get()
@@ -227,8 +292,8 @@ export async function publishInstagram(ctx: Ctx, job: LeasedJob, requestApi = in
   const item = ctx.db.select({ effective: publicationContainerItems.effectiveSnapshotJson }).from(publicationContainerItems)
     .where(and(eq(publicationContainerItems.workspaceId, job.workspaceId), eq(publicationContainerItems.jobId, job.id))).get()
   if (item?.effective) {
-    const frozen = JSON.parse(item.effective) as { caption?: string; recipeVersionId?: string | null; trialGraduation?: string | null }
-    if (frozen.caption !== payload.caption || (frozen.recipeVersionId ?? undefined) !== payload.versionId || (frozen.trialGraduation ?? undefined) !== payload.trialGraduation) throw new AppError('invalid_input', 'A publicação não corresponde à intenção congelada no Container. Revise o Container antes de reagendar.')
+    const frozen = JSON.parse(item.effective) as { caption?: string; recipeVersionId?: string | null; trialGraduation?: string | null; audio?: CatalogAudioChoice | null }
+    if (frozen.caption !== payload.caption || (frozen.recipeVersionId ?? undefined) !== payload.versionId || (frozen.trialGraduation ?? undefined) !== payload.trialGraduation || !sameAudio(frozen.audio, audio)) throw new AppError('invalid_input', 'A publicação não corresponde à intenção congelada no Container. Revise o Container antes de reagendar.')
   }
   const account = instagramAccount(ctx, job.workspaceId, payload.accountId)
   if (!account || account.id !== payload.accountId || account.revision !== payload.accountRevision) throw new AppError('invalid_input', 'A conta conectada mudou. Recrie o agendamento após revisar o destino.')
@@ -309,7 +374,8 @@ export async function publishInstagram(ctx: Ctx, job: LeasedJob, requestApi = in
     let response: unknown
     try { response = await requestApi(`${account.id}/media`, token, { media_type: 'REELS', video_url: videoUrl, caption: payload.caption, share_to_feed: String(payload.shareToFeed), ...(payload.versionId ? { thumb_offset: '0' } : {}),
       // Trial reels: Meta shows them first to non-followers; eligibility is decided by Meta per account.
-      ...(payload.trialGraduation ? { trial_params: JSON.stringify({ graduation_strategy: payload.trialGraduation }) } : {}) }) }
+      ...(payload.trialGraduation ? { trial_params: JSON.stringify({ graduation_strategy: payload.trialGraduation }) } : {}),
+      ...reelAudioConfiguration(audio) }) }
     catch (e) {
       if (e instanceof ContainerHeld || (e instanceof InstagramApiError && e.status < 500)) { checkpoint.creating = false; save(); await quietly(releaseExposure(job.id)) }
       // A refused trial reel is almost always eligibility: say so instead of a generic parameter error.

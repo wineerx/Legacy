@@ -66,7 +66,8 @@ export function getContainer(db: Db, ws: string, id: string, now: Date, page = 1
     id: item.id, position: item.position, assetId: item.assetId, source: JSON.parse(item.sourceSnapshotJson),
     captionOverride: item.captionOverride, plannedPublishAt: item.plannedPublishAt, recipeVersionId: item.recipeVersionId,
     jobId: item.jobId, jobState, confirmed: Boolean(confirmed), effectiveCaption: item.effectiveSnapshotJson ? JSON.parse(item.effectiveSnapshotJson).caption : null,
-    shareToFeed: item.shareToFeed, allowRepost: item.allowRepost
+    shareToFeed: item.shareToFeed, allowRepost: item.allowRepost,
+    audio: item.audioId ? { audioId: item.audioId, audioVolume: item.audioVolume!, videoVolume: item.videoVolume! } : null
   })) }
 }
 export function queryContainers(db: Db, ws: string, now: Date, input: { page: number; pageSize: number; state?: PublicationContainerState; states?: PublicationContainerState[]; destinationAccountId?: string }): ContainerPage {

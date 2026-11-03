@@ -4,10 +4,11 @@ import { useMascotSignal } from '../../components/brand/MascotProvider'
 import { LegacyMascot } from '../../components/brand/LegacyMascot'
 import { zonedToUtc } from '@shared/schedule'
 
-export function BatchReviewModal({ open, onOpenChange, items, captions, reminders, timeZone, coverName, bannerOn, stripMetadata, shareToFeed = true, busy, blockReason, instagram, delivery, intervalMin=60, tiktok=true, onConfirm }: {
+export function BatchReviewModal({ open, onOpenChange, items, captions, reminders, timeZone, coverName, bannerOn, stripMetadata, shareToFeed = true, busy, blockReason, instagram, delivery, intervalMin=60, tiktok=true, music = {}, onConfirm }: {
   open: boolean; onOpenChange(o: boolean): void; items: GridItem[]; captions: string[]; reminders: (string | null)[]; timeZone: string
   coverName: string | null; bannerOn: boolean; stripMetadata: boolean; shareToFeed?: boolean; busy: boolean; blockReason?: string; onConfirm(): void
   instagram?: string; delivery?: string; intervalMin?: number; tiktok?: boolean
+  music?: Record<string, { title: string; artist: string | null; audioVolume: number; videoVolume: number }>
 }) {
   const fmt = new Intl.DateTimeFormat('pt-BR', { timeZone, dateStyle: 'short', timeStyle: 'short' })
   useMascotSignal(open && !busy, 'approval', 'O lote aguarda sua revisão de destinos e horários.')
@@ -23,6 +24,7 @@ export function BatchReviewModal({ open, onOpenChange, items, captions, reminder
             <p className="font-medium">{i + 1}. {it.caption}</p>
             <p className="mt-0.5 line-clamp-2 text-xs text-dim">{captions[i] || 'Sem legenda'}</p>
             {instagram && delivery && <p className="mt-0.5 text-xs text-dim">Instagram: {fmt.format(new Date(zonedToUtc(delivery.split('T')[0],delivery.split('T')[1],timeZone).getTime()+i*intervalMin*60000))}</p>}
+            {instagram && music[it.id] && <p className="mt-0.5 text-xs text-dim">Música: {music[it.id].title}{music[it.id].artist ? ` · ${music[it.id].artist}` : ''} · volume da música {music[it.id].audioVolume} · vídeo {music[it.id].videoVolume}</p>}
             {tiktok && <p className="mt-0.5 text-xs text-dim">{reminders[i] ? `Lembrete TikTok: ${fmt.format(new Date(reminders[i]!))}` : 'TikTok: postagem manual quando quiser'}</p>}
           </li>
         ))}
