@@ -10,11 +10,11 @@
 .legacy-startup { min-height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; background: radial-gradient(ellipse at center,#dfc6a00a,transparent 55%); }
 .legacy-startup p { color: #aaa7a2; font-size: 13px; max-width: 400px; text-align: center; }
 .legacy-startup .legacy-logo > .legacy-mascot { display: none; }
-.brand-welcome { display: flex; align-items: center; justify-content: space-between; gap: 24px; overflow: hidden; padding: 16px 32px; border: 1px solid #ddc29c29; border-radius: 18px; background: radial-gradient(ellipse at 90% 50%,#dfc6a014,transparent 60%),#141414; }
+.brand-welcome { display: flex; align-items: center; justify-content: space-between; gap: 24px; overflow: hidden; padding: 16px 32px; border: 1px solid #ddc29c29; border-radius: 18px; background: radial-gradient(ellipse at 90% 50%,#dfc6a014,transparent 60%),var(--color-panel); }
 .brand-eyebrow { margin: 0 0 10px; font-size: 10px; font-weight: 600; letter-spacing: 2px; color: #d8bd96; }
 .brand-welcome h2 { margin: 0 0 8px; font-size: 26px; font-weight: 550; letter-spacing: -.8px; }
 .brand-welcome p:not(.brand-eyebrow) { margin: 0; color: #aaa7a2; font-size: 13px; }
-.brand-panel { border: 1px solid #ddc29c29; border-radius: 18px; padding: 24px; background: #141414; }
+.brand-panel { border: 1px solid #ddc29c29; border-radius: 18px; padding: 24px; background: var(--color-panel); }
 .brand-panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
 .brand-panel h2 { font-size: 23px; font-weight: 550; letter-spacing: -.6px; }
 .brand-panel h3, .brand-wardrobe legend { font-size: 13px; font-weight: 600; }
@@ -25,12 +25,12 @@
 .brand-orbit { position: absolute; z-index: -1; width: 215px; height: 150px; border: 1px dashed #d8bd961e; border-radius: 50%; transform: rotate(-25deg); top: 37px; }
 .brand-orbit-two { transform: rotate(30deg); width: 180px; height: 210px; top: 15px; }
 .brand-state-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 16px; }
-.brand-state-list button { border: 1px solid #ffffff14; border-radius: 20px; padding: 5px 10px; color: #aaa7a2; font-size: 11px; background: #1b1b1b; cursor: pointer; }
+.brand-state-list button { border: 1px solid #ffffff14; border-radius: 20px; padding: 5px 10px; color: #aaa7a2; font-size: 11px; background: var(--color-raised); cursor: pointer; }
 .brand-state-list button:hover { color: #eeeae3; border-color: #d8bd9670; }
 .brand-state-list button[aria-pressed=true] { color: #211c16; background: #dfc39b; border-color: #dfc39b; }
 .brand-wardrobe { border: 0; margin: 0; padding: 0; min-width: 0; }
 .brand-accessories { display: grid; grid-template-columns: repeat(6,minmax(0,1fr)); gap: 8px; margin: 14px 0 24px; }
-.brand-accessories button { display: flex; flex-direction: column; align-items: center; padding: 4px 0 12px; background: #191919; border: 1px solid #ffffff12; border-radius: 12px; font-size: 11px; color: #aaa7a2; cursor: pointer; }
+.brand-accessories button { display: flex; flex-direction: column; align-items: center; padding: 4px 0 12px; background: var(--color-panel); border: 1px solid #ffffff12; border-radius: 12px; font-size: 11px; color: #aaa7a2; cursor: pointer; }
 .brand-accessories button:hover, .brand-accessories button[aria-pressed=true] { border-color: #dfc39b80; background: #dfc39b0c; color: #e7cfac; }
 .brand-motion { display: flex; align-items: center; justify-content: space-between; gap: 24px; border-top: 1px solid #ffffff12; padding-top: 18px; }
 @media (max-width: 760px) { .brand-playground { grid-template-columns: 1fr; gap: 8px; } .brand-accessories { grid-template-columns: repeat(3,minmax(0,1fr)); } .brand-panel-heading > .legacy-logo { display: none; } .brand-welcome { padding: 16px 20px; gap: 12px; } .brand-welcome h2 { font-size: 21px; } .brand-welcome > .legacy-mascot { transform: scale(.73); transform-origin: right center; } }

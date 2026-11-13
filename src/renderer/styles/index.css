@@ -52,8 +52,8 @@
 html, body, #root { height: 100%; min-width: 0; }
 body { margin: 0; background: var(--color-app); color: var(--color-fg); font-family: var(--font-sans); font-size: 14px; -webkit-font-smoothing: antialiased; }
 :focus-visible { outline: 2px solid #8ab4ff; outline-offset: 2px; }
-::selection { background: #3a3a3a; }
-* { scrollbar-color: #3a3a3a transparent; }
+::selection { background: var(--color-line-strong); }
+* { scrollbar-color: var(--color-line-strong) transparent; }
 .page-enter { min-height: 100%; min-width: 0; width: 100%; animation: page-enter 160ms ease-out; }
 @keyframes page-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
 .action-icon svg { transition: transform 180ms ease-out; }
@@ -69,7 +69,7 @@ body { margin: 0; background: var(--color-app); color: var(--color-fg); font-fam
 .legacy-first-progress::-webkit-progress-value { background: var(--color-fg); }
 .legacy-first-progress::-moz-progress-bar { background: var(--color-fg); }
 
-.guest-entry { position: relative; display: flex; height: 100%; min-height: 480px; align-items: center; justify-content: center; overflow: hidden; background: #0a0a0a; }
+.guest-entry { position: relative; display: flex; height: 100%; min-height: 480px; align-items: center; justify-content: center; overflow: hidden; background: var(--color-app); }
 .guest-glow { position: absolute; inset: 0; pointer-events: none; background: radial-gradient(ellipse 42% 60% at var(--glow-x, 50%) var(--glow-y, 0%), #1b3e714d, transparent 90%); transition: background-position .4s ease; }
 .number-field { display: flex; align-items: center; padding: 0; }
 .number-field:focus-within { outline: 2px solid #8ab4ff; outline-offset: 2px; }

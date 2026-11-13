@@ -6,21 +6,24 @@ Fonte da verdade dos tokens: `src/renderer/styles/tokens.css`. Referências visu
 
 | Token | Valor | Uso |
 |---|---|---|
-| `--color-app` | `#0b0b0b` | fundo |
-| `--color-panel` | `#161616` | painéis, cards |
-| `--color-side` | `#1a1a1a` | lateral |
-| `--color-raised` | `#262626` | elevado, hover |
-| `--color-line` | `#3a3a3a` | bordas (ajustado na Task 15; a spec dizia `#2e2e2e`) |
+| `--color-app` | `#0f0f10` | fundo |
+| `--color-panel` | `#171717` | painéis, cards |
+| `--color-field` | `var(--color-app)` | fundo dos campos |
+| `--color-side` | `var(--color-panel)` | lateral |
+| `--color-raised` | `#212121` | elevado, hover, item de navegação ativo |
+| `--color-line` | `#212122` | divisórias e bordas decorativas |
+| `--color-line-emphasis` | `#282828` | divisória da barra lateral |
 | `--color-line-strong` | `#4a4a4a` | bordas de controles |
-| `--color-fg` | `#ededed` | texto |
-| `--color-dim` | `#9a9a9a` | texto secundário |
-| `--color-mute` | `#8a8a8a` | texto terciário |
+| `--color-control-border` | `#6b6b6b` | bordas dos campos |
+| `--color-fg` | `#ffffff` | texto |
+| `--color-dim` | `#a2a2a2` | texto secundário |
+| `--color-mute` | `#929292` | texto terciário |
 | `--color-danger` / `-fg` | `#a04444` / `#f2c9c9` | erro |
 | `--color-ok`, `--color-warn` | `#4f9d69`, `#c9a24a` | estados |
 | `--radius-ctl` / `--radius-card` | 8 px / 12 px | raios |
 | Fonte | Inter Variable, 12/13/14 px | |
 
-Borda, `mute` e `line-strong` foram clareados em relação à spec para atingir contraste mínimo em elementos não textuais (a spec permite aproximações).
+As bordas dos campos têm contraste de pelo menos 3:1 com o fundo e os painéis. O texto em `mute` tem contraste de pelo menos 4,5:1 sobre `raised`.
 
 ## Componentes (`src/renderer/components`)
 

@@ -52,7 +52,7 @@ function createWindow(): BrowserWindow {
   const w = new BrowserWindow({
     title: `Legacy ${process.env.LEGACY_APP_VERSION} · ${process.env.LEGACY_BUILD_COMMIT?.slice(0, 7)}`,
     icon: appIconPath,
-    width: 1440, height: 900, minWidth: 960, minHeight: 600, backgroundColor: '#0B0B0B', show: false, autoHideMenuBar: true,
+    width: 1440, height: 900, minWidth: 960, minHeight: 600, backgroundColor: '#0f0f10', show: false, autoHideMenuBar: true,
     webPreferences: { preload: join(import.meta.dirname, '../preload/index.cjs'), contextIsolation: true, sandbox: true, nodeIntegration: false }
   })
   if (process.platform === 'win32') {
