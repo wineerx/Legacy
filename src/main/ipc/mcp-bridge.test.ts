@@ -39,6 +39,14 @@ it('refuses a wrong token, a browser origin and channels outside the allowlist',
   }
   expect(dispatch).not.toHaveBeenCalled()
 })
+it('rejects JSON bodies that are not objects without interrupting the bridge', async () => {
+  for (const body of [null, [], true, 42, 'app.bootstrap']) {
+    expect((await call(body)).status).toBe(400)
+  }
+  expect(dispatch).not.toHaveBeenCalled()
+  expect((await call({ channel: 'app.bootstrap' })).status).toBe(200)
+})
+
 it('keeps the guest-session gate except for bootstrap', async () => {
   entered = false
   expect((await call({ channel: 'containers.schedule', input: {} })).json.error.message).toMatch(/entre como visitante/)

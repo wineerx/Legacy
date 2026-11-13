@@ -55,12 +55,14 @@ export async function startMcpBridge(opts: McpBridgeOptions): Promise<{ port: nu
     if (req.headers.origin || req.headers.host !== `127.0.0.1:${port}`) return reply(res, 403, fail('Origem não permitida.'))
     if (!authorized(req.headers.authorization)) return reply(res, 401, fail('Token inválido.'))
     if (req.method !== 'POST' || req.url !== '/invoke') return reply(res, 404, fail('Rota não encontrada.'))
-    let body: { channel?: unknown; input?: unknown }
+    let body: unknown
     try { body = JSON.parse(await readBody(req)) } catch { return reply(res, 400, fail('Requisição inválida.')) }
-    const channel = typeof body.channel === 'string' ? body.channel : ''
+    if (body === null || typeof body !== 'object' || Array.isArray(body)) return reply(res, 400, fail('Requisição inválida.'))
+    const { channel: requestedChannel, input } = body as { channel?: unknown; input?: unknown }
+    const channel = typeof requestedChannel === 'string' ? requestedChannel : ''
     if (!allowed.has(channel)) return reply(res, 403, fail(`Canal não disponível para o MCP: ${channel || 'vazio'}`))
     if (!ungated.has(channel) && !opts.entered()) return reply(res, 409, fail('Abra o Legacy e entre como visitante para continuar.'))
-    reply(res, 200, await opts.dispatch(channel, body.input ?? {}))
+    reply(res, 200, await opts.dispatch(channel, input ?? {}))
   })
   await new Promise<void>((resolve, reject) => { server.once('error', reject); server.listen(0, '127.0.0.1', () => resolve()) })
   port = (server.address() as AddressInfo).port
