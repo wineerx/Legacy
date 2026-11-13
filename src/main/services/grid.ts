@@ -105,7 +105,7 @@ function libraryGrid(db: Db, q: GridQuery): GridPage {
     const publishedAccounts = accountMap.get(r.sha256) ?? []
     if (publishedAccounts.length) badges.push('publicado')
     if (st === 'scheduled') badges.push('agendado')
-    return { id: r.id, kind: 'asset', postId: post?.id ?? null, filePath: r.filePath, firstFramePath: existsSync(join(dirname(r.filePath), 'first-frame.png')) ? join(dirname(r.filePath), 'first-frame.png') : null, thumbnailPath: r.thumbnailPath, permalink: post?.permalink ?? null, caption: post?.caption ?? r.sourceName,
+    return { id: r.id, kind: 'asset', postId: post?.id ?? null, filePath: r.filePath, sourceName: r.sourceName, firstFramePath: existsSync(join(dirname(r.filePath), 'first-frame.png')) ? join(dirname(r.filePath), 'first-frame.png') : null, thumbnailPath: r.thumbnailPath, permalink: post?.permalink ?? null, caption: post?.caption ?? r.sourceName,
       postedAt: r.importedAt, importedAt: r.importedAt, sizeBytes: r.sizeBytes, status: st as GridItem['status'], metricsUpdatedAt: post?.metricsUpdatedAt ?? null,
       durationMs: r.durationMs, metrics: { views: post?.views ?? null, likes: post?.likes ?? null, comments: post?.comments ?? null }, badges, publishedAccounts, sourcePlatform: source?.platform ?? null, sourceProfile: source?.username ?? null }
   })

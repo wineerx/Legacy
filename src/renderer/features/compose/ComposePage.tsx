@@ -34,6 +34,7 @@ import { BatchReviewModal } from './BatchReviewModal'
 import { ComposePreview } from './ComposePreview'
 import { captionFor, buildReminders } from './batch'
 import { CaptionRibbon } from './CaptionRibbon'
+import { CatalogMusicSection, type SelectedMusic } from './CatalogMusicSection'
 
 function itemError(e: unknown, k: number, n: number, caption: string): Error {
   const message =
@@ -128,6 +129,7 @@ export function ComposePage({ navigate }: PageProps) {
     endS: 3
   })
   const [reviewOpen, setReviewOpen] = useState(false)
+  const [music, setMusic] = useState<Record<string, SelectedMusic>>({})
   const items = assets.data ?? []
   const effectiveInterval = items.length > 1 ? interval : 60
   const stripMetadata = strip ?? stripDefault.data !== 'false'
@@ -143,6 +145,9 @@ export function ComposePage({ navigate }: PageProps) {
     [items.length, remind, workspace.timeZone]
   )
   const cover = covers.data?.find((c) => c.id === coverId) ?? null
+  // Catalog music only travels with accounts connected by Facebook Login; others publish exactly as before.
+  const musicEnabled = instagram && account.data?.authKind === 'facebook_login'
+  const chosenMusic = musicEnabled ? Object.fromEntries(items.filter((i) => music[i.id]).map((i) => [i.id, music[i.id]])) : {}
 
   const reminderError =
     tiktok && remind.enabled
@@ -290,7 +295,10 @@ export function ComposePage({ navigate }: PageProps) {
           ),
           cleanupAfterPublish: false,
           shareToFeed,
-          versionIds: edited ? versionIds : undefined
+          versionIds: edited ? versionIds : undefined,
+          audio: Object.keys(chosenMusic).length
+            ? Object.fromEntries(Object.entries(chosenMusic).map(([id, m]) => [id, { audioId: m.audioId, audioVolume: m.audioVolume, videoVolume: m.videoVolume }]))
+            : undefined
         })
       }
       if (!tiktok) return
@@ -496,6 +504,20 @@ export function ComposePage({ navigate }: PageProps) {
             <p className="text-sm text-dim">Os temporários são removidos após confirmação. O vídeo original e o histórico são preservados; o cache de edição expira automaticamente.</p>
           </section>
         )}
+        {musicEnabled && account.data && (
+          <CatalogMusicSection
+            workspaceId={workspace.id}
+            accountId={account.data.id}
+            items={items}
+            value={music}
+            onChange={setMusic}
+          />
+        )}
+        {instagram && account.data && account.data.authKind !== 'facebook_login' && (
+          <p className="text-xs text-dim">
+            Para anexar música do catálogo Meta, conecte esta conta com Entrar com Facebook em Contas.
+          </p>
+        )}
         <section className="flex flex-col gap-3 rounded-card border border-line bg-panel p-4">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-semibold">
@@ -609,6 +631,7 @@ export function ComposePage({ navigate }: PageProps) {
         delivery={delivery}
         intervalMin={effectiveInterval}
         tiktok={tiktok}
+        music={chosenMusic}
         onConfirm={() => void repost.review({ assetIds: items.map(i => i.id) }, allow => run.mutate(allow))}
       />
     </div>

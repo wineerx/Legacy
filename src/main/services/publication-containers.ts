@@ -14,7 +14,8 @@ import { containerItems, containerRow, containerScope, getContainer, queryContai
 import { getTemplate } from '../repos/visual-templates'
 import { assertScheduleQuota } from './instagram-quota'
 import { requireWorkspace } from './integrations'
-import { scheduleCompositionRaw, instagramAccount } from './instagram-publishing'
+import { scheduleCompositionRaw, instagramAccount, accountAuthKind } from './instagram-publishing'
+import type { CatalogAudioChoice } from '@shared/catalog-audio'
 import { getSetting, setSetting } from '../repos/settings'
 import { releaseExposure } from './media-host/registry'
 import { planContainerVisual, visualHash } from './container-visual'
@@ -63,7 +64,8 @@ function saveDraft(ctx: Ctx, ws: string, id: string, value: z.output<typeof cont
     return { id: newId(), workspaceId: ws, containerId: id, position, assetId: asset.id,
       sourceSnapshotJson: JSON.stringify({ name: asset.sourceName, sha256: asset.sha256, origin: asset.origin, postId:item.sourcePostId }),
       captionOverride: item.captionOverride, recipeVersionId: item.recipeVersionId ?? null,
-      shareToFeed: item.shareToFeed, allowRepost: item.allowRepost, createdAt: now, updatedAt: now }
+      shareToFeed: item.shareToFeed, allowRepost: item.allowRepost, createdAt: now, updatedAt: now,
+      audioId: item.audio?.audioId ?? null, audioVolume: item.audio?.audioVolume ?? null, videoVolume: item.audio?.videoVolume ?? null }
   })
   ctx.db.delete(items).where(and(eq(items.workspaceId, ws), eq(items.containerId, id))).run()
   // Stay below SQLite's variable limit, while avoiding an INSERT round trip per item.
@@ -132,7 +134,13 @@ function schedule(ctx: Ctx, ws: string, id: string, expectedRevision: number, sl
   if (slots && slots.length !== content.length) throw new AppError('invalid_input', 'Quantidade de horários inválida.')
   const result: JobView[] = []
   const visual = containerVisualSnapshot.parse(JSON.parse(row.visualSnapshotJson))
+  if (content.some(item => item.audioId)) {
+    // Catalog music needs the Facebook Login transport, and video_volume would mute a mixed local track.
+    if (accountAuthKind(ctx, ws, row.destinationAccountId) !== 'facebook_login') throw new AppError('invalid_input', 'Música do catálogo exige a conta conectada por Facebook Login. Entre com Facebook em Contas ou remova a música.')
+    if (visual.audio?.enabled) throw new AppError('invalid_input', 'Use música do catálogo ou faixa local, não as duas no mesmo Container.')
+  }
   for (const [i, item] of content.entries()) {
+    const audio: CatalogAudioChoice | null = item.audioId ? { audioId: item.audioId, audioVolume: item.audioVolume!, videoVolume: item.videoVolume! } : null
     if (!item.assetId) throw new AppError('not_found', 'Vídeo não encontrado.')
     const caption = item.captionOverride ?? row.captionBase
     const sourcePostId = JSON.parse(item.sourceSnapshotJson).postId as string | undefined
@@ -141,13 +149,13 @@ function schedule(ctx: Ctx, ws: string, id: string, expectedRevision: number, sl
       accountRevision: row.accountRevision, firstAt: orderedSlots[i], intervalMin: row.intervalMin, captions: { [item.assetId]: caption },
       versionIds: recipeVersionId ? { [item.assetId]: recipeVersionId } : undefined,
       cleanupAfterPublish: false, shareToFeed: item.shareToFeed, allowRepost: item.allowRepost, freshOnly:true, trialGraduation: row.trialGraduation ?? undefined,
-      sourcePostIds: sourcePostId ? { [item.assetId]:sourcePostId } : undefined })
+      sourcePostIds: sourcePostId ? { [item.assetId]:sourcePostId } : undefined, audio: audio ? { [item.assetId]: audio } : undefined })
     const existing = ctx.db.select().from(items).where(eq(items.jobId, job.id)).get()
     const jobRow = ctx.db.select().from(jobs).where(and(eq(jobs.workspaceId, ws), eq(jobs.id, job.id))).get()!
     if (existing || JSON.parse(jobRow.payloadJson).batchId !== (row.technicalBatchId ?? id)) throw new AppError('duplicate', 'Esta intenção já pertence a outro Container ou lote legado.')
     ctx.db.update(jobs).set({ payloadJson: JSON.stringify({ ...JSON.parse(jobRow.payloadJson), publicationContainerId: id }) }).where(and(eq(jobs.workspaceId, ws), eq(jobs.id, job.id))).run()
     ctx.db.update(items).set({ jobId: job.id, plannedPublishAt: orderedSlots[i], effectiveSnapshotJson: JSON.stringify({ caption, recipeVersionId: recipeVersionId ?? null, trialGraduation: row.trialGraduation ?? null,
-      shareToFeed: item.shareToFeed, allowRepost: item.allowRepost, visual: hasContainerVisual(visual) ? { containerId: id, sha256: visualHash(visual) } : visual }), updatedAt: ctx.clock().toISOString() })
+      shareToFeed: item.shareToFeed, allowRepost: item.allowRepost, audio, visual: hasContainerVisual(visual) ? { containerId: id, sha256: visualHash(visual) } : visual }), updatedAt: ctx.clock().toISOString() })
       .where(and(eq(items.workspaceId, ws), eq(items.id, item.id))).run()
     result.push(job)
   }
@@ -165,7 +173,7 @@ export function scheduleContainer(ctx: Ctx, ws: string, id: string, expectedRevi
   }, immediate)
 }
 
-export type ContainerIntent = { media: string; provider: 'instagram'; destinationAccount: string; accountRevision: string; publishAt: string; caption: string; versionId?: string; sourcePostId?: string; shareToFeed: boolean; allowRepost: boolean }
+export type ContainerIntent = { media: string; provider: 'instagram'; destinationAccount: string; accountRevision: string; publishAt: string; caption: string; versionId?: string; sourcePostId?: string; shareToFeed: boolean; allowRepost: boolean; audio?: CatalogAudioChoice }
 export function scheduleContainerIntents(ctx: Ctx, ws: string, intents: ContainerIntent[], technicalBatchId?: string, intervalMin = 15): JobView[] {
   requireWorkspace(ctx, ws)
   if (!intents.length || intents.length>1000) throw new AppError('invalid_input', 'Selecione de 1 a 1.000 vídeos.')
@@ -180,7 +188,7 @@ export function scheduleContainerIntents(ctx: Ctx, ws: string, intents: Containe
       if (group.some(v => v.accountRevision !== group[0].accountRevision)) throw new AppError('invalid_input', 'Revisões de destino divergentes.')
       const value = containerDraftInput.parse({ name: `Publicações Instagram · ${group[0].destinationAccount}`, provider: 'instagram',
         destinationAccountId: group[0].destinationAccount, accountRevision: group[0].accountRevision, plannedStartAt: group[0].publishAt, intervalMin,
-        items: group.map(v => ({ assetId: v.media, captionOverride: v.caption, sourcePostId:v.sourcePostId, recipeVersionId: v.versionId, shareToFeed: v.shareToFeed, allowRepost: v.allowRepost })) })
+        items: group.map(v => ({ assetId: v.media, captionOverride: v.caption, sourcePostId:v.sourcePostId, recipeVersionId: v.versionId, shareToFeed: v.shareToFeed, allowRepost: v.allowRepost, ...(v.audio ? { audio: v.audio } : {}) })) })
       const request = technicalBatchId ? `batch:${technicalBatchId}:${key}` : `adapter:${fingerprint(group)}`
       const previous = ctx.db.select().from(containers).where(and(eq(containers.workspaceId, ws), eq(containers.requestId, request))).get()
       const adapterHash = fingerprint({ value, slots: group.map(v => v.publishAt) })

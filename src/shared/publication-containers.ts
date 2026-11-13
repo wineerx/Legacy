@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import type { JobState } from './types'
 import { containerVisualSnapshot, type ContainerVisualSnapshot } from './container-visual'
+import { catalogAudioChoice, type CatalogAudioChoice } from './catalog-audio'
 
 export const containerState = z.enum(['draft', 'scheduled', 'in_progress', 'paused', 'completed', 'completed_with_failures', 'cancelled'])
 export type PublicationContainerState = z.infer<typeof containerState>
@@ -8,7 +9,8 @@ export const containerItemInput = z.object({
   assetId: z.string().min(1).max(64), captionOverride: z.string().max(2200).nullable().default(null),
   sourcePostId: z.string().min(1).max(64).optional(),
   recipeVersionId: z.string().min(1).max(64).optional(),
-  shareToFeed: z.boolean().default(true), allowRepost: z.boolean().default(false)
+  shareToFeed: z.boolean().default(true), allowRepost: z.boolean().default(false),
+  audio: catalogAudioChoice.optional()
 }).strict()
 export const containerDraftInput = z.object({
   name: z.string().trim().min(1).max(120),
@@ -43,7 +45,7 @@ export interface ContainerItemView {
   id: string; position: number; assetId: string | null; source: { name: string; sha256: string; origin: string };
   captionOverride: string | null; plannedPublishAt: string | null; recipeVersionId: string | null;
   jobId: string | null; jobState: JobState | null; confirmed: boolean;
-  effectiveCaption: string | null; shareToFeed: boolean; allowRepost: boolean
+  effectiveCaption: string | null; shareToFeed: boolean; allowRepost: boolean; audio: CatalogAudioChoice | null
 }
 export interface ContainerDetail { container: PublicationContainer; items: ContainerItemView[]; page: number; pageSize: number; total: number }
 export interface ContainerPage { items: PublicationContainer[]; total: number; page: number; pageSize: number }

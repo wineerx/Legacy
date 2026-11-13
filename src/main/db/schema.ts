@@ -146,7 +146,9 @@ export const destinationAccounts = sqliteTable('destination_accounts', {
   provider: text('provider').notNull(), providerId: text('provider_id').notNull(),
   username: text('username').notNull(), revision: text('revision').notNull(), validatedAt: text('validated_at').notNull(),
   state: text('state').notNull().default('connected'), expiresAt: text('expires_at'),
-  permissionsJson: text('permissions_json').notNull().default('[]')
+  permissionsJson: text('permissions_json').notNull().default('[]'),
+  // Instagram Login publishes on graph.instagram.com; Facebook Login (Page-linked account) on graph.facebook.com.
+  authKind: text('auth_kind', { enum: ['instagram_login', 'facebook_login'] }).notNull().default('instagram_login')
 }, t => [primaryKey({ columns: [t.workspaceId, t.provider, t.providerId] })])
 
 export const providerLimits = sqliteTable('provider_limits', {
@@ -245,6 +247,8 @@ export const publicationContainerItems = sqliteTable('publication_container_item
   recipeVersionId: text('recipe_version_id'),
   shareToFeed: integer('share_to_feed', { mode: 'boolean' }).notNull().default(true),
   allowRepost: integer('allow_repost', { mode: 'boolean' }).notNull().default(false),
+  // Meta catalog music (Facebook Login only); null keeps the video's own audio.
+  audioId: text('audio_id'), audioVolume: integer('audio_volume'), videoVolume: integer('video_volume'),
   effectiveSnapshotJson: text('effective_snapshot_json'), jobId: text('job_id'),
   createdAt: text('created_at').notNull(), updatedAt: text('updated_at').notNull()
 }, t => [

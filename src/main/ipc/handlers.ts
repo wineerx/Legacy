@@ -51,9 +51,11 @@ import { createContainer, updateContainerDraft, readContainer, listContainers, s
 import { createTemplate, saveTemplateVersion, readTemplate, listTemplates, duplicateTemplate, archiveTemplate, deleteTemplate, applyTemplate } from '../services/visual-templates'
 import { visualPreviewOverrides } from '../services/container-visual'
 import { importAudioTrack, listAudioTracks } from '../services/audio-tracks'
+import { beginFacebookLogin, brokerUrl, finishFacebookLogin } from '../services/facebook-login'
+import { searchAccountAudio } from '../services/instagram-audio'
 
 export interface Dialogs { pickVideos(): Promise<string[]>; pickImage(): Promise<string | null>; pickMetricsFile(): Promise<string | null>; saveDiagnostic?(name: string): Promise<string | null>; saveVideo?(name: string): Promise<string | null>; pickStorageFolder?(): Promise<string | null> }
-export interface HandlerDeps { session?: ReturnType<typeof createGuestSession>; ctx: Ctx; dialogs: Dialogs; shell: { openPath(p: string): Promise<string> }; workerAlive(): boolean; workerPaused?(): boolean; pauseWorker?(paused: boolean): Promise<void>; version: string; buildCommit?: string; buildTime?: string; onJobsChanged(workspaceId: string): void; vault?: SecretVault; onSecretsChanged?(): void; updates?: { status(): UpdateStatus; check(): Promise<UpdateStatus>; download(): Promise<UpdateStatus>; install(): void } }
+export interface HandlerDeps { session?: ReturnType<typeof createGuestSession>; ctx: Ctx; dialogs: Dialogs; shell: { openPath(p: string): Promise<string>; openExternal?(url: string): Promise<void> }; workerAlive(): boolean; workerPaused?(): boolean; pauseWorker?(paused: boolean): Promise<void>; version: string; buildCommit?: string; buildTime?: string; onJobsChanged(workspaceId: string): void; vault?: SecretVault; onSecretsChanged?(): void; updates?: { status(): UpdateStatus; check(): Promise<UpdateStatus>; download(): Promise<UpdateStatus>; install(): void } }
 
 const profileDto = (p: Profile, avatarPath: string | null = null) => ({ avatarPath, platform: p.platform, id: p.id, username: p.username, url: p.url, connected: p.connectedAccountId !== null, lastSyncedAt: p.lastSyncedAt })
 const coverDto = (c: CoverTemplate) => ({ id: c.id, name: c.name, kind: c.kind, imagePath: c.imagePath, frameMs: c.frameMs, textJson: c.textJson })
@@ -185,6 +187,9 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
     'accounts.verifyInstagram': async (i) => { const account = await verifyInstagram(ctx, vault, i.workspaceId, undefined, i.accountId); deps.onSecretsChanged?.(); return account },
     'accounts.connectInstagram': async (i) => { const account = await connectInstagram(ctx, vault, i.workspaceId, i.token); deps.onSecretsChanged?.(); return account },
     'compose.scheduleInstagram': (i) => destinationsChanged(i.workspaceId,scheduleComposition(ctx,i.workspaceId,i)),
+    'accounts.facebookLogin': async (i) => { requireWorkspace(ctx, i.workspaceId); if (!deps.shell.openExternal) throw new AppError('internal', 'Navegador indisponível.'); return beginFacebookLogin({ brokerUrl: brokerUrl(), openExternal: deps.shell.openExternal }) },
+    'accounts.connectFacebook': (i) => { const account = finishFacebookLogin(ctx, vault, i.workspaceId, i.handle, i.accountId); deps.onSecretsChanged?.(); return account },
+    'audio.searchCatalog': (i) => searchAccountAudio(ctx, i.workspaceId, i.accountId, i.query),
     'accounts.disconnectInstagram': (i) => { disconnectInstagram(ctx, vault, i.workspaceId, i.accountId); deps.onSecretsChanged?.(); return null },
     'profiles.scheduleInstagram': (i) => destinationsChanged(i.workspaceId, scheduleInstagram(ctx, i.workspaceId, i)),
     'profiles.archive': (i) => { requireWorkspace(ctx, i.workspaceId); archiveProfile(ctx, i.workspaceId, i.profileId, i.archived); return changed(i.workspaceId, null) },

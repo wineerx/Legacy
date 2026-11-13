@@ -7,6 +7,8 @@ export type Badge = 'baixado' | 'agendado' | 'publicado' | 'link' | 'favorito' |
 export interface GridItem {
   id: string
   filePath?: string | null
+  /** Original file name of a local video; matches entries of mapa_audios.json. */
+  sourceName?: string | null
   kind: 'asset' | 'remote'
   videoUrl?: string | null
   postId?: string | null
