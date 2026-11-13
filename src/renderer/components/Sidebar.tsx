@@ -33,7 +33,7 @@ export function Sidebar({ current, onNavigate, unread, collapsed, onToggle }: Pr
     return collapsed ? <Tooltip key={n.key} content={n.label}>{anchor}</Tooltip> : anchor
   }
   return (
-    <nav aria-label="Principal" className={cx('flex h-full min-h-0 shrink-0 flex-col overflow-y-auto border-r border-line bg-side p-2 transition-[width]', collapsed ? 'w-14' : 'w-66')}>
+    <nav aria-label="Principal" className={cx('flex h-full min-h-0 shrink-0 flex-col overflow-y-auto border-r border-line-emphasis bg-side p-2 transition-[width]', collapsed ? 'w-14' : 'w-66')}>
       <div className="mascot-sidebar-brand"><Popover.Root open={showStatus} onOpenChange={setShowStatus}><Popover.Trigger asChild>
         <button type="button" aria-label="Interagir com o mascote Legacy" aria-expanded={showStatus} onMouseEnter={mascot.react} onClick={() => { mascot.react(); setReaction(value => value + 1) }} onKeyDown={event => { if (event.key === 'Escape') setShowStatus(false) }} className={cx('mb-4 mt-1 flex rounded-ctl', collapsed ? 'justify-center' : 'px-1')}><span key={reaction} className={reaction ? 'mascot-react' : undefined}><LegacyLogo compact={collapsed} state={mascot.state} interactive /></span></button></Popover.Trigger>
         <Popover.Portal><Popover.Content side="right" align="start" sideOffset={8} className="ds-dropdown w-60" aria-label="Status da fila"><div role="status"><span aria-hidden className="mb-2 flex gap-1">{[0,1,2].map(n=><i key={n} className="size-1 rounded-full bg-dim"/>)}</span><p>{mascot.message}</p><div className="my-2"><Progress value={mascot.progress} label="Tarefas concluídas"/></div><p className="mt-1 text-dim">{mascot.running} em execução · {mascot.queued} na fila</p></div><Popover.Arrow className="fill-panel"/></Popover.Content></Popover.Portal></Popover.Root>
@@ -41,7 +41,7 @@ export function Sidebar({ current, onNavigate, unread, collapsed, onToggle }: Pr
       <AccountSwitcher collapsed={collapsed} onNavigate={onNavigate} />
       <div className="mb-2 flex items-center gap-1">
         {!collapsed && (
-          <label className="flex h-8 flex-1 items-center gap-2 rounded-ctl bg-raised px-2.5 text-dim">
+          <label className="flex h-8 flex-1 items-center gap-2 rounded-ctl border border-control-border bg-field px-2.5 text-dim">
             <Search size={14} aria-hidden />
             <input type="search" aria-label="Buscar no menu" placeholder="Buscar" value={q} onChange={(e) => setQ(e.target.value)} className="w-full bg-transparent text-sm text-fg outline-none placeholder:text-dim" />
           </label>

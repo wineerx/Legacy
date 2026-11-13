@@ -1,13 +1,15 @@
 @theme {
-  --color-app: #0b0b0b;
-  --color-panel: #161616;
-  --color-side: #1a1a1a;
-  --color-raised: #262626;
-  --color-line: #3a3a3a;
+  --color-app: #0f0f10;
+  --color-panel: #171717;
+  --color-field: var(--color-app);
+  --color-side: var(--color-panel);
+  --color-raised: #212121;
+  --color-line: #212122;
+  --color-line-emphasis: #282828;
   --color-line-strong: #4a4a4a;
-  --color-fg: #ededed;
-  --color-dim: #9a9a9a;
-  --color-mute: #929292; /* 4.86:1 on raised (WCAG 1.4.3) */
+  --color-fg: #ffffff;
+  --color-dim: #a2a2a2;
+  --color-mute: #929292; /* >= 4.5:1 on raised (WCAG 1.4.3) */
   /* Boundary of form fields: >= 3:1 against panel and app (WCAG 1.4.11). */
   --color-control-border: #6b6b6b;
   --color-danger: #a04444;
