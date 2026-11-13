@@ -12,6 +12,7 @@ import { publicationFeedback } from './services/publication-history'
 import { createGuestSession } from './services/guest-session'
 import { createDispatcher } from './ipc/dispatcher'
 import { buildHandlers } from './ipc/handlers'
+import { startMcpBridge } from './ipc/mcp-bridge'
 import { parseMediaUrl } from './media-protocol'
 import { createTray } from './tray'
 import type { Tray } from 'electron'
@@ -131,6 +132,10 @@ if (gotLock) {
     if (!session.get().entered && !['app.bootstrap', 'session.get', 'session.enterGuest', 'session.exit', 'updates.status'].includes(channel)) return { ok: false, error: { code: 'invalid_input', message: 'Entre como visitante para continuar.' } }
     return dispatch(channel, input)
   })
+  // Local MCP server for Claude on this computer (mcp/legacy-mcp.ts). LEGACY_MCP_BRIDGE=0 turns it off.
+  const bridge = process.env.LEGACY_MCP_BRIDGE === '0' ? null
+    : startMcpBridge({ dispatch, entered: () => session.get().entered, infoPath: join(dataRoot, 'mcp-bridge.json'), version: process.env.LEGACY_APP_VERSION ?? app.getVersion() })
+      .catch(err => { console.error('[mcp-bridge]', err); return null })
 
   win = createWindow()
   tray = createTray(iconPath, () => win, () => { quitting = true; app.quit() })
@@ -159,6 +164,7 @@ if (gotLock) {
     void (async () => {
       try {
         stopReminders()
+        await (await bridge)?.close().catch(() => {})
         await Promise.race([worker.stop(), new Promise((r) => setTimeout(r, 6000))])
         close()
       } catch (err) {

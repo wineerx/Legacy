@@ -50,6 +50,7 @@ import { schedulePublicationBatch } from '../services/instagram-publishing'
 import { createContainer, updateContainerDraft, readContainer, listContainers, scheduleContainer, setContainerControl, cancelContainer } from '../services/publication-containers'
 import { createTemplate, saveTemplateVersion, readTemplate, listTemplates, duplicateTemplate, archiveTemplate, deleteTemplate, applyTemplate } from '../services/visual-templates'
 import { visualPreviewOverrides } from '../services/container-visual'
+import { importAudioTrack, listAudioTracks } from '../services/audio-tracks'
 
 export interface Dialogs { pickVideos(): Promise<string[]>; pickImage(): Promise<string | null>; pickMetricsFile(): Promise<string | null>; saveDiagnostic?(name: string): Promise<string | null>; saveVideo?(name: string): Promise<string | null>; pickStorageFolder?(): Promise<string | null> }
 export interface HandlerDeps { session?: ReturnType<typeof createGuestSession>; ctx: Ctx; dialogs: Dialogs; shell: { openPath(p: string): Promise<string> }; workerAlive(): boolean; workerPaused?(): boolean; pauseWorker?(paused: boolean): Promise<void>; version: string; buildCommit?: string; buildTime?: string; onJobsChanged(workspaceId: string): void; vault?: SecretVault; onSecretsChanged?(): void; updates?: { status(): UpdateStatus; check(): Promise<UpdateStatus>; download(): Promise<UpdateStatus>; install(): void } }
@@ -146,6 +147,8 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
       return paths.length ? changed(i.workspaceId, await importFiles(ctx, i.workspaceId, paths)) : []
     },
     'library.importPaths': async (i) => changed(i.workspaceId, await importFiles(ctx, i.workspaceId, i.paths)),
+    'audio.importPath': (i) => importAudioTrack(ctx, i.workspaceId, i.path),
+    'audio.list': (i) => listAudioTracks(ctx, i.workspaceId),
     'library.details': i => mediaDetails(ctx, i.workspaceId, i.id, i.offset),
     'library.pending': i => pendingMedia(ctx, i.workspaceId),
     'library.deleteMany': async i => changed(i.workspaceId, await deleteMany(ctx, i.workspaceId, i.ids)),

@@ -140,6 +140,25 @@ export async function renderComposition(input:string,out:string,layout:VisualLay
   await ff([...args,'-filter_complex',chains.join(';'),'-map','[composed]','-map','0:a?','-c:a','copy',...encoderArgs(encoder),'-t',seconds(p.durationMs),'-r','30','-map_metadata','0','-movflags','+faststart',out])
 }
 
+export type AudioTrackOptions = { mode: 'replace' | 'mix'; volumePct: number; originalVolumePct: number; startMs: number }
+
+/**
+ * Applies a separate audio track without re-encoding the picture. `replace` drops the original
+ * sound; `mix` keeps it under the track. A short track is padded with silence, a long one is cut.
+ */
+export async function applyAudioTrack(video: string, track: string, out: string, opts: AudioTrackOptions): Promise<void> {
+  const p = await probe(video)
+  const gain = (pct: number) => (pct / 100).toFixed(2)
+  const music = `[1:a]volume=${gain(opts.volumePct)},apad`
+  const graph = opts.mode === 'mix' && p.audioCodec
+    ? `${music}[music];[0:a]volume=${gain(opts.originalVolumePct)}[original];[original][music]amix=inputs=2:duration=first:dropout_transition=0:normalize=0[a]`
+    : `${music}[a]`
+  await ff(['-protocol_whitelist', 'file', '-i', video, '-ss', seconds(opts.startMs), '-protocol_whitelist', 'file', '-i', track,
+    '-filter_complex', graph, '-map', '0:v:0', '-map', '[a]', '-c:v', 'copy', '-c:a', 'aac', '-b:a', '192k', '-t', seconds(p.durationMs),
+    '-map_metadata', '0', '-movflags', '+faststart', out])
+  if (!(await probe(out, true)).audioCodec) throw new AppError('invalid_media', 'A faixa de áudio não foi aplicada.')
+}
+
 export async function mergeAudio(video: string, audio: string, out: string): Promise<void> {
   const duration = (await probe(video, true)).durationMs
   await ff(['-protocol_whitelist', 'file', '-i', video, '-protocol_whitelist', 'file', '-i', audio,

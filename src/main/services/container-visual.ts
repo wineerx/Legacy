@@ -1,5 +1,7 @@
 import { createHash } from 'node:crypto'
+import { existsSync } from 'node:fs'
 import { workspaceDir, resolveInside } from '../paths'
+import { audioTrackPath } from './audio-tracks'
 import { and, eq } from 'drizzle-orm'
 import { AppError } from '@shared/errors'
 import { containerVisualSnapshot, hasContainerVisual, type ContainerVisualSnapshot, type VisualPreviewOverrides } from '@shared/container-visual'
@@ -19,6 +21,7 @@ export interface ResolvedVisual {
   watermark?: NonNullable<ContainerVisualSnapshot['watermark']>
   banner?: { imageData?: string; path?: string; startMs: number; endMs: number; firstFrame: boolean }
   cover?: { imageData?: string; path?: string }
+  audio?: NonNullable<ContainerVisualSnapshot['audio']>
   sourcePath?: string
 }
 export function resolveVisual(snapshot: ContainerVisualSnapshot, override: ResolvedVisual = {}): ResolvedVisual {
@@ -26,7 +29,9 @@ export function resolveVisual(snapshot: ContainerVisualSnapshot, override: Resol
     ...(snapshot.version===2?{layout:snapshot.layout,coverFrameMs:snapshot.coverFrameMs}:{}),
     watermark: snapshot.watermark?.enabled && snapshot.watermark.opacityPct > 0 ? snapshot.watermark : undefined,
     banner: snapshot.banner?.enabled ? { imageData: snapshot.banner.imageData!, startMs: snapshot.banner.startMs, endMs: snapshot.banner.endMs, firstFrame: false } : undefined,
-    cover: snapshot.cover?.enabled ? { imageData: snapshot.cover.imageData! } : undefined
+    cover: snapshot.cover?.enabled ? { imageData: snapshot.cover.imageData! } : undefined,
+    // A baked individual version still receives the common track, so it is not dropped with sourcePath.
+    audio: snapshot.audio?.enabled ? snapshot.audio : undefined
   }
   if (override.sourcePath) { delete value.banner; delete value.cover;delete value.coverFrameMs }
   if(override.cover)delete value.coverFrameMs
@@ -66,6 +71,7 @@ export function planContainerVisual(ctx: Ctx, ws: string, containerId: string, a
   if(snapshot.version===2)resolveLayout(snapshot.layout,layoutContext!,true)
   const asset = getAsset(ctx.db, ws, assetId)
   if (!asset) throw new AppError('not_found', 'Vídeo não encontrado neste workspace.')
+  if (snapshot.audio?.enabled && !existsSync(audioTrackPath(ctx, ws, snapshot.audio.sha256!, snapshot.audio.ext!))) throw new AppError('not_found', 'Faixa de áudio não encontrada. Importe o áudio de novo antes de agendar.')
   if(snapshot.version===2){
     if(snapshot.layout.elements.some(e=>e.visible && e.type!=='media' && e.type!=='text' && !e.imageData))throw new AppError('invalid_input','Escolha a imagem de cada logo, watermark ou banner visível antes de agendar.')
     if(snapshot.coverFrameMs!==undefined && snapshot.coverFrameMs>=asset.durationMs)throw new AppError('invalid_input','O quadro da capa excede a duração do vídeo.')

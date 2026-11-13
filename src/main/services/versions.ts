@@ -11,7 +11,8 @@ import { getAsset, insertVersion, listVersions, type AssetVersion } from '../rep
 import { storedAssetDir } from './library'
 import { mediaVersions, jobs } from '../db/schema'
 import { and, eq, sql } from 'drizzle-orm'
-import { renderVideoVersion, renderComposition, extractFrame } from '../media/ops'
+import { renderVideoVersion, renderComposition, extractFrame, applyAudioTrack } from '../media/ops'
+import { audioTrackPath } from './audio-tracks'
 import { probe } from '../media/probe'
 import { workspaceDir, resolveInside } from '../paths'
 import { pipelineConfig } from '../pipeline-config'
@@ -102,12 +103,15 @@ export async function materializeVersion(ctx: Ctx, ws: string, assetId: string, 
   const asset=getAsset(ctx.db,ws,assetId)!
   const visual = params.containerVisual ? frozenRecipeVisual(ctx, ws, params) : null
   const source = visual?.sourcePath ?? asset.filePath
-  if (visual && !visual.layout && !visual.watermark && !visual.banner && !visual.cover) return source
+  if (visual && !visual.layout && !visual.watermark && !visual.banner && !visual.cover && !visual.audio) return source
   const bannerPath = visual?.banner?.path ?? params.bannerPath
   const coverPath = visual?.cover?.path ?? params.coverPath
-  const hashes=await Promise.all([fileHash(source),bannerPath?fileHash(bannerPath):null,coverPath?fileHash(coverPath):null])
+  const audioPath = visual?.audio ? audioTrackPath(ctx, ws, visual.audio.sha256!, visual.audio.ext!) : undefined
+  const hashes=await Promise.all([fileHash(source),bannerPath?fileHash(bannerPath):null,coverPath?fileHash(coverPath):null,
+    ...(audioPath ? [fileHash(audioPath).catch(() => null)] : [])])
   // Only real imported hashes are comparable; legacy/fixture rows without a SHA-256 skip this check.
   if(visual && source===asset.filePath && /^[0-9a-f]{64}$/.test(params.sourceSha256 ?? '') && hashes[0]!==params.sourceSha256) throw new AppError('invalid_media','O arquivo original mudou desde o agendamento. Reimporte o vídeo e reagende.')
+  if(visual?.audio && hashes[3]!==visual.audio.sha256) throw new AppError('invalid_media','A faixa de áudio mudou ou foi removida desde o agendamento. Importe o áudio de novo e reagende.')
   const key=createHash('sha256').update(JSON.stringify(visual ? { hashes, visual, processingVersion: 2, ...(visual.layout ? { rendererVersion: RENDERER_VERSION } : {}) } : {hashes,startMs:params.startMs,endMs:params.endMs,processingVersion:1})).digest('hex')
   const existing=derivations.get(`${ws}:${key}`);if(existing)return existing
   const work=(async()=>{
@@ -131,8 +135,11 @@ export async function materializeVersion(ctx: Ctx, ws: string, assetId: string, 
       if(!cover && visual?.coverFrameMs!==undefined){cover=join(dir,`${key}.${randomUUID()}.cover-frame.partial.png`);imageFiles.push(cover);await extractFrame(source,visual.coverFrameMs,cover)}
       const watermark = await imageFile(visual?.watermark?.imageData ?? undefined, undefined, 'watermark')
       let compositionSource=source
+      // With a track, the picture stages write an intermediate file and the audio stage writes temp.
+      const pictureOut=visual?.audio?join(dir,`${key}.${randomUUID()}.picture.partial.mp4`):temp
+      if(visual?.audio)imageFiles.push(pictureOut)
       if(banner || cover || watermark){
-        const prepared=visual?.layout?join(dir,`${key}.${randomUUID()}.source.partial.mp4`):temp
+        const prepared=visual?.layout?join(dir,`${key}.${randomUUID()}.source.partial.mp4`):pictureOut
         if(visual?.layout)imageFiles.push(prepared)
         await renderVideoVersion(source,prepared,{banner:banner ? {png:banner,window:{startMs:visual?.banner?.startMs ?? params.startMs,endMs:visual?.banner?.endMs ?? params.endMs},firstFrame:visual?.banner?.firstFrame} : undefined,coverPng:cover,
           watermark: watermark && visual?.watermark ? { png: watermark, ...pngDimensions(visual.watermark.imageData!), spec: visual.watermark } : undefined});compositionSource=prepared
@@ -144,8 +151,10 @@ export async function materializeVersion(ctx: Ctx, ws: string, assetId: string, 
         const rasterFile=async(data:string,role:string)=>{const bytes=Buffer.from(data.slice(22),'base64');assertPng(bytes);const file=join(dir,`${key}.${randomUUID()}.${role}.partial.png`);imageFiles.push(file);await writeFile(file,bytes);return file}
         const background=await rasterFile(raster.background,'background'),mask=raster.mask?await rasterFile(raster.mask,'mask'):undefined,mediaBorder=raster.mediaBorder?await rasterFile(raster.mediaBorder,'border'):undefined
         const layers=[];for(const layer of raster.layers)layers.push({id:layer.id,path:await rasterFile(layer.png,'layer')})
-        await renderComposition(compositionSource,temp,visual.layout,{background,mask,mediaBorder,layers})
+        await renderComposition(compositionSource,pictureOut,visual.layout,{background,mask,mediaBorder,layers})
+        compositionSource=pictureOut
       }
+      if(visual?.audio)await applyAudioTrack(compositionSource,audioPath!,temp,visual.audio)
       await probe(temp,true)
       const sha256=await fileHash(temp)
       await rename(temp,out);await writeFile(manifest,JSON.stringify({sha256,processingVersion:visual ? 2 : 1}))
