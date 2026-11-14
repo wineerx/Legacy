@@ -24,7 +24,7 @@ export function FilterBar({ children, actions, label, className }: { children: R
 export function FilterSearch({ label, value, onChange, placeholder, className }: { label: string; value: string; onChange(v: string): void; placeholder?: string; className?: string }) {
   return <div className={cx('ds-filter-search', className)}>
     <Search size={14} aria-hidden className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-dim" />
-    <input type="search" aria-label={label} placeholder={placeholder ?? label} value={value} onChange={e => onChange(e.target.value)} />
+    <input type="search" className="ds-field" aria-label={label} placeholder={placeholder ?? label} value={value} onChange={e => onChange(e.target.value)} />
     {value && <button type="button" aria-label={`Limpar ${label.toLowerCase()}`} onClick={() => onChange('')}><X size={12} aria-hidden /></button>}
   </div>
 }
@@ -51,10 +51,11 @@ export function FacetFilter({ label, icon, options, value, onChange, multiple = 
       <div role="listbox" aria-label={label} aria-multiselectable={multiple || undefined} className="grid gap-0.5">
         {options.map(o => { const on = value.includes(o.value)
           return <button key={o.value} type="button" role="option" aria-label={o.label} aria-selected={on} onClick={() => toggle(o.value)} className="ds-facet-option">
-            {o.tone ? <ToneDot tone={o.tone} /> : o.icon}
+            {!o.tone && o.icon}
             <span className="min-w-0 flex-1 truncate text-left">{o.label}</span>
             {o.count !== undefined && <span className="tabular-nums text-[11px] text-dim">{o.count ?? '—'}</span>}
             <Check size={14} aria-hidden className={cx('shrink-0', on ? 'opacity-100' : 'opacity-0')} />
+            {o.tone && <ToneDot tone={o.tone} />}
           </button> })}
       </div>
       <div className="ds-facet-footer">
@@ -144,7 +145,7 @@ export function SortMenu<T extends string>({ value, options, onChange, direction
  * Selection bar shared by grids: a hint and the selection helpers when nothing is selected; the count and
  * the actions when something is. Disabled action rows without context are avoided.
  */
-export function SelectionBar({ count, label, hint, helpers, actions, onClear }: { count: number; label: string; hint: string; helpers?: ReactNode; actions: ReactNode; onClear(): void }) {
+export function SelectionBar({ count, label, hint, helpers, actions, onClear }: { count: number; label: string; hint?: string; helpers?: ReactNode; actions: ReactNode; onClear(): void }) {
   return count > 0
     ? <div role="toolbar" aria-label="Ações da seleção" className="ds-selection-bar">
       <span className="text-sm font-semibold" aria-live="polite">{label}</span>
@@ -153,5 +154,5 @@ export function SelectionBar({ count, label, hint, helpers, actions, onClear }: 
       <div className="flex flex-1 flex-wrap items-center gap-2">{actions}</div>
       {helpers && <div className="flex flex-wrap items-center gap-2">{helpers}</div>}
     </div>
-    : <div className="ds-selection-hint"><p className="min-w-0 flex-1">{hint}</p>{helpers && <div className="flex flex-wrap items-center gap-2">{helpers}</div>}</div>
+    : <div className={cx('ds-selection-hint', !hint && 'justify-end')}>{hint && <p className="min-w-0 flex-1 basis-64">{hint}</p>}{helpers && <div className="flex flex-wrap items-center gap-2">{helpers}</div>}</div>
 }

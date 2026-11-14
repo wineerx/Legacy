@@ -42,7 +42,16 @@ Fonte: `components/ui/Filters.tsx`, estilos em `styles/patterns.css`. Ordem fixa
 2. `FilterPresets`: combinações rápidas que substituem os filtros atuais (ex.: "Precisam atenção", "Falhas aguardando retry", "Virais (100 mil+ views)").
 3. `ActiveFilters`: total, chips "Remover filtro: …", "Limpar filtros" ou "Sem filtros aplicados".
 
-Aplicado em Fila, Biblioteca, Perfis, Calendário e Notificações.
+Aplicado em Fila, Calendário e Notificações.
+
+### Grades de vídeo (Biblioteca e Perfis)
+
+Fonte: `components/ui/FilterPanel.tsx` e `ResizableAside.tsx`. Decisão: `docs/decisions/2026-11-12-filtros-painel-lateral.md`.
+
+1. Barra acima da grade (`ds-filter-toolbar`): `FilterSearch` largo → `FilterFields` (campo tracejado `FacetField` de cada grupo rápido e `FilterField` de qualquer grupo avançado com seleção) → à direita ordenação, visualização e a abertura dos filtros. Na Biblioteca, **Ações da biblioteca** também reúne importação, rascunhos e fila de mídia.
+2. Campo tracejado: o contorno fica tracejado sempre; as opções escolhidas aparecem dentro do campo, uma etiqueta por opção, cada uma com × ("Remover {opção} de {grupo}"). O clique fora das etiquetas abre a lista do grupo.
+3. `FilterPanel` à esquerda na Biblioteca e à direita em Perfis, com "Limpar todos", grupos recolhíveis com contagem e total no rodapé. Estado, período de importação e favoritos da Biblioteca ficam no painel. Largura 240–400 px pelo divisor com alça; aberto, largura e grupos ficam salvos por tela. Abaixo de 1280 px vira gaveta fechada por padrão, com Esc.
+4. Regras: dentro de um grupo de várias escolhas, OU; entre grupos e com a busca, E. Faixas e limiares aceitam uma escolha.
 
 ## Cards, estados e gráficos
 

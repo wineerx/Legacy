@@ -1,9 +1,10 @@
 import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import { and, asc, desc, eq, gte, lte, inArray, or, sql, type SQL } from 'drizzle-orm'
+import { and, asc, desc, eq, gte, lte, inArray, isNotNull, isNull, not, or, sql, type SQL } from 'drizzle-orm'
 import type { SQLiteColumn } from 'drizzle-orm/sqlite-core'
 import { AppError } from '@shared/errors'
 import type { Badge, GridItem, GridPage, GridQuery } from '@shared/types'
+import type { LibraryFilterOptions } from '@shared/ipc-contract'
 import type { Db } from '../db/client'
 import { jobs, mediaAssets, remotePosts, publicationHistory, trackedProfiles } from '../db/schema'
 import { hasJob, hasPublication } from './media-manager'
@@ -11,6 +12,9 @@ import { getSetting } from '../repos/settings'
 
 const iso = (v: string) => new Date(v).toISOString()
 const contains = (col: SQLiteColumn, needle: string) => sql`instr(lower(coalesce(${col}, '')), lower(${needle})) > 0`
+/** OR of the conditions of a list filter; an empty or absent list does not filter. */
+const anyOf = <T>(values: readonly T[] | undefined, condition: (value: T) => SQL): SQL | undefined => values?.length ? or(...values.map(condition)) : undefined
+const lowered = (values: string[]) => values.map(v => v.replace(/^@/, '').toLowerCase())
 
 function orderFor(col: SQLiteColumn, dir: 'asc' | 'desc'): SQL[] {
   return [...(col.notNull ? [] : [sql`${col} is null`]), dir === 'asc' ? asc(col) : desc(col)]
@@ -32,6 +36,10 @@ function remoteGrid(db: Db, q: GridQuery): GridPage {
   if (q.from) where.push(gte(remotePosts.postedAt, iso(q.from)))
   if (q.to) where.push(lte(remotePosts.postedAt, iso(q.to)))
   if (q.maxDurationMs !== undefined) where.push(lte(remotePosts.durationMs, q.maxDurationMs))
+  if (q.minDurationMs !== undefined) where.push(gte(remotePosts.durationMs, q.minDurationMs))
+  if (q.downloaded !== undefined) where.push(q.downloaded ? isNotNull(remotePosts.assetId) : isNull(remotePosts.assetId))
+  const inHistory = sql`EXISTS (SELECT 1 FROM ${publicationHistory} WHERE ${publicationHistory.workspaceId} = ${remotePosts.workspaceId} AND ${publicationHistory.postId} = ${remotePosts.id})`
+  if (q.published !== undefined) where.push(q.published ? inHistory : not(inHistory))
   if (q.minViews !== undefined) where.push(gte(remotePosts.views, q.minViews))
   if (q.minLikes !== undefined) where.push(gte(remotePosts.likes, q.minLikes))
   if (q.minComments !== undefined) where.push(gte(remotePosts.comments, q.minComments))
@@ -71,6 +79,16 @@ function libraryGrid(db: Db, q: GridQuery): GridPage {
   const state = sql`CASE WHEN ${hasJob(['queued', 'running'], ['make_thumbnail', 'apply_banner'])} THEN 'processing' WHEN ${hasJob(['queued', 'running'], ['publish_instagram'])} THEN 'scheduled' WHEN ${hasJob(['failed'])} THEN 'failed' WHEN ${hasPublication()} THEN 'published' ELSE 'ready' END`
   if (q.status === 'unpublished') where.push(sql`NOT ${hasPublication()}`)
   else if (q.status) where.push(sql`${state} = ${q.status}`)
+  const pendingInstagram = hasJob(['queued', 'running'], ['publish_instagram'])
+  const statuses = anyOf(q.statuses, s => s === 'unpublished' ? sql`NOT ${hasPublication()}` : s === 'unscheduled' ? sql`NOT ${pendingInstagram}` : sql`${state} = ${s}`)
+  if (statuses) where.push(statuses)
+  const profiles = q.sourceProfileIds?.length ? sourceMatch(inArray(remotePosts.profileId, q.sourceProfileIds)) : undefined
+  if (profiles) where.push(profiles)
+  const origins = anyOf(q.origins, o => o === 'pc' ? eq(mediaAssets.origin, 'pc') : o === 'instagram' ? inArray(mediaAssets.origin, ['ig_own', 'ig_third_party']) : eq(mediaAssets.origin, 'tiktok_third_party'))
+  if (origins) where.push(origins)
+  const destinations = anyOf(q.destinations, d => d === 'instagram' ? or(hasPublication(), hasJob(['queued', 'running', 'failed'], ['publish_instagram']))! : hasJob(['done'], ['export_tiktok']))
+  if (destinations) where.push(destinations)
+  if (q.publicationAccounts?.length) where.push(sql`EXISTS (SELECT 1 FROM ${publicationHistory} WHERE ${publicationHistory.workspaceId} = ${mediaAssets.workspaceId} AND (${publicationHistory.assetSha} = ${mediaAssets.sha256} OR EXISTS (SELECT 1 FROM ${remotePosts} WHERE ${remotePosts.workspaceId} = ${mediaAssets.workspaceId} AND ${remotePosts.assetId} = ${mediaAssets.id} AND ${remotePosts.id} = ${publicationHistory.postId})) AND lower(${publicationHistory.username}) IN (${sql.join(lowered(q.publicationAccounts).map(u => sql`${u}`), sql`, `)}))`)
   const metricColumn = (key: 'views' | 'likes' | 'comments') => sql`(select ${remotePosts[key]} from ${remotePosts} where ${remotePosts.workspaceId} = ${mediaAssets.workspaceId} and ${remotePosts.assetId} = ${mediaAssets.id} order by ${remotePosts.metricsUpdatedAt} desc, ${remotePosts.id} asc limit 1)`
   if (q.minViews !== undefined) where.push(sql`${metricColumn('views')} >= ${q.minViews}`)
   if (q.minLikes !== undefined) where.push(sql`${metricColumn('likes')} >= ${q.minLikes}`)
@@ -78,6 +96,7 @@ function libraryGrid(db: Db, q: GridQuery): GridPage {
   if (q.from) where.push(gte(mediaAssets.importedAt, iso(q.from)))
   if (q.to) where.push(lte(mediaAssets.importedAt, iso(q.to)))
   if (q.maxDurationMs !== undefined) where.push(lte(mediaAssets.durationMs, q.maxDurationMs))
+  if (q.minDurationMs !== undefined) where.push(gte(mediaAssets.durationMs, q.minDurationMs))
   if (q.favoritesOnly) where.push(eq(mediaAssets.favorite, true))
   const order = q.sortBy === 'durationMs' ? orderFor(mediaAssets.durationMs, q.sortDir)
     : (q.sortBy === 'views' || q.sortBy === 'likes' || q.sortBy === 'comments') ? [sql`${metricColumn(q.sortBy as 'views' | 'likes' | 'comments')} is null`, q.sortDir === 'asc' ? asc(metricColumn(q.sortBy as 'views' | 'likes' | 'comments')) : desc(metricColumn(q.sortBy as 'views' | 'likes' | 'comments')), desc(mediaAssets.importedAt)] : orderFor(mediaAssets.importedAt, q.sortBy === 'importedAt' ? q.sortDir : 'desc')
@@ -110,6 +129,23 @@ function libraryGrid(db: Db, q: GridQuery): GridPage {
       durationMs: r.durationMs, metrics: { views: post?.views ?? null, likes: post?.likes ?? null, comments: post?.comments ?? null }, badges, publishedAccounts, sourcePlatform: source?.platform ?? null, sourceProfile: source?.username ?? null }
   })
   return { items, total, loadedNote: `${total} vídeos encontrados na biblioteca.` }
+}
+
+/**
+ * Options of the Library list filters: tracked profiles with at least one downloaded video still in the
+ * Library (archived profiles included, their videos remain), and accounts in the publication history.
+ */
+export function libraryFilterOptions(db: Db, workspaceId: string): LibraryFilterOptions {
+  const profiles = db.select({ id: trackedProfiles.id, username: trackedProfiles.username, platform: trackedProfiles.platform, count: sql<number>`count(distinct ${mediaAssets.id})` })
+    .from(remotePosts)
+    .innerJoin(mediaAssets, and(eq(mediaAssets.workspaceId, remotePosts.workspaceId), eq(mediaAssets.id, remotePosts.assetId)))
+    .innerJoin(trackedProfiles, and(eq(trackedProfiles.workspaceId, remotePosts.workspaceId), eq(trackedProfiles.id, remotePosts.profileId)))
+    .where(eq(remotePosts.workspaceId, workspaceId))
+    .groupBy(trackedProfiles.id).orderBy(asc(trackedProfiles.username)).all()
+  const accounts = db.select({ username: publicationHistory.username, count: sql<number>`count(distinct coalesce(${publicationHistory.assetSha}, ${publicationHistory.postId}, ${publicationHistory.jobId}))` })
+    .from(publicationHistory).where(eq(publicationHistory.workspaceId, workspaceId))
+    .groupBy(publicationHistory.username).orderBy(asc(publicationHistory.username)).all()
+  return { profiles, accounts }
 }
 
 export function queryGrid(db: Db, q: GridQuery): GridPage {

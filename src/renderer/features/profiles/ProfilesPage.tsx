@@ -29,24 +29,20 @@ import {
   Input,
   Modal,
   useToast,
-  FilterBar,
   FilterSearch,
-  FacetFilter,
-  FilterPopover,
-  FilterSection,
-  FilterPresets,
-  ActiveFilters,
-  ChipGroup,
-  Segmented,
+  FilterFields,
+  FilterPanel,
+  FilterToggle,
+  useFilterPanel,
   Pagination,
   SortMenu,
-  SelectionBar,
-  type ActiveFilter
+  SelectionBar
 } from '../../components/ui'
 import { ActionIcon } from '../../components/ActionIcon'
 import { MediaPreview } from '../../components/MediaPreview'
 import { MediaGrid } from '../../components/MediaGrid'
 import { useGridQuery } from './useGridQuery'
+import { useProfileFilters } from './profile-filters'
 import {
   emptySelection,
   toggleId,
@@ -162,9 +158,9 @@ export function ProfilesPage({ navigate }: PageProps) {
   const [reelError, setReelError] = useState<string>()
   const [sortBy, setSortBy] = useState<Sort>('views')
   const [sortDir, setSortDir] = useState<SortDir>('desc')
-  const [text, setText] = useState('')
-  const [hashtag, setHashtag] = useState('')
-  const [minViews, setMinViews] = useState('')
+  const filters = useProfileFilters(workspace.timeZone)
+  const panel = useFilterPanel('legacy.profiles.filters', false)
+  const filterIdentity = JSON.stringify(filters.query)
   const [selection, setSelection] = useState<Selection>(emptySelection())
   const [downloadOpen, setDownloadOpen] = useState(false)
   const [downloadLimit, setDownloadLimit] = useState('20')
@@ -179,9 +175,6 @@ export function ProfilesPage({ navigate }: PageProps) {
   const [scheduleAt, setScheduleAt] = useState('')
   const [intervalMin, setIntervalMin] = useState('60')
   const [scheduleCaption, setScheduleCaption] = useState('')
-  const [minLikes, setMinLikes] = useState('')
-  const [minComments, setMinComments] = useState('')
-  const [mediaKind, setMediaKind] = useState<'all' | 'videos' | 'images'>('all')
   const [topItems, setTopItems] = useState<GridItem[]>([])
   const [gridPage, setGridPage] = useState(1), [gridPageSize, setGridPageSize] = useState(60)
   const ids = selection.mode === 'ids' ? [...selection.ids] : []
@@ -306,27 +299,12 @@ export function ProfilesPage({ navigate }: PageProps) {
       profileId: active?.id,
       sortBy,
       sortDir,
-      text: text || undefined,
-      hashtag: hashtag || undefined,
-      minViews: minViews ? Number(minViews) : undefined,
-      minLikes: minLikes ? Number(minLikes) : undefined,
-      minComments: minComments ? Number(minComments) : undefined,
-      mediaKind
+      ...filters.query
     },
     Boolean(active),
     gridPage,
     gridPageSize
   )
-
-  const activeFilters: ActiveFilter[] = [
-    ...(text ? [{ key: 'text', label: 'Legenda: ' + text, clear: () => setText('') }] : []),
-    ...(hashtag ? [{ key: 'hashtag', label: 'Hashtag: ' + hashtag, clear: () => setHashtag('') }] : []),
-    ...(minViews ? [{ key: 'views', label: 'Views ≥ ' + Number(minViews).toLocaleString('pt-BR'), clear: () => setMinViews('') }] : []),
-    ...(minLikes ? [{ key: 'likes', label: 'Curtidas ≥ ' + Number(minLikes).toLocaleString('pt-BR'), clear: () => setMinLikes('') }] : []),
-    ...(minComments ? [{ key: 'comments', label: 'Comentários ≥ ' + Number(minComments).toLocaleString('pt-BR'), clear: () => setMinComments('') }] : []),
-    ...(mediaKind !== 'all' ? [{ key: 'kind', label: mediaKind === 'videos' ? 'Vídeos/reels' : 'Fotos/carrosséis', clear: () => setMediaKind('all') }] : [])
-  ]
-  const clearFilters = () => { setText(''); setHashtag(''); setMinViews(''); setMinLikes(''); setMinComments(''); setMediaKind('all') }
 
   const knownItems = new Map([...topItems, ...grid.items].map((i) => [i.id, i]))
   const missingVideo = ids.some((id) => !knownItems.get(id)?.assetId)
@@ -359,12 +337,7 @@ export function ProfilesPage({ navigate }: PageProps) {
     active?.id,
     sortBy,
     sortDir,
-    text,
-    hashtag,
-    minViews,
-    minLikes,
-    minComments,
-    mediaKind
+    filterIdentity
   ])
   const selectTop = useMutation({
     mutationFn: () =>
@@ -376,27 +349,9 @@ export function ProfilesPage({ navigate }: PageProps) {
         sortDir: 'desc',
         limit: Number(topCount),
         offset: 0,
-        text: text || undefined,
-        hashtag: hashtag || undefined,
-        mediaKind,
-        minViews:
-          sortBy === 'views'
-            ? Math.max(0, Number(minViews))
-            : minViews
-              ? Number(minViews)
-              : undefined,
-        minLikes:
-          sortBy === 'likes'
-            ? Math.max(0, Number(minLikes))
-            : minLikes
-              ? Number(minLikes)
-              : undefined,
-        minComments:
-          sortBy === 'comments'
-            ? Math.max(0, Number(minComments))
-            : minComments
-              ? Number(minComments)
-              : undefined
+        ...filters.query,
+        // Ranking by a metric leaves out posts where that metric is unavailable.
+        ...(sortBy === 'views' ? { minViews: filters.query.minViews ?? 0 } : sortBy === 'likes' ? { minLikes: filters.query.minLikes ?? 0 } : sortBy === 'comments' ? { minComments: filters.query.minComments ?? 0 } : {})
       }),
     onMutate: () => setSortDir('desc'),
     onSuccess: (page) => {
@@ -769,39 +724,19 @@ export function ProfilesPage({ navigate }: PageProps) {
                 <ActionIcon size="sm" variant="ghost" label="Importar métricas (CSV/JSON)" onClick={() => importFile.mutate()}><FileUp size={15} /></ActionIcon>
               </div>
             </div>
-            <section aria-label="Filtros dos posts" className="ds-filter-card shrink-0">
-              <FilterBar label="Filtrar posts" actions={
+            <div role="search" aria-label="Filtrar posts" className="ds-filter-toolbar shrink-0">
+              <FilterSearch label="Texto na legenda" placeholder="Buscar palavras na legenda" value={filters.text} onChange={filters.setText} className="ds-filter-toolbar-search" />
+              <FilterFields state={panel} groups={filters.groups} />
+              <div className="ds-filter-toolbar-actions">
                 <SortMenu<Sort> value={sortBy} onChange={setSortBy} direction={sortDir} onDirection={setSortDir} options={[
                   { value: 'views', label: 'Visualizações', directions: ['Mais vistos primeiro', 'Menos vistos primeiro'] },
                   { value: 'likes', label: 'Curtidas', directions: ['Mais curtidos primeiro', 'Menos curtidos primeiro'] },
                   { value: 'comments', label: 'Comentários', directions: ['Mais comentados primeiro', 'Menos comentados primeiro'] },
                   { value: 'postedAt', label: 'Data de publicação', directions: ['Recentes primeiro', 'Antigos primeiro'] }
                 ]} />
-              }>
-                <FilterSearch label="Texto na legenda" placeholder="Buscar palavras na legenda" value={text} onChange={setText} />
-                <FacetFilter label="Tipo de mídia" value={mediaKind === 'all' ? [] : [mediaKind]} onChange={v => setMediaKind((v[0] ?? 'all') as typeof mediaKind)} options={[{ value: 'videos', label: 'Vídeos/reels' }, { value: 'images', label: 'Fotos/carrosséis' }]} />
-                <FilterPopover label="Filtros avançados" width={420} count={[hashtag, minViews, minLikes, minComments].filter(Boolean).length} total={grid.total} onReset={() => { setHashtag(''); setMinViews(''); setMinLikes(''); setMinComments('') }}>
-                  <FilterSection title="Conteúdo">
-                    <Input label="Hashtag" placeholder="#viagem" value={hashtag} onChange={e => setHashtag(e.target.value)} className="w-full" />
-                  </FilterSection>
-                  <FilterSection title="Desempenho mínimo">
-                    <ChipGroup label="Views mínimas rápidas" value={['', '1000', '10000', '100000', '1000000'].includes(minViews) ? minViews || 'any' : 'custom'} onChange={v => v !== 'custom' && setMinViews(v === 'any' ? '' : v)} options={[{ value: 'any', label: 'Qualquer' }, { value: '1000', label: '1 mil+' }, { value: '10000', label: '10 mil+' }, { value: '100000', label: '100 mil+' }, { value: '1000000', label: '1 mi+' }]} />
-                    <div className="grid grid-cols-3 items-end gap-3">
-                      <Input label="Mínimo de views" placeholder="Sem mínimo" type="number" min={0} value={minViews} onChange={e => setMinViews(e.target.value.replace(/\D/g, ''))} className="w-full" />
-                      <Input label="Mínimo de curtidas" placeholder="Sem mínimo" type="number" min={0} value={minLikes} onChange={e => setMinLikes(e.target.value.replace(/\D/g, ''))} className="w-full" />
-                      <Input label="Mínimo de comentários" placeholder="Sem mínimo" type="number" min={0} value={minComments} onChange={e => setMinComments(e.target.value.replace(/\D/g, ''))} className="w-full" />
-                    </div>
-                  </FilterSection>
-                </FilterPopover>
-              </FilterBar>
-              <FilterPresets presets={[
-                { id: 'viral', label: 'Virais (100 mil+ views)', active: minViews === '100000' && !minLikes && !minComments, apply: () => { clearFilters(); setMinViews('100000'); setSortBy('views') } },
-                { id: 'talk', label: 'Muito comentados (100+)', active: minComments === '100' && !minViews && !minLikes, apply: () => { clearFilters(); setMinComments('100'); setSortBy('comments') } },
-                { id: 'loved', label: 'Muito curtidos (10 mil+)', active: minLikes === '10000' && !minViews && !minComments, apply: () => { clearFilters(); setMinLikes('10000'); setSortBy('likes') } },
-                { id: 'videos', label: 'Só vídeos recentes', active: mediaKind === 'videos' && sortBy === 'postedAt', apply: () => { clearFilters(); setMediaKind('videos'); setSortBy('postedAt'); setSortDir('desc') } }
-              ]} />
-              <ActiveFilters filters={activeFilters} total={grid.total} noun="posts" onClear={clearFilters} />
-            </section>
+                <FilterToggle state={panel} count={filters.count} />
+              </div>
+            </div>
             <SelectionBar count={selectionCount(selection)} label={selectionLabel(selection)} onClear={() => setSelection(emptySelection())}
               hint="Selecione posts (ou Ctrl + clique nos cards) para baixar os vídeos, preparar um lote ou programar no Instagram."
               helpers={<>
@@ -827,9 +762,9 @@ export function ProfilesPage({ navigate }: PageProps) {
             ) : grid.items.length === 0 && !grid.isLoading ? (
               <EmptyState
                 icon={null}
-                title={activeFilters.length ? 'Nenhum post corresponde aos filtros' : 'Nenhum post ainda'}
-                body={activeFilters.length ? 'Remova ou ajuste os filtros para encontrar outros posts.' : 'Adicione links de reels ou importe um CSV com permalink, views, likes e comments.'}
-                action={activeFilters.length ? <Button onClick={clearFilters}>Limpar filtros</Button> : undefined}
+                title={filters.active ? 'Nenhum post corresponde aos filtros' : 'Nenhum post ainda'}
+                body={filters.active ? 'Remova ou ajuste os filtros para encontrar outros posts.' : 'Adicione links de reels ou importe um CSV com permalink, views, likes e comments.'}
+                action={filters.active ? <Button onClick={filters.clear}>Limpar filtros</Button> : undefined}
               />
             ) : (
               <MediaGrid
@@ -844,6 +779,7 @@ export function ProfilesPage({ navigate }: PageProps) {
           </>
         )}
       </section>
+      {active && <FilterPanel state={panel} groups={filters.groups} count={filters.count} onClearAll={filters.clear} total={grid.isLoading ? null : grid.total} noun="posts" storageKey="legacy.profiles.filtersWidth" searchable={false} plain />}
       {preview && (
         <MediaPreview
           key={preview.id}

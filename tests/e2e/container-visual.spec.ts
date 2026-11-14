@@ -1,3 +1,4 @@
+import { openLibraryDrafts } from './helpers'
 import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync, mkdirSync, readFileSync, readdirSync }  from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -84,7 +85,7 @@ test('Configuração visual no Sheet → rascunho → revisão → snapshot cong
       const r = await window.legacy.invoke('containers.updateDraft', { workspaceId: ws, containerId: saved.id, expectedRevision: saved.revision, draft: { name: saved.name, destinationAccountId: saved.destinationAccountId, provider: saved.provider, accountRevision: saved.accountRevision, timeZone: saved.timeZone, plannedStartAt: future.toISOString(), intervalMin: 15, visualSnapshot: saved.visualSnapshot, items: [{ assetId: 'qa-000' }] } }) as IpcResult<Outputs['containers.updateDraft']>
       if (!r.ok) throw Error(JSON.stringify(r))
     }, { ws, saved })
-    await page.getByRole('button', { name: 'Containers em rascunho', exact: true }).click()
+    await openLibraryDrafts(page)
     await page.getByRole('button', { name: /Visual QA/ }).click()
     await page.getByRole('button', { name: 'Configuração visual', exact: true }).click()
     await expect(page.getByLabel('Opacidade da marca d’água (%)', { exact: true })).toHaveValue('50')

@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join, resolve } from 'node:path'
 import { execFileSync } from 'node:child_process'
 import type { IpcResult, Outputs } from '../../src/shared/ipc-contract'
-import { openSettings } from './helpers'
+import { openLibraryDrafts, openSettings } from './helpers'
 
 /**
  * PR 06 in the real app: peak windows configured in Settings, four drafts distributed in selection order,
@@ -58,7 +58,7 @@ test('Janelas de pico → distribuição de 4 Containers → aplicar aos rascunh
     }, ws)
 
     await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
-    await page.getByRole('button', { name: 'Containers em rascunho', exact: true }).click()
+    await openLibraryDrafts(page)
     for (const name of ['A', 'B', 'C', 'D']) await page.getByRole('checkbox', { name: `Distribuir Container ${name}`, exact: true }).check()
     await page.getByRole('button', { name: 'Distribuir em horários de pico (4)', exact: true }).click()
     const region = page.getByRole('region', { name: 'Distribuição em horários de pico' })

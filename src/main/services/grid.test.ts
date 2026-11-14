@@ -3,12 +3,12 @@ import { memDb } from '../test-utils'
 import { createWorkspace } from '../repos/workspaces'
 import { addProfileFromUrl, type Profile } from '../repos/profiles'
 import { importMetrics } from './metrics-import'
-import { queryGrid } from './grid'
+import { queryGrid, libraryFilterOptions } from './grid'
 import { insertAsset } from '../repos/assets'
 import { enqueue, leaseNext, complete } from '../queue/queue'
 import type { Ctx } from '../context'
 import { setRemoteFavorite } from '../repos/remote-posts'
-import { remotePosts } from '../db/schema'
+import { remotePosts, publicationHistory } from '../db/schema'
 import { eq, sql } from 'drizzle-orm'
 import type { GridQuery } from '@shared/types'
 
@@ -152,5 +152,76 @@ describe('queryGrid library', () => {
     const other = createWorkspace(ctx.db, { name: 'B', timeZone: 'UTC' }).id
     mk('w1', ws)
     expect(queryGrid(ctx.db, base({ source: 'library', profileId: undefined, workspaceId: other })).items).toEqual([])
+  })
+})
+
+describe('filtros em lista', () => {
+  const lib = (over: Partial<GridQuery> = {}) => queryGrid(ctx.db, base({ source: 'library', profileId: undefined, sortBy: 'importedAt', ...over }))
+  const ids = (over: Partial<GridQuery> = {}) => lib(over).items.map(i => i.id).sort()
+  const asset = (id: string, over: object = {}) => insertAsset(ctx.db, {
+    id, workspaceId: ws, origin: 'pc', sourceName: id + '.mp4', filePath: 'C:/x/' + id, sha256: 'sha-' + id, sizeBytes: 1,
+    durationMs: 10_000, width: 1080, height: 1920, videoCodec: 'h264', validationJson: '{}', importedAt: '2026-10-01T00:00:00Z', ...over
+  })
+  const link = (assetId: string, permalinkCode: string) => {
+    const post = queryGrid(ctx.db, base()).items.find(i => i.permalink!.includes(permalinkCode))!
+    ctx.db.update(remotePosts).set({ assetId }).where(eq(remotePosts.id, post.id)).run()
+    return post.id
+  }
+  beforeEach(() => {
+    asset('local'); asset('ig', { origin: 'ig_third_party', durationMs: 45_000 }); asset('tt', { origin: 'tiktok_third_party', durationMs: 95_000 })
+    enqueue(ctx.db, { workspaceId: ws, type: 'publish_instagram', label: 'Publicar', payload: { localAssetId: 'local' } }, ctx.clock())
+  })
+  it('estados se unem por OU, incluindo Não agendado', () => {
+    expect(ids({ statuses: ['scheduled'] })).toEqual(['local'])
+    expect(ids({ statuses: ['unscheduled'] })).toEqual(['ig', 'tt'])
+    expect(ids({ statuses: ['scheduled', 'unscheduled'] })).toEqual(['ig', 'local', 'tt'])
+    expect(ids({ statuses: ['ready', 'unpublished'] })).toEqual(['ig', 'local', 'tt'])
+    expect(ids({ statuses: [] })).toEqual(['ig', 'local', 'tt'])
+  })
+  it('perfis de origem por id se unem por OU e combinam com outros filtros por E', () => {
+    link('ig', 'AAAAA1')
+    const second = addProfileFromUrl(ctx, ws, '@segundo')
+    importMetrics(ctx, ws, second.id, 'permalink,views\nhttps://www.instagram.com/reel/BBBBB1/,10', 'csv')
+    const other = queryGrid(ctx.db, base({ profileId: second.id })).items[0]
+    ctx.db.update(remotePosts).set({ assetId: 'tt' }).where(eq(remotePosts.id, other.id)).run()
+    expect(ids({ sourceProfileIds: [profile.id] })).toEqual(['ig'])
+    expect(ids({ sourceProfileIds: [profile.id, second.id] })).toEqual(['ig', 'tt'])
+    expect(ids({ sourceProfileIds: [profile.id, second.id], origins: ['tiktok'] })).toEqual(['tt'])
+  })
+  it('origem, destino e faixa de duração', () => {
+    expect(ids({ origins: ['pc'] })).toEqual(['local'])
+    expect(ids({ origins: ['instagram', 'tiktok'] })).toEqual(['ig', 'tt'])
+    expect(ids({ destinations: ['instagram'] })).toEqual(['local'])
+    expect(ids({ destinations: ['tiktok'] })).toEqual([])
+    expect(ids({ minDurationMs: 30_000, maxDurationMs: 60_000 })).toEqual(['ig'])
+    expect(ids({ minDurationMs: 90_001 })).toEqual(['tt'])
+  })
+  it('contas que publicaram se unem por OU', () => {
+    ctx.db.insert(publicationHistory).values([
+      { jobId: 'h1', workspaceId: ws, accountId: '1', username: 'conta.a', assetSha: 'sha-ig', provenanceJson: '{}', publishedAt: '2026-10-02T00:00:00Z' },
+      { jobId: 'h2', workspaceId: ws, accountId: '2', username: 'conta.b', assetSha: 'sha-tt', provenanceJson: '{}', publishedAt: '2026-10-02T00:00:00Z' }
+    ]).run()
+    expect(ids({ publicationAccounts: ['conta.a'] })).toEqual(['ig'])
+    expect(ids({ publicationAccounts: ['CONTA.A', 'conta.b'] })).toEqual(['ig', 'tt'])
+  })
+  it('remoto: baixados, publicados e duração mínima', () => {
+    const downloaded = link('ig', 'AAAAA2')
+    ctx.db.insert(publicationHistory).values({ jobId: 'h3', workspaceId: ws, accountId: '1', username: 'conta.a', postId: downloaded, provenanceJson: '{}', publishedAt: '2026-10-02T00:00:00Z' }).run()
+    expect(codes(queryGrid(ctx.db, base({ downloaded: true })).items)).toEqual(['AAAAA2'])
+    expect(codes(queryGrid(ctx.db, base({ downloaded: false })).items)).toEqual(['AAAAA3', 'AAAAA1'])
+    expect(codes(queryGrid(ctx.db, base({ published: true })).items)).toEqual(['AAAAA2'])
+    expect(codes(queryGrid(ctx.db, base({ published: false })).items)).toEqual(['AAAAA3', 'AAAAA1'])
+    expect(codes(queryGrid(ctx.db, base({ minDurationMs: 30_000 })).items)).toEqual(['AAAAA1', 'AAAAA2'])
+  })
+  it('opções de filtro listam só perfis com vídeo baixado e contas do histórico', () => {
+    link('ig', 'AAAAA1'); link('tt', 'AAAAA3')
+    addProfileFromUrl(ctx, ws, '@sem.download')
+    ctx.db.insert(publicationHistory).values({ jobId: 'h4', workspaceId: ws, accountId: '1', username: 'conta.a', assetSha: 'sha-ig', provenanceJson: '{}', publishedAt: '2026-10-02T00:00:00Z' }).run()
+    expect(libraryFilterOptions(ctx.db, ws)).toEqual({
+      profiles: [{ id: profile.id, username: 'perfil', platform: 'instagram', count: 2 }],
+      accounts: [{ username: 'conta.a', count: 1 }]
+    })
+    const other = createWorkspace(ctx.db, { name: 'B', timeZone: 'UTC' }).id
+    expect(libraryFilterOptions(ctx.db, other)).toEqual({ profiles: [], accounts: [] })
   })
 })

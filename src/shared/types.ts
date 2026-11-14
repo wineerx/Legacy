@@ -31,6 +31,10 @@ export interface GridItem {
 
 export const MEDIA_STATE_LABELS: Record<string, string> = { ready: 'Pronto', processing: 'Processando', scheduled: 'Agendado', published: 'Publicado', failed: 'Falhou', queued: 'Aguardando', running: 'Em execução', exported: 'Exportado para publicação manual' }
 export type MediaState = 'ready' | 'processing' | 'scheduled' | 'published' | 'failed'
+/** Library state filter: the computed state, plus "no publication history" and "no pending Instagram publication". */
+export type LibraryStateFilter = MediaState | 'unpublished' | 'unscheduled'
+export type LibraryOriginFilter = 'pc' | 'instagram' | 'tiktok'
+export type LibraryDestinationFilter = 'instagram' | 'tiktok'
 export interface MediaUsage { id: string; platform: 'Instagram' | 'TikTok'; account: string | null; state: string; at: string; error: string | null }
 export interface MediaDetails {
   name: string; sizeBytes: number; durationMs: number; width: number; height: number; audioCodec: string | null
@@ -61,6 +65,17 @@ export interface GridQuery {
   sourceProfile?: string
   publicationAccount?: string
   platform?: 'instagram' | 'tiktok'
+  /** Lists combine with OR inside, AND with every other filter. Empty lists do not filter. */
+  statuses?: LibraryStateFilter[]
+  sourceProfileIds?: string[]
+  origins?: LibraryOriginFilter[]
+  destinations?: LibraryDestinationFilter[]
+  publicationAccounts?: string[]
+  minDurationMs?: number
+  /** Remote grid: post has a downloaded copy in the Library. */
+  downloaded?: boolean
+  /** Remote grid: post appears in the publication history. */
+  published?: boolean
   limit: number
   offset: number
 }

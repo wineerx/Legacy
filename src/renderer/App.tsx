@@ -44,7 +44,7 @@ function Shell() {
     <TutorialProvider page={page} navigate={setPage}>{/* The sidebar spans the full height; the status bar sits only under the content. */}<div className="flex h-full min-w-0">
       <Profiler id="Sidebar" onRender={perfDebug ? onRender : () => {}}><Sidebar current={page} onNavigate={setPage} unread={unread} collapsed={collapsed} onToggle={() => setCollapsed((c) => {try{localStorage.setItem('legacy.sidebarCollapsed',String(!c))}catch{/* unavailable */}return !c})} /></Profiler>
       <div className="grid min-h-0 min-w-0 flex-1 grid-rows-[minmax(0,1fr)_auto]">
-        <main tabIndex={-1} className="min-w-0 flex-1 overflow-auto bg-app"><div key={`${workspace.id}:${page}`} className={page === 'profiles' ? 'page-enter h-full' : 'page-enter'}><Profiler id={page} onRender={perfDebug ? onRender : () => {}}><Page navigate={setPage} /></Profiler></div></main>
+        <main tabIndex={-1} className="min-w-0 flex-1 overflow-auto bg-app"><div key={`${workspace.id}:${page}`} className={page === 'profiles' || page === 'library' ? 'page-enter h-full' : 'page-enter'}><Profiler id={page} onRender={perfDebug ? onRender : () => {}}><Page navigate={setPage} /></Profiler></div></main>
         <Profiler id="Diagnostics" onRender={perfDebug ? onRender : () => {}}><DiagnosticPanel navigate={setPage} /></Profiler>
       </div>
       <Celebration />

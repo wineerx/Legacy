@@ -1,3 +1,4 @@
+import { openLibraryDrafts } from './helpers'
 import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -47,7 +48,7 @@ test('captura auditoria de UI', async () => {
     await page.screenshot({ path: join(out, '12-library-filters.png') })
     await page.getByRole('checkbox', { name: 'Selecionar meme-23.mp4' }).check().catch(() => {}); await page.waitForTimeout(300)
     await page.screenshot({ path: join(out, '12b-library-selection.png') })
-    await page.getByRole('button', { name: 'Containers em rascunho', exact: true }).first().click(); await page.waitForTimeout(500)
+    await openLibraryDrafts(page); await page.waitForTimeout(500)
     await page.screenshot({ path: join(out, '13-containers-sheet.png') })
     // Keyboard: a single Escape closes the Sheet (focus no longer lands on the tooltip-bearing close button).
     await page.keyboard.press('Escape'); await expect(page.getByRole('dialog')).toHaveCount(0)
