@@ -1,3 +1,4 @@
+import { openLibraryDrafts } from './helpers'
 import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -73,7 +74,7 @@ test('Biblioteca → Container rascunho → revisão: persistência, seleção, 
     await page.getByRole('button', { name: 'Salvar rascunho', exact: true }).click()
     await expect(page.getByText('Rascunho salvo. Nenhum job foi criado e nenhum vídeo foi processado.', { exact: true })).toBeVisible()
     await page.getByRole('button', { name: 'Fechar', exact: true }).click()
-    await page.getByRole('button', { name: 'Containers em rascunho', exact: true }).click()
+    await openLibraryDrafts(page)
     await page.getByRole('button', { name: /Lote QA rascunho/ }).click()
     await expect(page.getByTestId('draft-video')).toHaveCount(3)
     await page.getByLabel('Nome do Container', { exact: true }).fill('Lote revisado')
@@ -93,7 +94,7 @@ test('Biblioteca → Container rascunho → revisão: persistência, seleção, 
     await page.getByRole('button', { name: 'Salvar rascunho', exact: true }).click()
     await expect(page.getByText('Rascunho salvo. Nenhum job foi criado e nenhum vídeo foi processado.', { exact: true })).toBeVisible()
     await page.getByRole('button', { name: 'Fechar', exact: true }).click()
-    await page.getByRole('button', { name: 'Containers em rascunho', exact: true }).click()
+    await openLibraryDrafts(page)
     await page.getByRole('button', { name: /Grande rascunho/ }).click()
     await expect(page.getByTestId('draft-video')).toHaveCount(205)
     await page.getByRole('button', { name: 'Remover video-000.mp4', exact: true }).click()

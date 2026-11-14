@@ -1,5 +1,10 @@
 import type { ElectronApplication, Page } from '@playwright/test'
 
+export async function openLibraryDrafts(page: Page): Promise<void> {
+  await page.getByRole('button', { name: 'Ações da biblioteca', exact: true }).click()
+  await page.getByRole('button', { name: 'Containers em rascunho', exact: true }).click()
+}
+
 // Configurações saiu do menu lateral; o acesso fica no menu do perfil.
 export async function openSettings(page: Page): Promise<void> {
   await page.getByRole('button', { name: 'Menu do usuário' }).click()

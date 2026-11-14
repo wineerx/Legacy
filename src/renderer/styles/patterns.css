@@ -45,10 +45,7 @@
 .ds-filterbar-main { display:flex; flex:1 1 420px; flex-wrap:wrap; align-items:center; gap:8px; min-width:0; }
 .ds-filterbar-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-left:auto; }
 .ds-filter-search { position:relative; flex:0 1 280px; min-width:180px; }
-.ds-filter-search input { width:100%; height:32px; padding:0 28px 0 32px; border:1px solid var(--color-line); border-radius:var(--radius-ctl); background:var(--color-app); color:var(--color-fg); font-size:13px; transition:border-color 140ms; }
-.ds-filter-search input::placeholder { color:var(--color-mute); }
-.ds-filter-search input:hover { border-color:var(--color-line-strong); }
-.ds-filter-search input:focus-visible { border-color:var(--color-dim); outline:2px solid var(--color-line-strong); outline-offset:1px; }
+.ds-filter-search input { height:32px; padding:0 28px 0 32px; }
 .ds-filter-search input::-webkit-search-cancel-button { display:none; }
 .ds-filter-search > button { position:absolute; right:6px; top:50%; display:grid; width:20px; height:20px; place-items:center; border-radius:5px; color:var(--color-dim); transform:translateY(-50%); }
 .ds-filter-search > button:hover { background:var(--color-raised); color:var(--color-fg); }
@@ -87,6 +84,44 @@
 /* Filter card: the bar on top, active chips below, both inside one panel above the content. */
 .ds-filter-card { display:grid; gap:10px; padding:12px; border:1px solid var(--color-line); border-radius:var(--radius-card); background:var(--color-panel); }
 .ds-filter-card > .ds-active-filters { padding-top:10px; border-top:1px solid color-mix(in srgb,var(--color-line) 70%,transparent); }
+
+/* Side filter panel: dashed fields in the bar, collapsible groups in a column on the right. */
+.ds-filter-toolbar { display:flex; flex-wrap:wrap; align-items:center; gap:8px; min-width:0; }
+.ds-filter-toolbar > .ds-filter-toolbar-search { flex:1 1 260px; max-width:420px; }
+.ds-filter-toolbar-actions { display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-left:auto; }
+.ds-filter-field { display:inline-flex; min-height:32px; max-width:100%; flex-wrap:wrap; align-items:center; gap:4px; padding:3px 6px 3px 3px; border:1px dashed var(--color-line-strong); border-radius:var(--radius-ctl); background:transparent; font-size:12px; transition:background-color 140ms,border-color 140ms; }
+.ds-filter-field:hover { border-color:var(--color-dim); }
+.ds-filter-field[data-active] { background:var(--color-side); }
+.ds-filter-field-trigger { display:inline-flex; height:24px; align-items:center; gap:5px; padding:0 6px; border-radius:6px; color:var(--color-fg); font-weight:500; white-space:nowrap; }
+.ds-filter-field-trigger:hover, .ds-filter-field-trigger[data-state=open] { background:var(--color-raised); }
+.ds-filter-token { display:inline-flex; max-width:180px; height:22px; align-items:center; gap:2px; padding:0 2px 0 7px; border-radius:5px; background:var(--color-raised); font-size:11px; }
+.ds-filter-token > button { display:grid; width:16px; height:16px; place-items:center; border-radius:4px; color:var(--color-dim); }
+.ds-filter-token > button:hover, .ds-filter-token > button:focus-visible { background:var(--color-line); color:var(--color-fg); }
+.ds-filter-toggle[aria-pressed=true] { border-style:solid; background:var(--color-raised); }
+.ds-filter-search-block { flex:none; min-width:0; }
+.ds-option-row { display:flex; min-height:30px; align-items:center; gap:9px; padding:0 8px; border-radius:6px; font-size:12px; cursor:pointer; }
+.ds-option-row:hover { background:var(--color-raised); }
+.ds-option-row > input { margin:0; }
+.ds-filter-aside { background:var(--color-panel); }
+.ds-filter-aside.ds-filter-aside-plain { background:transparent; }
+.ds-filter-drawer[data-side=left] { right:auto; left:0; border-right:1px solid var(--color-line); border-left:0; }
+.ds-filter-aside-title { font-size:18px; font-weight:700; line-height:24px; letter-spacing:-.01em; }
+.ds-filter-badge { display:inline-grid; min-width:18px; height:18px; flex-shrink:0; place-items:center; padding:0 5px; border-radius:999px; background:var(--color-fg); color:var(--color-app); font-size:10px; font-weight:700; font-variant-numeric:tabular-nums; }
+.ds-filter-group .ds-filter-group-trigger .collapsible-chevron { transform:none; }
+.ds-filter-group .ds-filter-group-trigger[data-state=open] .collapsible-chevron { transform:rotate(180deg); }
+.ds-filter-group .collapsible-body.ds-filter-group-body { margin:0; padding:0 12px 14px; border-top:0; }
+.ds-filter-aside-header { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:14px 16px 10px; }
+.ds-filter-clear { height:26px; padding:0 10px; border:1px solid var(--color-line); border-radius:6px; background:var(--color-raised); color:var(--color-fg); font-size:12px; font-weight:600; }
+.ds-filter-clear:hover:not(:disabled) { border-color:var(--color-line-strong); }
+.ds-filter-clear:disabled { opacity:.4; cursor:not-allowed; }
+.ds-filter-aside-body { display:grid; min-height:0; flex:1; align-content:start; overflow-y:auto; scrollbar-width:none; padding:0 0 12px; }
+.collapsible.ds-filter-group, .collapsible.ds-filter-group[data-state] { border:0; border-top:1px dashed var(--color-line); border-radius:0; background:transparent; }
+.ds-filter-group .ds-filter-group-trigger { border-radius:0; display:flex; width:100%; align-items:center; justify-content:space-between; gap:8px; padding:12px 16px; font-size:13px; font-weight:600; text-align:left; }
+.ds-filter-group-trigger:hover { background:color-mix(in srgb,var(--color-raised) 50%,transparent); }
+.ds-filter-group-trigger:focus-visible { outline-offset:-3px; }
+.ds-filter-group-body { display:grid; gap:10px; padding:0 12px 14px; }
+.ds-filter-aside-footer { padding:10px 16px; border-top:1px solid var(--color-line); color:var(--color-dim); font-size:12px; font-variant-numeric:tabular-nums; }
+.ds-filter-drawer { position:fixed; inset-block:0; right:0; z-index:50; display:flex; width:min(320px,100vw); flex-direction:column; border-left:1px solid var(--color-line); background:var(--color-panel); box-shadow:-12px 0 30px #0008; }
 
 /* Table card (api keys / leads reference). */
 .ds-table { width:100%; border-collapse:collapse; text-align:left; font-size:12px; }

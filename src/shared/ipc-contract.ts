@@ -83,6 +83,7 @@ export const contract = {
   'audio.list': z.object({ workspaceId: ws }),
   'library.details': z.object({ workspaceId: ws, id, offset: z.number().int().min(0).default(0) }),
   'library.pending': z.object({ workspaceId: ws }),
+  'library.filterOptions': z.object({ workspaceId: ws }),
   'library.deleteMany': z.object({ workspaceId: ws, ids: z.array(id).min(1).max(200) }),
   'library.delete': z.object({ workspaceId: ws, id }),
   'library.setFavorite': z.object({ workspaceId: ws, id, favorite: z.boolean() }),
@@ -94,7 +95,11 @@ export const contract = {
     from: z.iso.datetime().optional(), to: z.iso.datetime().optional(),
     maxDurationMs: z.number().int().positive().optional(), minViews: z.number().int().min(0).optional(),
     minLikes: z.number().int().min(0).optional(), minComments: z.number().int().min(0).optional(),
-    status: z.enum(['ready', 'processing', 'scheduled', 'published', 'failed', 'unpublished']).optional(), sourceProfile: z.string().max(100).optional(), publicationAccount: z.string().max(100).optional(), platform: z.enum(['instagram', 'tiktok']).optional(), favoritesOnly: z.boolean().optional(), mediaKind: z.enum(['all', 'videos', 'images']).optional(), limit: z.number().int().min(1).max(200), offset: z.number().int().min(0)
+    status: z.enum(['ready', 'processing', 'scheduled', 'published', 'failed', 'unpublished']).optional(), sourceProfile: z.string().max(100).optional(), publicationAccount: z.string().max(100).optional(), platform: z.enum(['instagram', 'tiktok']).optional(), favoritesOnly: z.boolean().optional(), mediaKind: z.enum(['all', 'videos', 'images']).optional(),
+    statuses: z.array(z.enum(['ready', 'processing', 'scheduled', 'published', 'failed', 'unpublished', 'unscheduled'])).max(7).optional(),
+    sourceProfileIds: z.array(id).max(50).optional(), origins: z.array(z.enum(['pc', 'instagram', 'tiktok'])).max(3).optional(),
+    destinations: z.array(z.enum(['instagram', 'tiktok'])).max(2).optional(), publicationAccounts: z.array(z.string().min(1).max(100)).max(50).optional(),
+    minDurationMs: z.number().int().positive().optional(), downloaded: z.boolean().optional(), published: z.boolean().optional(), limit: z.number().int().min(1).max(200), offset: z.number().int().min(0)
   }),
   'profiles.refresh': z.object({ workspaceId: ws, profileId: id }),
   'profiles.list': z.object({ workspaceId: ws }),
@@ -176,6 +181,7 @@ export interface ImportResultDto { path: string; status: 'imported' | 'duplicate
 export interface GuestSessionDto { entered: boolean; email: 'guest@legacy.com'; mode: 'development' }
 export interface ImportProgress { phase: 'searching' | 'importing' | 'done'; processed: number; total: number | null; imported: number; skipped: number; previewFailures: number; percent: number | null }
 export interface ProfileMetrics { postsCount: number | null; reelsCount: number | null; followersCount: number | null; followingCount: number | null; updatedAt: string }
+export interface LibraryFilterOptions { profiles: { id: string; username: string; platform: string; count: number }[]; accounts: { username: string; count: number }[] }
 export interface ProfileDto { metrics?: ProfileMetrics | null; contentSource?: ProfileContentSource; avatarPath?: string | null; platform: string; id: string; username: string; url: string; connected: boolean; lastSyncedAt: string | null }
 export interface CoverDto { id: string; name: string; kind: 'image' | 'frame_text'; imagePath: string | null; frameMs: number | null; textJson: string | null }
 export interface NotificationDto { id: string; kind: 'info' | 'error' | 'manual_task'; title: string; body: string; actionJson: string | null; dueAt: string | null; readAt: string | null; createdAt: string }
@@ -238,6 +244,7 @@ export interface Outputs {
   'audio.list': AudioTrackDto[]
   'library.details': MediaDetails
   'library.pending': { id: string; label: string; state: 'queued' | 'running' | 'failed'; error: string | null }[]
+  'library.filterOptions': LibraryFilterOptions
   'library.deleteMany': { deleted: string[]; blocked: string[]; failed: string[] }
   'library.delete': null
   'library.setFavorite': null

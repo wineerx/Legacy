@@ -1,3 +1,4 @@
+import { openLibraryDrafts } from './helpers'
 import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -48,7 +49,7 @@ test('Janela do Container → atraso → reduzir intervalo com confirmação →
     await sql("UPDATE jobs SET run_at = strftime('%Y-%m-%dT%H:%M:%fZ', run_at, '+90 minutes')")
 
     await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
-    await page.getByRole('button', { name: 'Containers em rascunho', exact: true }).click()
+    await openLibraryDrafts(page)
     await page.getByRole('group', { name: 'Containers' }).getByRole('button', { name: 'Agendados', exact: true }).click()
     await page.getByRole('button', { name: /Container janela.*\+90 min · 0\/4/ }).click()
     const panel = page.getByRole('region', { name: 'Janela do Container' })

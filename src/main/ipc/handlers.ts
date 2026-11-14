@@ -15,7 +15,7 @@ import { getSetting, setSetting } from '../repos/settings'
 import { importFiles, deleteAsset, storedAssetDir } from '../services/library'
 import { getAsset, setAssetFavorite } from '../repos/assets'
 import { extractFrame } from '../media/ops'
-import { queryGrid } from '../services/grid'
+import { queryGrid, libraryFilterOptions } from '../services/grid'
 import { addProfileFromUrl, archiveProfile, listProfiles, type Profile } from '../repos/profiles'
 import { addReelLink, setRemoteFavorite } from '../repos/remote-posts'
 import { importMetrics } from '../services/metrics-import'
@@ -164,6 +164,7 @@ export function buildHandlers(deps: HandlerDeps): Handlers {
       return { path: out }
     },
     'grid.query': (i) => queryGrid(ctx.db, i),
+    'library.filterOptions': (i) => { requireWorkspace(ctx, i.workspaceId); return libraryFilterOptions(ctx.db, i.workspaceId) },
     'profiles.refresh': async (i) => { requireWorkspace(ctx, i.workspaceId); return changed(i.workspaceId, await refreshProfile(ctx, i.workspaceId, i.profileId)) },
     'profiles.list': (i) => listProfiles(ctx.db, i.workspaceId).map(p => ({ metrics: profileMetrics(ctx, i.workspaceId, p.id), ...profileDto(p, getSetting(ctx.db, i.workspaceId, `profileAvatar.${p.id}`)), contentSource: profileContentSource.catch('posts').parse(getSetting(ctx.db, i.workspaceId, `profileContentSource.${p.id}`)) })),
     'profiles.downloadStatus': (i) => ({ configured: downloadConfigured(ctx, i.workspaceId) }),

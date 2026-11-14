@@ -20,6 +20,7 @@ export function mockBridge(handlers: Partial<Record<Channel, (input: any) => unk
     'accounts.instagram': () => null,
     'settings.get': () => null,
     'library.pending': () => [],
+    'library.filterOptions': () => ({ profiles: [], accounts: [] }),
     'onboarding.status': () => [],
     'jobs.health': () => ({ paused: false, workerId: 'worker-local-01', alive: true, healthy: true, heartbeat: new Date().toISOString(), busy: false, running: 0, capacity: 1, completedLastMinute: 0, oldestWaitMs: 0, waitingOver10Min: 0, stalled: 0, attention: 0, networkLatencyMs: null }),
     'app.bootstrap': () => ({ workspaces: [{ id: WS_ID, name: 'Meu workspace', timeZone: 'America/Sao_Paulo' }], version: 't', workerAlive: true, dataDir: 'C:\\Users\\teste\\AppData\\Roaming\\Legacy' }),

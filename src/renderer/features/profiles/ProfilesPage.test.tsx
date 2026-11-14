@@ -6,6 +6,8 @@ import { ProfilesPage } from './ProfilesPage'
 
 const profile = { platform: 'instagram', id: 'p1', username: 'zanon.boss', url: 'https://www.instagram.com/zanon.boss/', connected: false, lastSyncedAt: null }
 
+const lastGrid = (invoke: { mock: { calls: unknown[][] } }) => invoke.mock.calls.filter(c => c[0] === 'grid.query').at(-1)?.[1]
+
 describe('ProfilesPage', () => {
   it('consulta métricas automaticamente ao importar sem bloquear a busca de posts', async () => {
     let finish!: (value: unknown) => void
@@ -28,17 +30,29 @@ describe('ProfilesPage', () => {
     const invoke = mockBridge({ 'profiles.list': () => [profile], 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
     renderWithApp(<ProfilesPage navigate={vi.fn()} />)
     await userEvent.type(await screen.findByLabelText('Texto na legenda'), 'viagem')
-    const toggle = screen.getByRole('button', { name: 'Filtros avançados' })
-    await userEvent.click(toggle)
+    expect(screen.queryByRole('complementary', { name: 'Filtros' })).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Filtros' }))
     await userEvent.type(screen.getByLabelText('Mínimo de curtidas'), '100')
-    await userEvent.click(screen.getByRole('button', { name: /^Ver .* resultado/ }))
-    expect(screen.getByRole('button', { name: 'Remover filtro: Legenda: viagem' })).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Filtros (1 ativos)' }))
+    expect(screen.queryByRole('complementary', { name: 'Filtros' })).toBeNull()
+    const field = screen.getByRole('group', { name: 'Desempenho' })
+    expect(within(field).getByText('Curtidas ≥ 100')).toBeInTheDocument()
     expect(screen.getByText('Nenhum post corresponde aos filtros')).toBeInTheDocument()
-    await userEvent.click(screen.getByRole('button', { name: 'Remover filtro: Legenda: viagem' }))
-    await waitFor(() => expect(invoke).toHaveBeenLastCalledWith('grid.query', expect.objectContaining({ text: undefined, minLikes: 100 })))
-    await userEvent.click(within(screen.getByRole('region', { name: 'Filtros dos posts' })).getByRole('button', { name: 'Limpar filtros' }))
-    expect(await screen.findByText('Sem filtros aplicados')).toBeInTheDocument()
-    await waitFor(() => expect(invoke).toHaveBeenLastCalledWith('grid.query', expect.objectContaining({ minLikes: undefined })))
+    await waitFor(() => expect(lastGrid(invoke)).toEqual(expect.objectContaining({ text: 'viagem', minLikes: 100 })))
+    await userEvent.click(screen.getByRole('button', { name: 'Remover Curtidas ≥ 100 de Desempenho' }))
+    await waitFor(() => expect(lastGrid(invoke)).toEqual(expect.objectContaining({ text: 'viagem', minLikes: undefined })))
+    expect(screen.queryByRole('group', { name: 'Desempenho' })).toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Limpar filtros' }))
+    await waitFor(() => expect(lastGrid(invoke)).toEqual(expect.objectContaining({ text: undefined })))
+  })
+
+  it('Download filtra posts ainda não baixados', async () => {
+    const invoke = mockBridge({ 'profiles.list': () => [profile], 'grid.query': () => ({ items: [], total: 0, loadedNote: '' }) })
+    renderWithApp(<ProfilesPage navigate={vi.fn()} />)
+    await userEvent.click(await screen.findByRole('button', { name: 'Download' }))
+    await userEvent.click(await screen.findByRole('radio', { name: 'Não baixados' }))
+    await waitFor(() => expect(lastGrid(invoke)).toEqual(expect.objectContaining({ downloaded: false })))
+    expect(within(screen.getByRole('group', { name: 'Download' })).getByText('Não baixados')).toBeInTheDocument()
   })
 
   it('arquiva o perfil ativo e permite restaurar pelo painel de arquivados', async () => {

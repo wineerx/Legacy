@@ -30,3 +30,5 @@ A lista de perfis começa com 280 px e permite ajuste entre 240 e 400 px pela di
 3. Incorporar referências aprovadas ao sistema visual existente, preservando agrupamento e feedback dos filtros.
 4. Validar com usuários: localizar um post por legenda, combinar dois critérios, limpar critérios com o painel fechado, arquivar e restaurar um perfil.
 5. Verificar estados de carregamento, ausência de resultados, falha da API e navegação por teclado antes de novas alterações visuais.
+
+> Atualização 2026-11-12: o cartão de filtros descrito aqui foi substituído pela barra com campos tracejados e pelo painel lateral. Veja `2026-11-12-filtros-painel-lateral.md`.

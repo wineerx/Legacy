@@ -37,13 +37,16 @@ test('measures queue interactions and bounded rendering at 100, 500, 1000 and 50
    await page.getByRole('link',{name:'Biblioteca',exact:true}).click()
    if(n===100) {
     await page.locator('main .page-enter').evaluate(async el=>{await Promise.all(el.getAnimations().map(a=>a.finished))})
-    const trigger=page.getByRole('button',{name:'Filtros',exact:true}),started=performance.now()
-    await trigger.click();await expect(page.getByLabel('Perfil de origem',{exact:true})).toBeVisible()
+    // The Library panel starts docked open on wide screens: close it, then time the opening.
+    const trigger=page.getByRole('button',{name:'Ações da biblioteca',exact:true}),filterPanel=page.getByRole('complementary',{name:'Filtros',exact:true})
+    if(await filterPanel.isVisible()){await trigger.click();await page.getByRole('button',{name:'Ocultar painel de filtros'}).click();await expect(filterPanel).toBeHidden()}
+    await trigger.click()
+    const started=performance.now()
+    await page.getByRole('button',{name:'Mostrar painel de filtros'}).click();await expect(filterPanel.getByRole('button',{name:'Período de importação',exact:true})).toBeVisible()
     await page.waitForFunction(()=>(window as any).__interactionAudit.events.at(-1)?.paintMs>0)
     const paintMs=await page.evaluate(()=>(window as any).__interactionAudit.events.at(-1).paintMs as number)
     expect(paintMs,'Filter panel click to paint opportunity <200 ms').toBeLessThan(200)
     samples.push({action:'abrir painel de filtros',automationMs:performance.now()-started,paintMs})
-    await page.keyboard.press('Escape')
    }
    const start=performance.now()
    await page.getByRole('link',{name:'Fila',exact:true}).click()

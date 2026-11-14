@@ -1,3 +1,4 @@
+import { openLibraryDrafts } from './helpers'
 import { test, expect, _electron as electron } from '@playwright/test'
 import { mkdtempSync, mkdirSync } from 'node:fs'
 import { tmpdir } from 'node:os'
@@ -47,7 +48,7 @@ test('Quota da conta na revisão → agendamento recusado acima da quota → ace
     }, { ws, count, first, days })
     const openReview = async (name: string) => {
       await page.getByRole('link', { name: 'Biblioteca', exact: true }).click()
-      await page.getByRole('button', { name: 'Containers em rascunho', exact: true }).click()
+      await openLibraryDrafts(page)
       await page.getByRole('button', { name: new RegExp(name) }).click()
       await page.getByRole('button', { name: 'Revisar rascunho', exact: true }).click()
       return page.getByRole('region', { name: 'Quota de publicação' })
